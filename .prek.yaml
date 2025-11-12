@@ -1,0 +1,18 @@
+# Prek configuration for Neural Dive
+# Install: uv run prek install
+# Run manually: uv run prek run
+
+hooks:
+  pre-commit:
+    # Run linting and formatting
+    - name: Ruff check and fix
+      command: uv run ruff check --fix neural_dive/
+
+    - name: Ruff format
+      command: uv run ruff format neural_dive/
+
+    - name: Type check with mypy
+      command: uv run mypy neural_dive/
+
+    - name: Run unit tests
+      command: uv run pytest neural_dive/tests/ -q --tb=line
