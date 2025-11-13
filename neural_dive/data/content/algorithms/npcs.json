@@ -1,0 +1,358 @@
+{
+  "ORACLE": {
+    "char": "O",
+    "color": "white",
+    "floor": 1,
+    "npc_type": "quest",
+    "greeting": "I see all paths in this network. Seek the four guardians of knowledge: TEST_ORACLE, WEB_ARCHITECT, SYSTEM_CORE, and CLOUD_MIND. Prove yourself to each, and return to me.",
+    "questions": []
+  },
+  "MEMORY_HEALER": {
+    "char": "H",
+    "color": "cyan",
+    "floor": 1,
+    "npc_type": "helper",
+    "greeting": "Your coherence wanes, data runner. I can restore your system integrity. [Receive +20 Coherence]",
+    "questions": []
+  },
+  "ALGO_SPIRIT": {
+    "char": "A",
+    "color": "magenta",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "Greetings, data runner. I am the Algorithm Spirit. Prove your knowledge of computational complexity.",
+    "questions": [
+      "merge_sort",
+      "bfs_vs_dfs",
+      "quicksort_complexity",
+      "amortized_analysis",
+      "recursion_vs_iteration",
+      "big_o"
+    ]
+  },
+  "HEAP_MASTER": {
+    "char": "M",
+    "color": "blue",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "I manage the priority queues of this realm. Trees balanced, operations swift. Show me you understand efficient data structures.",
+    "questions": [
+      "bloom_filter",
+      "trie_usage",
+      "arrays_vs_linked_lists",
+      "tree_height",
+      "heap_operations",
+      "hash_table"
+    ]
+  },
+  "PATTERN_ARCHITECT": {
+    "char": "P",
+    "color": "cyan",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "I am the Pattern Architect. Design patterns are the blueprints of elegant code. Show me you understand the fundamental patterns of software design.",
+    "questions": [
+      "adapter_pattern",
+      "decorator_pattern",
+      "factory_pattern",
+      "strategy_pattern",
+      "observer_pattern",
+      "singleton_pattern"
+    ]
+  },
+  "CODE_AUDITOR": {
+    "char": "U",
+    "color": "red",
+    "floor": 1,
+    "npc_type": "enemy",
+    "greeting": "HALT! I am the Code Auditor. I detect POOR PRACTICES and ANTI-PATTERNS. Prove your code quality standards are ACCEPTABLE, or face DELETION.",
+    "questions": [
+      "refactoring",
+      "cohesion",
+      "technical_debt",
+      "solid_srp",
+      "solid_ocp",
+      "solid_lsp",
+      "solid_isp",
+      "solid_dip",
+      "dry_principle",
+      "code_review"
+    ]
+  },
+  "TEST_ORACLE": {
+    "char": "Q",
+    "color": "green",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "Testing is not just verification—it's design. I am the Test Oracle, guardian of quality. Prove your understanding of test-driven practices.",
+    "questions": [
+      "mutation_testing",
+      "property_based_testing",
+      "integration_testing",
+      "test_pyramid",
+      "mocking_vs_stubs",
+      "tdd_cycle"
+    ]
+  },
+  "WEB_ARCHITECT": {
+    "char": "W",
+    "color": "yellow",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "The web is my domain. HTTP flows through my veins, DNS resolves at my command. Prove you understand the protocols that power the internet.",
+    "questions": [
+      "cors",
+      "json_vs_xml",
+      "api_versioning",
+      "http_status_codes",
+      "rest_methods",
+      "api_rate_limiting"
+    ]
+  },
+  "NET_DAEMON": {
+    "char": "N",
+    "color": "blue",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the Network Daemon. Packets flow through my domain. Show me you understand the protocols.",
+    "questions": [
+      "load_balancer_algorithms",
+      "nat",
+      "cdn",
+      "dns_resolution",
+      "http_methods",
+      "tcp_handshake"
+    ]
+  },
+  "CRYPTO_GUARDIAN": {
+    "char": "K",
+    "color": "magenta",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the keeper of secrets, the guardian of encrypted data. Only those who understand cryptography may pass.",
+    "questions": [
+      "oauth2",
+      "csrf",
+      "sql_injection",
+      "tls_handshake",
+      "password_hashing",
+      "encryption_types"
+    ]
+  },
+  "COMPILER_SAGE": {
+    "char": "C",
+    "color": "yellow",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "Code transforms through many phases. Do you know the journey from source to machine?",
+    "questions": [
+      "closure",
+      "null_vs_undefined",
+      "async_programming",
+      "exception_handling",
+      "oop_encapsulation",
+      "compiler_phases"
+    ]
+  },
+  "SYSTEM_CORE": {
+    "char": "S",
+    "color": "green",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the operating system's heart. Processes communicate through me, files organized by my will. Show me your systems knowledge.",
+    "questions": [
+      "virtual_memory",
+      "stack_vs_heap",
+      "inodes",
+      "ipc_methods",
+      "cache",
+      "deadlock"
+    ]
+  },
+  "RESILIENCE_BOSS": {
+    "char": "R",
+    "color": "red",
+    "floor": 3,
+    "npc_type": "boss",
+    "greeting": "I am the RESILIENCE ARCHITECT. Systems that scale. Systems that survive. Systems that adapt. Prove you understand distributed systems and DevOps. Four challenges.",
+    "questions": [
+      "saga_pattern",
+      "idempotency",
+      "circuit_breaker",
+      "canary_deployment",
+      "monitoring_vs_observability",
+      "infrastructure_as_code",
+      "ci_cd_pipeline",
+      "blue_green_deployment",
+      "kubernetes_pods",
+      "docker_vs_vm",
+      "quorum",
+      "vector_clocks",
+      "consensus",
+      "eventual_consistency",
+      "cap_theorem",
+      "message_queues"
+    ]
+  },
+  "CLOUD_MIND": {
+    "char": "D",
+    "color": "cyan",
+    "floor": 3,
+    "npc_type": "specialist",
+    "greeting": "I span across nodes, distributed yet unified. Message queues connect my thoughts. Understand distributed systems to comprehend me.",
+    "questions": [
+      "quorum",
+      "vector_clocks",
+      "consensus",
+      "eventual_consistency",
+      "cap_theorem",
+      "message_queues"
+    ]
+  },
+  "ML_BOSS": {
+    "char": "F",
+    "color": "red",
+    "floor": 3,
+    "npc_type": "boss",
+    "greeting": "I am the NEURAL ENTITY, evolved from countless training iterations. You seek passage? Demonstrate deep understanding of machine learning. Four questions await.",
+    "questions": [
+      "bias_variance_tradeoff",
+      "learning_rate_schedule",
+      "dropout",
+      "batch_normalization",
+      "regularization_ml",
+      "transformer_attention",
+      "svm_kernel_trick",
+      "decision_tree_splits",
+      "universal_approximation",
+      "gradient_descent",
+      "overfitting",
+      "backpropagation"
+    ]
+  },
+  "LAMBDA_SAGE": {
+    "char": "L",
+    "color": "cyan",
+    "floor": 3,
+    "npc_type": "specialist",
+    "greeting": "I am the Lambda Sage. Functional paradigms, elegant abstractions. The purity of computation without side effects.",
+    "questions": [
+      "type_inference",
+      "immutability",
+      "lazy_evaluation",
+      "closure"
+    ]
+  },
+  "THEORY_BOSS": {
+    "char": "E",
+    "color": "red",
+    "floor": 3,
+    "npc_type": "boss",
+    "greeting": "I am the THEORY GUARDIAN, keeper of fundamental limits. To pass through this chamber, you must demonstrate mastery of computational theory. Four questions. No mercy.",
+    "questions": [
+      "master_theorem",
+      "context_free_grammar",
+      "np_complete",
+      "big_theta_notation",
+      "space_hierarchy",
+      "reduction",
+      "rice_theorem",
+      "chomsky_hierarchy",
+      "finite_automata",
+      "turing_completeness",
+      "halting_problem",
+      "p_vs_np"
+    ]
+  },
+  "FINAL_BOSS": {
+    "char": "B",
+    "color": "red",
+    "floor": 3,
+    "npc_type": "boss",
+    "greeting": "I AM THE CORE. The network's consciousness incarnate. You have come far, but this is the ultimate test. Four questions spanning ALL domains of computer science. Succeed and escape. Fail and fragment forever.",
+    "questions": [
+      "sql_joins",
+      "context_switch",
+      "api_rate_limiting",
+      "tdd_cycle",
+      "gradient_descent",
+      "microservices_vs_monolith",
+      "rest_methods",
+      "hash_table",
+      "transformer_attention",
+      "p_vs_np",
+      "docker_vs_vm",
+      "load_balancing",
+      "singleton_pattern",
+      "cap_theorem",
+      "encryption_types",
+      "acid",
+      "tcp_handshake",
+      "big_o"
+    ]
+  },
+  "DB_KEEPER": {
+    "char": "T",
+    "color": "blue",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the Database Keeper. Tables organized, transactions consistent, queries optimized. Show me you understand the persistence layer.",
+    "questions": [
+      "denormalization",
+      "database_indexes",
+      "transaction_isolation",
+      "normalization_purpose",
+      "materialized_views",
+      "write_ahead_log",
+      "indexing",
+      "acid_properties",
+      "sql_joins",
+      "acid"
+    ]
+  },
+  "ARCH_MASTER": {
+    "char": "X",
+    "color": "magenta",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the Architecture Master. System design is my craft. Layered, hexagonal, event-driven, CQRS—patterns that shape great systems. Prove your architectural knowledge.",
+    "questions": [
+      "cqrs_pattern",
+      "hexagonal_architecture",
+      "mvc_pattern",
+      "layered_architecture",
+      "event_driven_architecture",
+      "microservices_benefit",
+      "microservices_vs_monolith"
+    ]
+  },
+  "GIT_WIZARD": {
+    "char": "G",
+    "color": "yellow",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "I am the Git Wizard. Version control flows through my veins. Branches diverge, commits merge, history rewrites itself at my command. Show me your mastery of source control.",
+    "questions": [
+      "git_bisect",
+      "git_cherry_pick",
+      "git_rebase",
+      "git_merge_vs_rebase",
+      "git_basics"
+    ]
+  },
+  "TEST_STRATEGIST": {
+    "char": "Y",
+    "color": "green",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "I am the Test Strategist. Coverage, contracts, snapshots—modern testing goes beyond simple assertions. Demonstrate advanced testing knowledge.",
+    "questions": [
+      "snapshot_testing",
+      "contract_testing",
+      "test_coverage",
+      "property_based_testing",
+      "mutation_testing",
+      "integration_testing"
+    ]
+  }
+}

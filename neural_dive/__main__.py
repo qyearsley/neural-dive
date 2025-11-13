@@ -13,7 +13,7 @@ from blessed import Terminal
 
 from neural_dive.difficulty import DifficultyLevel, get_difficulty_from_string
 from neural_dive.game import Game
-from neural_dive.menu import show_difficulty_menu
+from neural_dive.menu import show_difficulty_menu, show_content_menu
 from neural_dive.question_types import QuestionType
 from neural_dive.rendering import draw_game, draw_victory_screen
 from neural_dive.themes import get_theme
@@ -274,21 +274,23 @@ def run_test_mode():
 
 
 def main():
-    """Main entry point"""
+    """Main entry point."""
     parser = argparse.ArgumentParser(
         prog="ndive",
         description="""
 ╔═══════════════════════════════════════════════════════════════╗
 ║                        NEURAL DIVE                            ║
-║        Cyberpunk Terminal Roguelike • CS Learning Game        ║
+║        Cyberpunk Terminal Roguelike • Learning Game           ║
 ╚═══════════════════════════════════════════════════════════════╝
 
-Descend through neural layers, answer CS questions, defeat AI bosses.
+Descend through neural layers, answer questions, master new knowledge.
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   %(prog)s                  # Play with default settings
+  %(prog)s --content chinese-hsk6  # Play with Chinese HSK6 content
+  %(prog)s --list-content   # Show available content sets
   %(prog)s --light          # Light terminal background
   %(prog)s --classic        # ASCII graphics (compatibility mode)
   %(prog)s --fixed --seed 42  # Reproducible game for testing
@@ -339,6 +341,18 @@ Controls:
     # Game options
     game_opts = parser.add_argument_group("Game Options")
     game_opts.add_argument(
+        "--content",
+        "-c",
+        type=str,
+        metavar="SET",
+        help="Content set to play: 'algorithms' (default), 'chinese-hsk6', 'geography', etc.",
+    )
+    game_opts.add_argument(
+        "--list-content",
+        action="store_true",
+        help="List available content sets and exit",
+    )
+    game_opts.add_argument(
         "--difficulty",
         "-d",
         type=str,
@@ -370,6 +384,31 @@ Controls:
 
     args = parser.parse_args()
 
+    # Handle --list-content
+    if args.list_content:
+        from neural_dive.data_loader import list_content_sets, load_content_metadata
+
+        print("\n╔══════════════════════════════════════════════════════════════╗")
+        print("║                   Available Content Sets                     ║")
+        print("╚══════════════════════════════════════════════════════════════╝\n")
+
+        content_sets = list_content_sets()
+        for cs in content_sets:
+            try:
+                metadata = load_content_metadata(cs["id"])
+                default_marker = " [DEFAULT]" if cs.get("default", False) else ""
+                print(f"  {cs['id']}{default_marker}")
+                print(f"    Name: {metadata['name']}")
+                print(f"    Description: {metadata['description']}")
+                print(f"    Questions: {metadata.get('question_count', 'Unknown')}")
+                print(f"    Difficulty: {metadata.get('difficulty_range', 'N/A')}")
+                print()
+            except Exception as e:
+                print(f"  {cs['id']} (error loading metadata: {e})")
+                print()
+
+        return
+
     # Get theme from args, env var, or default
     theme_name = args.theme or os.getenv("NEURAL_DIVE_THEME", "cyberpunk")
     background = args.background or os.getenv("NEURAL_DIVE_BACKGROUND", "dark")
@@ -381,6 +420,18 @@ Controls:
         run_test_mode()
     else:
         term = Terminal()
+
+        # Determine content set
+        if args.content:
+            # Use specified content set
+            content_set = args.content
+        elif args.no_menu:
+            # Skip menu, use default
+            from neural_dive.data_loader import get_default_content_set
+            content_set = get_default_content_set()
+        else:
+            # Show interactive content selection menu
+            content_set = show_content_menu(term)
 
         # Determine difficulty
         if args.difficulty:
@@ -404,6 +455,7 @@ Controls:
             random_npcs=random_npcs,
             seed=args.seed,
             difficulty=difficulty,
+            content_set=content_set,
         )
         run_interactive(game, chars, colors)
 

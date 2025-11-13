@@ -1,0 +1,42 @@
+{
+  "CHINESE_SCHOLAR": {
+    "char": "文",
+    "color": "red",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "你好！Welcome to the realm of advanced Chinese. I am the Scholar of Written Language. Let me test your mastery of HSK 6 vocabulary and idioms.",
+    "questions": ["vocab_arduous", "vocab_emerge", "vocab_profound"]
+  },
+  "IDIOM_MASTER": {
+    "char": "成",
+    "color": "yellow",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "欢迎！I am the Keeper of Idioms. Four-character phrases hold the wisdom of millennia. Show me your understanding of 成语.",
+    "questions": ["idiom_dragons"]
+  },
+  "GRAMMAR_SAGE": {
+    "char": "语",
+    "color": "green",
+    "floor": 3,
+    "npc_type": "specialist",
+    "greeting": "问候！As the Grammar Sage, I will challenge your understanding of complex Chinese sentence structures and patterns.",
+    "questions": ["grammar_despite"]
+  },
+  "LANGUAGE_GUARDIAN": {
+    "char": "言",
+    "color": "magenta",
+    "floor": 4,
+    "npc_type": "helper",
+    "greeting": "很高兴见到你！I protect the knowledge of the Chinese language. Answer correctly, and I will aid you on your journey.",
+    "questions": ["vocab_profound", "vocab_emerge"]
+  },
+  "HSK_BOSS": {
+    "char": "考",
+    "color": "red",
+    "floor": 5,
+    "npc_type": "enemy",
+    "greeting": "你终于来了！I am the final examiner. Only those who have mastered HSK 6 can pass through. Prepare for the ultimate test!",
+    "questions": ["vocab_arduous", "idiom_dragons", "grammar_despite"]
+  }
+}

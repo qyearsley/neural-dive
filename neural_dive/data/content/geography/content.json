@@ -1,0 +1,16 @@
+{
+  "id": "geography",
+  "name": "World Geography",
+  "description": "Explore countries, capitals, landmarks, and geographical features while diving through layers of a digital world map.",
+  "version": "1.0.0",
+  "topics": [
+    "countries",
+    "capitals",
+    "landmarks",
+    "physical_geography",
+    "cultural_geography"
+  ],
+  "difficulty_range": "beginner to advanced",
+  "question_count": 6,
+  "floors": 5
+}

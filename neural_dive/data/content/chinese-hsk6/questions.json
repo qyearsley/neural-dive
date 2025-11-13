@@ -1,0 +1,137 @@
+{
+  "vocab_arduous": {
+    "topic": "vocabulary",
+    "question_text": "What does 艰巨 (jiānjù) mean?",
+    "answers": [
+      {
+        "text": "Arduous, difficult",
+        "correct": true,
+        "response": "正确！艰巨 means arduous or difficult, often describing challenging tasks.",
+        "reward_knowledge": "HSK6 Advanced Vocabulary"
+      },
+      {
+        "text": "Simple, easy",
+        "correct": false,
+        "response": "不对。That's the opposite meaning. 艰巨 means arduous or difficult."
+      },
+      {
+        "text": "Happy, joyful",
+        "correct": false,
+        "response": "不对。That's 快乐 (kuàilè). 艰巨 means arduous or difficult."
+      },
+      {
+        "text": "Ancient, old",
+        "correct": false,
+        "response": "不对。That's 古老 (gǔlǎo). 艰巨 means arduous or difficult."
+      }
+    ]
+  },
+  "vocab_emerge": {
+    "topic": "vocabulary",
+    "question_text": "What does 涌现 (yǒngxiàn) mean?",
+    "answers": [
+      {
+        "text": "To emerge, to spring up",
+        "correct": true,
+        "response": "对了！涌现 means to emerge or spring up, often used for ideas or talents appearing.",
+        "reward_knowledge": "HSK6 Advanced Vocabulary"
+      },
+      {
+        "text": "To disappear",
+        "correct": false,
+        "response": "不对。That's the opposite. 涌现 means to emerge or spring up."
+      },
+      {
+        "text": "To flow slowly",
+        "correct": false,
+        "response": "不对。涌现 means to emerge rapidly, not flow slowly."
+      },
+      {
+        "text": "To hide",
+        "correct": false,
+        "response": "不对。That's 隐藏 (yǐncáng). 涌现 means to emerge or spring up."
+      }
+    ]
+  },
+  "idiom_dragons": {
+    "topic": "idioms",
+    "question_text": "What does the idiom 龙飞凤舞 (lóng fēi fèng wǔ) literally mean?",
+    "answers": [
+      {
+        "text": "Dragons flying and phoenixes dancing (meaning: lively, vigorous calligraphy)",
+        "correct": true,
+        "response": "太棒了！This idiom describes lively and flowing calligraphy or writing style.",
+        "reward_knowledge": "Chinese Idioms Mastery"
+      },
+      {
+        "text": "Tigers and bears fighting",
+        "correct": false,
+        "response": "不对。The idiom uses dragon (龙) and phoenix (凤), not tigers or bears."
+      },
+      {
+        "text": "Fish swimming in water",
+        "correct": false,
+        "response": "不对。龙飞凤舞 refers to dragons flying and phoenixes dancing."
+      },
+      {
+        "text": "Birds singing in trees",
+        "correct": false,
+        "response": "不对。This idiom features mythical creatures: dragons and phoenixes."
+      }
+    ]
+  },
+  "grammar_despite": {
+    "topic": "grammar",
+    "question_text": "Which structure means 'despite' or 'in spite of'?",
+    "answers": [
+      {
+        "text": "尽管...还是... (jǐnguǎn...háishì...)",
+        "correct": true,
+        "response": "正确！尽管 means 'despite/although', and 还是 means 'still/nevertheless'.",
+        "reward_knowledge": "Advanced Grammar Patterns"
+      },
+      {
+        "text": "因为...所以... (yīnwèi...suǒyǐ...)",
+        "correct": false,
+        "response": "不对。That means 'because...therefore'. For 'despite' use 尽管...还是..."
+      },
+      {
+        "text": "如果...就... (rúguǒ...jiù...)",
+        "correct": false,
+        "response": "不对。That means 'if...then'. For 'despite' use 尽管...还是..."
+      },
+      {
+        "text": "虽然...但是... (suīrán...dànshì...)",
+        "correct": false,
+        "response": "接近了！This also means 'although...but', similar to 尽管...还是... which is more formal."
+      }
+    ]
+  },
+  "vocab_profound": {
+    "topic": "vocabulary",
+    "question_text": "What does 深刻 (shēnkè) mean?",
+    "answers": [
+      {
+        "text": "Profound, deep (understanding)",
+        "correct": true,
+        "response": "很好！深刻 means profound or deep, often describing understanding or impressions.",
+        "reward_knowledge": "HSK6 Advanced Vocabulary"
+      },
+      {
+        "text": "Shallow, superficial",
+        "correct": false,
+        "response": "不对。That's 肤浅 (fūqiǎn). 深刻 means profound or deep."
+      },
+      {
+        "text": "Quick, fast",
+        "correct": false,
+        "response": "不对。That's 快速 (kuàisù). 深刻 means profound or deep."
+      },
+      {
+        "text": "Light, gentle",
+        "correct": false,
+        "response": "不对。That's 轻柔 (qīngróu). 深刻 means profound or deep."
+      }
+    ]
+  }
+}

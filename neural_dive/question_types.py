@@ -1,8 +1,4 @@
-"""
-Question type enumerations for Neural Dive.
-
-Defines the different types of questions that can be asked in conversations.
-"""
+"""Question type enumerations for Neural Dive."""
 
 from __future__ import annotations
 
