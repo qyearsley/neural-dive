@@ -1,12 +1,10 @@
-"""
-Entity classes for Neural Dive game.
-"""
+"""Entity classes for Neural Dive game."""
 
 from __future__ import annotations
 
 
 class Entity:
-    """A generic entity in the game (player, NPC, etc.)"""
+    """A generic entity in the game (player, NPC, etc.)."""
 
     def __init__(
         self,
@@ -44,7 +42,7 @@ class Entity:
 
 
 class Stairs:
-    """Stairs to go up or down floors"""
+    """Stairs to go up or down floors."""
 
     def __init__(self, x: int, y: int, direction: str):
         self.x = x
@@ -58,7 +56,7 @@ class Stairs:
 
 
 class InfoTerminal:
-    """Info terminal that displays hints or lore"""
+    """Info terminal that displays hints or lore."""
 
     def __init__(self, x: int, y: int, title: str, content: list[str]):
         self.x = x
@@ -73,7 +71,7 @@ class InfoTerminal:
 
 
 class Gate:
-    """A locked gate that requires knowledge to pass"""
+    """A locked gate that requires knowledge to pass."""
 
     def __init__(self, x: int, y: int, required_knowledge: str):
         self.x = x
@@ -84,7 +82,7 @@ class Gate:
         self.unlocked = False
 
     def unlock(self) -> None:
-        """Unlock the gate"""
+        """Unlock the gate."""
         self.unlocked = True
 
     def __repr__(self) -> str:

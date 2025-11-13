@@ -1,7 +1,10 @@
-"""
-Data loading utilities for Neural Dive.
+"""Data loading utilities for Neural Dive.
+
 Loads questions, NPCs, and terminals from JSON files.
+Supports multiple content sets for different learning topics.
 """
+
+from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -12,13 +15,58 @@ from neural_dive.question_types import QuestionType
 
 
 def get_data_dir() -> Path:
-    """Get the data directory path"""
+    """Get the data directory path."""
     return Path(__file__).parent / "data"
 
 
-def load_questions() -> dict[str, Question]:
-    """Load all questions from questions.json"""
-    data_file = get_data_dir() / "questions.json"
+def get_content_dir(content_set: str = "algorithms") -> Path:
+    """Get the directory path for a specific content set."""
+    return get_data_dir() / "content" / content_set
+
+
+def list_content_sets() -> list[dict]:
+    """List all available content sets."""
+    registry_file = get_data_dir() / "content_registry.json"
+
+    if not registry_file.exists():
+        # Fallback: return algorithms as default.
+        return [{
+            "id": "algorithms",
+            "path": "content/algorithms",
+            "enabled": True,
+            "default": True
+        }]
+
+    with open(registry_file) as f:
+        registry = json.load(f)
+
+    return [cs for cs in registry.get("content_sets", []) if cs.get("enabled", True)]
+
+
+def get_default_content_set() -> str:
+    """Get the default content set ID."""
+    content_sets = list_content_sets()
+
+    for cs in content_sets:
+        if cs.get("default", False):
+            return cs["id"]
+
+    # Fallback to first available or algorithms.
+    return content_sets[0]["id"] if content_sets else "algorithms"
+
+
+def load_content_metadata(content_set: str) -> dict:
+    """Load metadata for a specific content set."""
+    metadata_file = get_content_dir(content_set) / "content.json"
+    if not metadata_file.exists():
+        raise FileNotFoundError(f"Content set '{content_set}' not found")
+    with open(metadata_file) as f:
+        return json.load(f)
+
+
+def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
+    """Load all questions from questions.json for a specific content set."""
+    data_file = get_content_dir(content_set) / "questions.json"
 
     with open(data_file) as f:
         data = json.load(f)
@@ -68,17 +116,9 @@ def load_questions() -> dict[str, Question]:
     return questions
 
 
-def load_npcs(questions: dict[str, Question]) -> dict[str, dict]:
-    """
-    Load all NPCs from npcs.json
-
-    Args:
-        questions: Dictionary of Question objects keyed by question_id
-
-    Returns:
-        Dictionary of NPC data with Conversation objects
-    """
-    data_file = get_data_dir() / "npcs.json"
+def load_npcs(questions: dict[str, Question], content_set: str = "algorithms") -> dict[str, dict]:
+    """Load all NPCs from npcs.json for a specific content set."""
+    data_file = get_content_dir(content_set) / "npcs.json"
 
     with open(data_file) as f:
         data = json.load(f)
@@ -113,25 +153,21 @@ def load_npcs(questions: dict[str, Question]) -> dict[str, dict]:
     return npcs
 
 
-def load_terminals() -> dict[str, dict]:
-    """Load all terminals from terminals.json"""
-    data_file = get_data_dir() / "terminals.json"
-
+def load_terminals(content_set: str = "algorithms") -> dict[str, dict]:
+    """Load all terminals from terminals.json for a specific content set."""
+    data_file = get_content_dir(content_set) / "terminals.json"
     with open(data_file) as f:
         data = json.load(f)
+    return dict(data)
 
-    return dict(data)  # Type cast for mypy
 
+def load_all_game_data(content_set: str | None = None):
+    """Load all game data (questions, NPCs, terminals) for a specific content set."""
+    if content_set is None:
+        content_set = get_default_content_set()
 
-def load_all_game_data():
-    """
-    Load all game data (questions, NPCs, terminals)
-
-    Returns:
-        Tuple of (questions, npcs, terminals)
-    """
-    questions = load_questions()
-    npcs = load_npcs(questions)
-    terminals = load_terminals()
+    questions = load_questions(content_set)
+    npcs = load_npcs(questions, content_set)
+    terminals = load_terminals(content_set)
 
     return questions, npcs, terminals

@@ -1,5 +1,4 @@
-"""
-Entity placement strategies for Neural Dive.
+"""Entity placement strategies for Neural Dive.
 
 This module provides unified entity placement logic to eliminate code duplication
 across NPC, terminal, and stairs generation.
@@ -12,15 +11,12 @@ import random
 
 
 class EntityPlacementStrategy:
-    """
-    Universal entity placement strategy.
+    """Universal entity placement strategy.
 
     Handles three placement modes:
     1. Level-based: Use positions from level layout data
     2. Random: Generate random valid positions
     3. Default: Use predefined fallback positions
-
-    This eliminates ~150 lines of duplicate placement code.
     """
 
     def __init__(
@@ -31,8 +27,7 @@ class EntityPlacementStrategy:
         map_width: int,
         map_height: int,
     ):
-        """
-        Initialize placement strategy.
+        """Initialize placement strategy.
 
         Args:
             game_map: 2D map array for collision detection

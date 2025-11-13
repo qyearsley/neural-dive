@@ -1,0 +1,16 @@
+{
+  "id": "chinese-hsk6",
+  "name": "Chinese HSK 6",
+  "description": "Master advanced Chinese vocabulary and grammar for HSK 6 certification through interactive challenges in a neural network.",
+  "version": "1.0.0",
+  "topics": [
+    "vocabulary",
+    "grammar",
+    "idioms",
+    "reading_comprehension",
+    "advanced_expressions"
+  ],
+  "difficulty_range": "advanced to expert",
+  "question_count": 5,
+  "floors": 5
+}

@@ -61,6 +61,7 @@ class Game:
         seed: int | None = None,
         max_floors: int = MAX_FLOORS,
         difficulty: DifficultyLevel = DifficultyLevel.NORMAL,
+        content_set: str | None = None,
     ):
         """
         Initialize a new game.
@@ -72,6 +73,7 @@ class Game:
             seed: Random seed for reproducibility (None for random)
             max_floors: Maximum number of floors/layers in the game
             difficulty: Difficulty level determining game balance
+            content_set: Content set to use (None for default)
         """
         # Set up difficulty settings
         self.difficulty = difficulty
@@ -85,8 +87,14 @@ class Game:
         # Game dimensions and settings
         self.random_npcs = random_npcs
 
+        # Store content set
+        if content_set is None:
+            from neural_dive.data_loader import get_default_content_set
+            content_set = get_default_content_set()
+        self.content_set = content_set
+
         # Load all game data from JSON files
-        self.questions, self.npc_data, self.terminal_data = load_all_game_data()
+        self.questions, self.npc_data, self.terminal_data = load_all_game_data(content_set)
 
         # Initialize Floor Manager
         from neural_dive.managers.floor_manager import FloorManager
@@ -151,13 +159,13 @@ class Game:
         # Quest system
         self.quest_active = False
 
-        # UI message
+        # UI message.
         self.message = (
             f"Welcome to Neural Dive! Descend through {max_floors} neural layers. "
-            "Beware the Virus Hunter on Layer 3!"
+            "Answer questions to gain knowledge and progress."
         )
 
-        # Generate the first floor entities
+        # Generate the first floor entities.
         self._generate_floor()
 
     # Backward compatibility properties for FloorManager
@@ -1080,6 +1088,7 @@ class Game:
                 # Game settings
                 "difficulty": self.difficulty.value,
                 "seed": self.seed,
+                "content_set": self.content_set,
                 "map_width": self.map_width,
                 "map_height": self.map_height,
                 "max_floors": self.max_floors,
@@ -1154,6 +1163,7 @@ class Game:
                 seed=save_data["seed"],
                 max_floors=save_data["max_floors"],
                 difficulty=difficulty,
+                content_set=save_data.get("content_set"),  # Use .get() for backwards compatibility
             )
 
             # Restore game state

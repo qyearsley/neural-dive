@@ -1,6 +1,4 @@
-"""
-Conversation utilities for Neural Dive.
-"""
+"""Conversation utilities for Neural Dive."""
 
 from __future__ import annotations
 
@@ -11,8 +9,7 @@ from neural_dive.models import Conversation, Question
 
 
 def randomize_answers(question: Question, seed: int | None = None) -> Question:
-    """
-    Create a copy of a question with randomized answer order.
+    """Create a copy of a question with randomized answer order.
 
     Args:
         question: The question to randomize

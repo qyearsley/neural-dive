@@ -1,6 +1,4 @@
-"""
-Data models for Neural Dive game.
-"""
+"""Data models for Neural Dive game."""
 
 from __future__ import annotations
 
@@ -13,7 +11,7 @@ from neural_dive.question_types import QuestionType
 
 @dataclass
 class Answer:
-    """A possible answer to a conversation question"""
+    """A possible answer to a conversation question."""
 
     text: str
     correct: bool
@@ -24,8 +22,7 @@ class Answer:
 
 @dataclass
 class Question:
-    """
-    A CS question in a conversation.
+    """A question in a conversation.
 
     Supports multiple question types:
     - MULTIPLE_CHOICE: Traditional 4-option questions (answers list)
@@ -34,13 +31,13 @@ class Question:
     """
 
     question_text: str
-    topic: str  # e.g., "algorithms", "data_structures", "systems"
+    topic: str  # e.g., "vocabulary", "geography", "algorithms"
     question_type: QuestionType = QuestionType.MULTIPLE_CHOICE
 
-    # For MULTIPLE_CHOICE questions
+    # For MULTIPLE_CHOICE questions.
     answers: list[Answer] = field(default_factory=list)
 
-    # For SHORT_ANSWER and YES_NO questions
+    # For SHORT_ANSWER and YES_NO questions.
     correct_answer: str | None = None  # e.g., "O(n)|linear", "yes", "DFS|Depth-First Search"
     correct_response: str | None = None  # Response when correct
     incorrect_response: str | None = None  # Response when incorrect
@@ -51,7 +48,7 @@ class Question:
 
 @dataclass
 class Conversation:
-    """A conversation with an NPC"""
+    """A conversation with an NPC."""
 
     npc_name: str
     greeting: str

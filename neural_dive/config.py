@@ -1,5 +1,5 @@
-"""
-Configuration constants for Neural Dive game.
+"""Configuration constants for Neural Dive game.
+
 Centralizes magic numbers for easy tuning.
 """
 

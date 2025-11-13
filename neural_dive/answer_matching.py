@@ -1,5 +1,4 @@
-"""
-Answer matching system for short-answer questions.
+"""Answer matching system for short-answer questions.
 
 Provides flexible matching for typed answers, handling variations in formatting,
 spacing, capitalization, and common synonyms.
@@ -11,8 +10,7 @@ import re
 
 
 def normalize_answer(answer: str) -> str:
-    """
-    Normalize an answer for comparison.
+    """Normalize an answer for comparison.
 
     Args:
         answer: Raw answer string
@@ -61,7 +59,7 @@ def extract_big_o(answer: str) -> str | None:
     return None
 
 
-# Common synonyms for algorithm complexities
+# Common synonyms for algorithm complexities.
 COMPLEXITY_SYNONYMS = {
     "constant": ["1", "o(1)", "constanttime"],
     "linear": ["n", "o(n)", "lineartime"],
@@ -74,8 +72,7 @@ COMPLEXITY_SYNONYMS = {
 
 
 def matches_complexity(user_answer: str, correct_answer: str) -> bool:
-    """
-    Check if user's answer matches the correct complexity.
+    """Check if user's answer matches the correct complexity.
 
     Handles various formats and synonyms for Big-O notation.
 
@@ -128,8 +125,7 @@ def matches_complexity(user_answer: str, correct_answer: str) -> bool:
 
 
 def matches_exact(user_answer: str, correct_answer: str, case_sensitive: bool = False) -> bool:
-    """
-    Check if user's answer exactly matches (with optional case sensitivity).
+    """Check if user's answer exactly matches (with optional case sensitivity).
 
     Args:
         user_answer: User's typed answer
@@ -163,8 +159,7 @@ def matches_exact(user_answer: str, correct_answer: str, case_sensitive: bool = 
 
 
 def matches_numeric(user_answer: str, correct_answer: str, tolerance: float = 0.01) -> bool:
-    """
-    Check if user's numeric answer matches within tolerance.
+    """Check if user's numeric answer matches within tolerance.
 
     Args:
         user_answer: User's typed answer

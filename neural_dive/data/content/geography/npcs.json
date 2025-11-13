@@ -1,0 +1,42 @@
+{
+  "MAP_KEEPER": {
+    "char": "M",
+    "color": "blue",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "Greetings, explorer! I am the Keeper of Maps. Let me test your knowledge of the world's physical features.",
+    "questions": ["longest_river", "highest_mountain", "largest_desert"]
+  },
+  "CAPITAL_CURATOR": {
+    "char": "C",
+    "color": "yellow",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "Welcome! I curate knowledge of the world's great cities and capitals. Show me what you know!",
+    "questions": ["capital_france"]
+  },
+  "OCEAN_GUARDIAN": {
+    "char": "O",
+    "color": "cyan",
+    "floor": 3,
+    "npc_type": "specialist",
+    "greeting": "The oceans cover most of our planet. As their guardian, I will test your maritime geography knowledge.",
+    "questions": ["ocean_largest"]
+  },
+  "CONTINENT_SAGE": {
+    "char": "S",
+    "color": "green",
+    "floor": 4,
+    "npc_type": "helper",
+    "greeting": "I have traveled all seven continents. Let me share my wisdom with those who prove their knowledge!",
+    "questions": ["country_australia", "capital_france"]
+  },
+  "GEO_MASTER": {
+    "char": "G",
+    "color": "red",
+    "floor": 5,
+    "npc_type": "enemy",
+    "greeting": "You've journeyed far, but the ultimate test awaits. Only true geography masters can pass!",
+    "questions": ["highest_mountain", "largest_desert", "ocean_largest"]
+  }
+}

@@ -1,8 +1,7 @@
-"""
-Neural Dive - A cyberpunk roguelike with CS conversations.
+"""Neural Dive - A cyberpunk roguelike learning game.
 
-Renders directly in your terminal. Learn computer science concepts
-by conversing with NPCs across multiple neural layers.
+Renders directly in your terminal. Learn through interactive conversations
+with NPCs across multiple neural layers.
 """
 
 __version__ = "1.0.0"

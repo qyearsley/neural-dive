@@ -1,0 +1,18 @@
+{
+  "id": "algorithms",
+  "name": "Computer Science Algorithms",
+  "description": "Learn fundamental algorithms, data structures, and CS concepts while navigating a cyberpunk neural network.",
+  "version": "1.0.0",
+  "topics": [
+    "algorithms",
+    "data_structures",
+    "complexity",
+    "sorting",
+    "searching",
+    "graphs",
+    "trees"
+  ],
+  "difficulty_range": "beginner to expert",
+  "question_count": 45,
+  "floors": 5
+}
