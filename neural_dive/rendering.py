@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from blessed import Terminal
 
     from neural_dive.game import Game
+    from neural_dive.models import Conversation
 
 
 class OverlayRenderer:
@@ -127,8 +128,16 @@ def draw_game(
     sys.stdout.flush()
 
 
-def _draw_map(term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme):
-    """Draw the game map"""
+def _draw_map(term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme) -> None:
+    """
+    Draw the game map tiles to the terminal.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance containing map data
+        chars: Character set for rendering tiles
+        colors: Color scheme for tile colors
+    """
     for y in range(len(game.game_map)):
         for x in range(len(game.game_map[0])):
             char = game.game_map[y][x]
@@ -142,8 +151,16 @@ def _draw_map(term: Terminal, game: Game, chars: CharacterSet, colors: ColorSche
 
 def _clear_old_player_position(
     term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme
-):
-    """Clear the old player position"""
+) -> None:
+    """
+    Clear the old player position by redrawing the floor tile.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance with player position data
+        chars: Character set for rendering tiles
+        colors: Color scheme for tile colors
+    """
     if game.old_player_pos:
         old_x, old_y = game.old_player_pos
         char = game.game_map[old_y][old_x]
@@ -152,8 +169,18 @@ def _clear_old_player_position(
             print(term.move_xy(old_x, old_y) + color_func(chars.floor), end="")
 
 
-def _clear_old_npc_positions(term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme):
-    """Clear old NPC positions"""
+def _clear_old_npc_positions(
+    term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme
+) -> None:
+    """
+    Clear old NPC positions by redrawing floor tiles where NPCs have moved from.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance with NPC position data
+        chars: Character set for rendering tiles
+        colors: Color scheme for tile colors
+    """
     for _npc_name, (old_x, old_y) in game.old_npc_positions.items():
         # Check if position is still occupied by any entity
         occupied = False
@@ -197,8 +224,16 @@ def _clear_old_npc_positions(term: Terminal, game: Game, chars: CharacterSet, co
     game.old_npc_positions.clear()
 
 
-def _draw_entities(term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme):
-    """Draw all game entities (NPCs, terminals, gates, stairs, player)"""
+def _draw_entities(term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme) -> None:
+    """
+    Draw all game entities including NPCs, terminals, stairs, and player.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance containing entity data
+        chars: Character set for rendering entities
+        colors: Color scheme for entity colors
+    """
     from neural_dive.config import FLOOR_REQUIRED_NPCS
 
     # Get required NPCs for current floor
@@ -256,8 +291,17 @@ def _draw_entities(term: Terminal, game: Game, chars: CharacterSet, colors: Colo
     )
 
 
-def _draw_ui(term: Terminal, game: Game, colors: ColorScheme):
-    """Draw the UI panel at the bottom"""
+def _draw_ui(term: Terminal, game: Game, colors: ColorScheme) -> None:
+    """
+    Draw the UI panel at the bottom of the screen.
+
+    Displays floor number, coherence percentage, knowledge count, messages, and controls.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance containing UI state data
+        colors: Color scheme for UI colors
+    """
     ui_y = term.height - UI_BOTTOM_OFFSET
 
     # Separator line
@@ -367,9 +411,28 @@ def draw_conversation_overlay(term: Terminal, game: Game, colors: ColorScheme):
 
 
 def _draw_response(
-    term, game, start_x, start_y, current_y, overlay_width, overlay_height, colors: ColorScheme
-):
-    """Draw response to answer"""
+    term: Terminal,
+    game: Game,
+    start_x: int,
+    start_y: int,
+    current_y: int,
+    overlay_width: int,
+    overlay_height: int,
+    colors: ColorScheme,
+) -> None:
+    """
+    Draw response to player's answer.
+
+    Args:
+        term: Blessed Terminal instance for output
+        game: Game instance containing response data
+        start_x: X coordinate of overlay start
+        start_y: Y coordinate of overlay start
+        current_y: Current Y position for drawing
+        overlay_width: Width of the overlay
+        overlay_height: Height of the overlay
+        colors: Color scheme for response colors
+    """
     response_text = game._last_answer_response
 
     # Check if this is a completion response
@@ -404,17 +467,32 @@ def _draw_response(
 
 
 def _draw_question(
-    term,
-    conv,
-    start_x,
-    start_y,
-    current_y,
-    overlay_width,
-    overlay_height,
+    term: Terminal,
+    conv: Conversation,
+    start_x: int,
+    start_y: int,
+    current_y: int,
+    overlay_width: int,
+    overlay_height: int,
     colors: ColorScheme,
-    game,
-):
-    """Draw current question and answers"""
+    game: Game,
+) -> None:
+    """
+    Draw current question and answers based on question type.
+
+    Handles rendering for multiple choice, short answer, and yes/no questions.
+
+    Args:
+        term: Blessed Terminal instance for output
+        conv: Active conversation containing the question
+        start_x: X coordinate of overlay start
+        start_y: Y coordinate of overlay start
+        current_y: Current Y position for drawing
+        overlay_width: Width of the overlay
+        overlay_height: Height of the overlay
+        colors: Color scheme for question colors
+        game: Game instance for accessing input buffer
+    """
     question = conv.questions[conv.current_question_idx]
 
     # Question text
@@ -577,8 +655,20 @@ def draw_terminal_overlay(term: Terminal, game: Game, colors: ColorScheme):
     )
 
 
-def _draw_overlay_border(term, start_x, start_y, width, height, color_name: str):
-    """Draw a box border around an overlay"""
+def _draw_overlay_border(
+    term: Terminal, start_x: int, start_y: int, width: int, height: int, color_name: str
+) -> None:
+    """
+    Draw a box border around an overlay using Unicode box-drawing characters.
+
+    Args:
+        term: Blessed Terminal instance for output
+        start_x: X coordinate of overlay top-left corner
+        start_y: Y coordinate of overlay top-left corner
+        width: Width of overlay in characters
+        height: Height of overlay in lines
+        color_name: Name of color for border (from color scheme)
+    """
     color_func = getattr(term, f"bold_{color_name}", term.bold_blue)
 
     # Top border

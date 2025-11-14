@@ -90,6 +90,7 @@ class Game:
         # Store content set
         if content_set is None:
             from neural_dive.data_loader import get_default_content_set
+
             content_set = get_default_content_set()
         self.content_set = content_set
 
@@ -277,6 +278,11 @@ class Game:
         """Set show greeting on ConversationEngine."""
         self.conversation_engine.show_greeting = value
 
+    @_show_greeting.deleter
+    def _show_greeting(self):
+        """Delete show greeting from ConversationEngine."""
+        self.conversation_engine.show_greeting = False
+
     @property
     def _last_answer_response(self) -> str | None:
         """Get last answer response from ConversationEngine."""
@@ -286,6 +292,11 @@ class Game:
     def _last_answer_response(self, value: str | None):
         """Set last answer response on ConversationEngine."""
         self.conversation_engine.last_answer_response = value
+
+    @_last_answer_response.deleter
+    def _last_answer_response(self):
+        """Delete last answer response from ConversationEngine."""
+        self.conversation_engine.last_answer_response = None
 
     @property
     def _text_input_buffer(self) -> str:

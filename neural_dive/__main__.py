@@ -13,7 +13,7 @@ from blessed import Terminal
 
 from neural_dive.difficulty import DifficultyLevel, get_difficulty_from_string
 from neural_dive.game import Game
-from neural_dive.menu import show_difficulty_menu, show_content_menu
+from neural_dive.menu import show_content_menu, show_difficulty_menu
 from neural_dive.question_types import QuestionType
 from neural_dive.rendering import draw_game, draw_victory_screen
 from neural_dive.themes import get_theme
@@ -428,6 +428,7 @@ Controls:
         elif args.no_menu:
             # Skip menu, use default
             from neural_dive.data_loader import get_default_content_set
+
             content_set = get_default_content_set()
         else:
             # Show interactive content selection menu

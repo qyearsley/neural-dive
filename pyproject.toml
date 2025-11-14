@@ -43,9 +43,9 @@ dev = [
 neural-dive = "neural_dive.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/neural-dive"
-Repository = "https://github.com/yourusername/neural-dive"
-Issues = "https://github.com/yourusername/neural-dive/issues"
+Homepage = "https://github.com/qyearsley/neural-dive"
+Repository = "https://github.com/qyearsley/neural-dive"
+Issues = "https://github.com/qyearsley/neural-dive/issues"
 
 # ============================================================================
 # Hatchling Configuration

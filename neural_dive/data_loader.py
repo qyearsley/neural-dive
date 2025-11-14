@@ -30,12 +30,9 @@ def list_content_sets() -> list[dict]:
 
     if not registry_file.exists():
         # Fallback: return algorithms as default.
-        return [{
-            "id": "algorithms",
-            "path": "content/algorithms",
-            "enabled": True,
-            "default": True
-        }]
+        return [
+            {"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}
+        ]
 
     with open(registry_file) as f:
         registry = json.load(f)
