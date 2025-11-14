@@ -88,35 +88,37 @@ LEVEL_5 = """
 ####################################################
 """
 
+
 # Parse level strings into structured data
 def parse_level(level_str: str, floor: int) -> dict:
     """Parse a level string into position data."""
-    lines = level_str.strip().split('\n')
+    lines = level_str.strip().split("\n")
     result = {
-        'player_start': None,
-        'stairs_down': None,
-        'stairs_up': None,
-        'npc_positions': {},
-        'terminal_positions': []
+        "player_start": None,
+        "stairs_down": None,
+        "stairs_up": None,
+        "npc_positions": {},
+        "terminal_positions": [],
     }
 
     for y, line in enumerate(lines):
         for x, char in enumerate(line):
-            if char == '@':
-                result['player_start'] = (x, y)
-            elif char == '>':
-                result['stairs_down'] = (x, y)
-            elif char == '<':
-                result['stairs_up'] = (x, y)
-            elif char == 'T':
-                result['terminal_positions'].append((x, y))
-            elif char not in ['#', ' ', '\n']:
+            if char == "@":
+                result["player_start"] = (x, y)
+            elif char == ">":
+                result["stairs_down"] = (x, y)
+            elif char == "<":
+                result["stairs_up"] = (x, y)
+            elif char == "T":
+                result["terminal_positions"].append((x, y))
+            elif char not in ["#", " ", "\n"]:
                 # It's an NPC character
-                if char not in result['npc_positions']:
-                    result['npc_positions'][char] = []
-                result['npc_positions'][char].append((x, y))
+                if char not in result["npc_positions"]:
+                    result["npc_positions"][char] = []
+                result["npc_positions"][char].append((x, y))
 
     return result
+
 
 # Create parsed levels dictionary
 PARSED_LEVELS = {

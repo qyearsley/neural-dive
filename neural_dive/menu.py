@@ -138,7 +138,7 @@ def show_content_menu(term: Terminal) -> str:
 
             # Content options
             start_y = title_y + 4
-            for i, (content_id, metadata, is_default) in enumerate(content_metadata):
+            for i, (_content_id, metadata, _is_default) in enumerate(content_metadata):
                 y_pos = start_y + (i * 3)  # 3 lines per option for description
                 if y_pos >= term.height - 4:
                     break  # Don't overflow screen
@@ -161,10 +161,13 @@ def show_content_menu(term: Terminal) -> str:
                 x_offset = term.width // 2 - 30
                 print(term.move_xy(x_offset, y_pos) + name_line)
 
-                if is_selected:
-                    desc_line = term.dim(f"    {desc}")
-                else:
-                    desc_line = term.dim(f"    {desc}")
+                # Use dim if available, otherwise use normal formatting
+                desc_text = f"    {desc}"
+                try:
+                    desc_line = term.dim(desc_text)
+                except (TypeError, AttributeError):
+                    # Fallback if terminal doesn't support dim
+                    desc_line = term.normal + desc_text
                 print(term.move_xy(x_offset, y_pos + 1) + desc_line)
 
             # Instructions
@@ -190,4 +193,3 @@ def show_content_menu(term: Terminal) -> str:
                     return content_metadata[idx][0]
             elif key.lower() == "q":
                 sys.exit(0)
-
