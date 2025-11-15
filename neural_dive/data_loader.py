@@ -46,10 +46,10 @@ def get_default_content_set() -> str:
 
     for cs in content_sets:
         if cs.get("default", False):
-            return cs["id"]
+            return str(cs["id"])
 
     # Fallback to first available or algorithms.
-    return content_sets[0]["id"] if content_sets else "algorithms"
+    return str(content_sets[0]["id"]) if content_sets else "algorithms"
 
 
 def load_content_metadata(content_set: str) -> dict:
@@ -58,7 +58,8 @@ def load_content_metadata(content_set: str) -> dict:
     if not metadata_file.exists():
         raise FileNotFoundError(f"Content set '{content_set}' not found")
     with open(metadata_file) as f:
-        return json.load(f)
+        result: dict = json.load(f)
+        return result
 
 
 def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
@@ -158,13 +159,73 @@ def load_terminals(content_set: str = "algorithms") -> dict[str, dict]:
     return dict(data)
 
 
+def load_levels(content_set: str = "algorithms") -> dict:
+    """
+    Load level layouts for a specific content set.
+
+    Args:
+        content_set: Content set identifier
+
+    Returns:
+        Dictionary of parsed level data, or empty dict if no levels file exists
+    """
+    import importlib.util
+
+    # Try to load content-specific levels.py
+    levels_file = get_content_dir(content_set) / "levels.py"
+
+    if not levels_file.exists():
+        # Fallback to default levels if content-specific file doesn't exist
+        from neural_dive.data.levels import PARSED_LEVELS
+
+        return PARSED_LEVELS
+
+    # Dynamically import the levels module
+    spec = importlib.util.spec_from_file_location(f"levels_{content_set}", levels_file)
+    if spec and spec.loader:
+        levels_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(levels_module)
+        return getattr(levels_module, "PARSED_LEVELS", {})
+
+    return {}
+
+
 def load_all_game_data(content_set: str | None = None):
-    """Load all game data (questions, NPCs, terminals) for a specific content set."""
+    """Load all game data (questions, NPCs, terminals, levels) for a specific content set."""
     if content_set is None:
         content_set = get_default_content_set()
 
     questions = load_questions(content_set)
     npcs = load_npcs(questions, content_set)
     terminals = load_terminals(content_set)
+    levels = load_levels(content_set)
 
-    return questions, npcs, terminals
+    return questions, npcs, terminals, levels
+
+
+def compute_floor_requirements(npc_data: dict) -> dict[int, set[str]]:
+    """Compute required NPCs per floor based on loaded NPC data.
+
+    NPCs with types 'specialist' or 'enemy' are required to complete their floor.
+    NPCs with type 'helper', 'quest', or 'boss' are optional.
+
+    Args:
+        npc_data: Dictionary mapping NPC names to their data
+
+    Returns:
+        Dictionary mapping floor numbers to sets of required NPC names
+    """
+    floor_requirements: dict[int, set[str]] = {}
+
+    for npc_name, npc_info in npc_data.items():
+        floor = npc_info.get("floor", 1)
+        npc_type = npc_info.get("npc_type", "specialist")
+
+        # Require specialists and enemies only
+        # Helpers, quest NPCs, and bosses are optional
+        if npc_type in ["specialist", "enemy"]:
+            if floor not in floor_requirements:
+                floor_requirements[floor] = set()
+            floor_requirements[floor].add(npc_name)
+
+    return floor_requirements

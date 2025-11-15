@@ -4,12 +4,7 @@ Unit tests for conversation utilities.
 
 import unittest
 
-from neural_dive.conversation import (
-    format_conversation_response,
-    randomize_answers,
-    randomize_questions,
-    wrap_text,
-)
+from neural_dive.conversation import randomize_answers, wrap_text
 from neural_dive.models import Answer, Question
 
 
@@ -39,22 +34,6 @@ class TestRandomization(unittest.TestCase):
         # At least verify they're the same question
         self.assertEqual(randomized.question_text, question.question_text)
         self.assertEqual(randomized.topic, question.topic)
-
-    def test_randomize_questions(self):
-        """Test that questions are randomized"""
-        q1 = Question(question_text="Q1?", answers=[Answer("A", True, "Yes")], topic="topic1")
-        q2 = Question(question_text="Q2?", answers=[Answer("B", True, "Yes")], topic="topic2")
-        q3 = Question(question_text="Q3?", answers=[Answer("C", True, "Yes")], topic="topic3")
-        questions = [q1, q2, q3]
-
-        randomized = randomize_questions(questions, seed=42)
-
-        # Should have same questions
-        self.assertEqual(len(randomized), len(questions))
-        self.assertEqual(
-            {q.question_text for q in randomized},
-            {q.question_text for q in questions},
-        )
 
 
 class TestWrapText(unittest.TestCase):
@@ -102,78 +81,6 @@ class TestWrapText(unittest.TestCase):
 
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0], text)
-
-
-class TestFormatConversationResponse(unittest.TestCase):
-    """Test conversation response formatting"""
-
-    def test_format_correct_answer(self):
-        """Test formatting a correct answer response"""
-        response = format_conversation_response(
-            npc_name="TEST_NPC",
-            response="Great job!",
-            is_correct=True,
-            coherence_change=10,
-            reward_knowledge="test_knowledge",
-        )
-
-        self.assertIn("Great job!", response)
-        self.assertIn("+10 Coherence", response)
-        self.assertIn("test_knowledge", response)
-
-    def test_format_wrong_answer(self):
-        """Test formatting a wrong answer response"""
-        response = format_conversation_response(
-            npc_name="TEST_NPC",
-            response="Not quite.",
-            is_correct=False,
-            coherence_change=-25,
-        )
-
-        self.assertIn("Not quite.", response)
-        self.assertIn("-25 Coherence", response)
-
-    def test_format_enemy_wrong_answer(self):
-        """Test formatting enemy wrong answer (critical error)"""
-        response = format_conversation_response(
-            npc_name="VIRUS_HUNTER",
-            response="INTRUDER!",
-            is_correct=False,
-            coherence_change=-35,
-            is_enemy=True,
-        )
-
-        self.assertIn("INTRUDER!", response)
-        self.assertIn("CRITICAL ERROR", response)
-        self.assertIn("-35 Coherence", response)
-
-    def test_format_completion(self):
-        """Test formatting conversation completion"""
-        response = format_conversation_response(
-            npc_name="TEST_NPC",
-            response="Well done!",
-            is_correct=True,
-            coherence_change=10,
-            is_complete=True,
-        )
-
-        self.assertIn("CONVERSATION COMPLETE", response)
-        self.assertIn("TEST_NPC", response)
-        self.assertIn("proven your worth", response)
-
-    def test_format_enemy_completion(self):
-        """Test formatting enemy conversation completion"""
-        response = format_conversation_response(
-            npc_name="VIRUS_HUNTER",
-            response="Correct.",
-            is_correct=True,
-            coherence_change=10,
-            is_complete=True,
-            is_enemy=True,
-        )
-
-        self.assertIn("CONVERSATION COMPLETE", response)
-        self.assertIn("passed my security check", response)
 
 
 if __name__ == "__main__":

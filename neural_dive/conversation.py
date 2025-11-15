@@ -30,27 +30,6 @@ def randomize_answers(question: Question, seed: int | None = None) -> Question:
     return new_question
 
 
-def randomize_questions(questions: list[Question], seed: int | None = None) -> list[Question]:
-    """
-    Create a copy of questions list with randomized order.
-
-    Args:
-        questions: List of questions to randomize
-        seed: Optional random seed for reproducibility
-
-    Returns:
-        New list with shuffled questions
-    """
-    if seed is not None:
-        random.seed(seed)
-
-    # Deep copy and shuffle
-    new_questions = copy.deepcopy(questions)
-    random.shuffle(new_questions)
-
-    return new_questions
-
-
 def create_randomized_conversation(
     conversation: Conversation,
     randomize_question_order: bool = True,
@@ -127,57 +106,3 @@ def wrap_text(text: str, width: int) -> list[str]:
         lines.append(" ".join(current_line))
 
     return lines
-
-
-def format_conversation_response(
-    npc_name: str,
-    response: str,
-    is_correct: bool,
-    coherence_change: int,
-    reward_knowledge: str | None = None,
-    is_complete: bool = False,
-    is_enemy: bool = False,
-) -> str:
-    """
-    Format a response message with stats and completion info.
-
-    Args:
-        npc_name: Name of the NPC
-        response: The response text
-        is_correct: Whether the answer was correct
-        coherence_change: Amount coherence changed (positive or negative)
-        reward_knowledge: Knowledge module gained, if any
-        is_complete: Whether this completes the conversation
-        is_enemy: Whether this is an enemy NPC
-
-    Returns:
-        Formatted response string
-    """
-    result = response
-
-    # Add stat changes
-    if is_correct:
-        result += f"\n\n[+{coherence_change} Coherence]"
-        if reward_knowledge:
-            result += f" [Gained: {reward_knowledge}]"
-    else:
-        if is_enemy:
-            result += f"\n\n[CRITICAL ERROR! -{abs(coherence_change)} Coherence]"
-        else:
-            result += f"\n\n[-{abs(coherence_change)} Coherence]"
-
-    # Add completion banner if conversation is complete
-    if is_complete:
-        separator = "═" * 40
-        if is_enemy:
-            completion_message = f"{npc_name}: You have passed my security check. You may proceed."
-        else:
-            completion_message = f"{npc_name}: You have proven your worth. I grant you passage."
-
-        # Wrap the completion message to fit within a reasonable width
-        wrapped_lines = wrap_text(completion_message, 70)
-        wrapped_message = "\n".join(wrapped_lines)
-
-        result += f"\n\n{separator}\n✓ CONVERSATION COMPLETE ✓\n{separator}\n\n{wrapped_message}"
-
-    return result

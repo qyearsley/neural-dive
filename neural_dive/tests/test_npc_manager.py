@@ -131,13 +131,8 @@ class TestNPCGeneration(unittest.TestCase):
         """Test that only NPCs for the specified floor are generated."""
         # Create fresh RNG to avoid test pollution
         fresh_rng = random.Random(42)
-        manager = NPCManager(
-            self.npc_data, self.questions, fresh_rng, self.difficulty_settings, seed=42
-        )
 
         # Mock level data with predetermined positions (more reliable than random)
-        from unittest.mock import patch
-
         mock_level_data = {
             "tiles": [["."] * 20 for _ in range(20)],
             "npc_positions": {
@@ -145,16 +140,25 @@ class TestNPCGeneration(unittest.TestCase):
             },
         }
 
-        with patch("neural_dive.managers.npc_manager.PARSED_LEVELS", {1: mock_level_data}):
-            # Generate floor 1 NPCs using level data
-            npcs = manager.generate_npcs_for_floor(
-                floor=1,
-                game_map=mock_level_data["tiles"],
-                player_pos=(1, 1),
-                random_placement=False,  # Use level data, not random
-                map_width=20,
-                map_height=20,
-            )
+        manager = NPCManager(
+            self.npc_data,
+            self.questions,
+            fresh_rng,
+            self.difficulty_settings,
+            seed=42,
+            level_data={1: mock_level_data},
+        )
+
+        # Generate floor 1 NPCs using level data
+        level_tiles: list[list[str]] = [list(row) for row in mock_level_data["tiles"]]
+        npcs = manager.generate_npcs_for_floor(
+            floor=1,
+            game_map=level_tiles,
+            player_pos=(1, 1),
+            random_placement=False,  # Use level data, not random
+            map_width=20,
+            map_height=20,
+        )
 
         # Should have exactly 1 NPC (from floor 1)
         self.assertEqual(len(npcs), 1)
@@ -196,13 +200,20 @@ class TestNPCGeneration(unittest.TestCase):
             self.npc_data, self.questions, self.rng, self.difficulty_settings, seed=42
         )
 
+        # Use a larger map to accommodate default placement ranges
+        larger_map = [
+            ["#"] * 30,
+            *[["#"] + ["."] * 28 + ["#"] for _ in range(28)],
+            ["#"] * 30,
+        ]
+
         npcs = manager.generate_npcs_for_floor(
             floor=1,
-            game_map=self.game_map,
+            game_map=larger_map,
             player_pos=(1, 1),
             random_placement=True,
-            map_width=5,
-            map_height=5,
+            map_width=30,
+            map_height=30,
         )
 
         # Check NPC is not on a wall (if any were successfully placed)
@@ -445,6 +456,7 @@ class TestNPCConversations(unittest.TestCase):
         conv = manager.get_conversation("TALKER")
 
         self.assertIsNotNone(conv)
+        assert conv is not None  # Type narrowing for mypy
         self.assertEqual(conv.npc_name, "TALKER")
 
     def test_get_nonexistent_conversation(self):

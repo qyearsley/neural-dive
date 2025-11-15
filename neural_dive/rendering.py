@@ -5,8 +5,9 @@ Uses blessed library for terminal control.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from neural_dive.config import (
     COMPLETION_OVERLAY_MAX_HEIGHT,
@@ -15,7 +16,7 @@ from neural_dive.config import (
     UI_BOTTOM_OFFSET,
 )
 from neural_dive.conversation import wrap_text
-from neural_dive.question_types import QuestionType
+from neural_dive.question_renderers import get_question_renderer
 from neural_dive.themes import CharacterSet, ColorScheme
 
 if TYPE_CHECKING:
@@ -100,6 +101,7 @@ def draw_game(
     if redraw_all:
         # Clear screen on first draw or floor change
         print(term.home + term.clear, end="")
+        sys.stdout.flush()  # Ensure screen is cleared before drawing
 
         # Draw map
         _draw_map(term, game, chars, colors)
@@ -118,7 +120,7 @@ def draw_game(
 
     # Draw overlays if active
     if game.active_conversation or (
-        hasattr(game, "_last_answer_response") and game._last_answer_response
+        hasattr(game, "last_answer_response") and game.last_answer_response
     ):
         draw_conversation_overlay(term, game, colors)
 
@@ -304,15 +306,29 @@ def _draw_ui(term: Terminal, game: Game, colors: ColorScheme) -> None:
     """
     ui_y = term.height - UI_BOTTOM_OFFSET
 
-    # Separator line
-    ui_color = getattr(term, f"bold_{colors.ui_primary}", term.bold)
+    # Separator line - use non-bold for light backgrounds to ensure visibility
+    ui_color = cast(Callable[[str], str], getattr(term, colors.ui_primary, term.normal))
     print(term.move_xy(0, ui_y) + ui_color("─" * min(term.width, 80)), end="")
 
     # Status line
-    coherence_pct = int((game.coherence / game.max_coherence) * 100)
+    score = game.get_current_score()
     knowledge_count = len(game.knowledge_modules)
-    status_line = f"Neural Layer {game.current_floor}/{game.max_floors} | Coherence: {coherence_pct}% | Knowledge: {knowledge_count}"
-    print(term.move_xy(2, ui_y + 1) + ui_color(status_line), end="")
+
+    # Use localized term for coherence based on content set
+    coherence_label = "分" if game.content_set == "chinese-hsk6" else "Coherence"
+    knowledge_label = "知识" if game.content_set == "chinese-hsk6" else "Knowledge"
+    score_label = "分数" if game.content_set == "chinese-hsk6" else "Score"
+    layer_label = "层" if game.content_set == "chinese-hsk6" else "Layer"
+
+    status_line = (
+        f"{layer_label} {game.current_floor}/{game.max_floors} | "
+        f"{coherence_label}: {game.coherence}/{game.max_coherence} | "
+        f"{knowledge_label}: {knowledge_count} | "
+        f"{score_label}: {score}"
+    )
+    # Use bold for better visibility on light backgrounds
+    status_color = getattr(term, f"bold_{colors.ui_primary}", term.bold)
+    print(term.move_xy(2, ui_y + 1) + status_color(status_line), end="")
 
     # Message line
     print(term.move_xy(2, ui_y + 2) + " " * (term.width - 4), end="")
@@ -343,7 +359,7 @@ def draw_conversation_overlay(term: Terminal, game: Game, colors: ColorScheme):
 
     # If no active conversation, check if we have a completion response to show
     if not conv:
-        if hasattr(game, "_last_answer_response") and game._last_answer_response:
+        if hasattr(game, "last_answer_response") and game.last_answer_response:
             draw_completion_overlay(term, game, colors)
         return
 
@@ -364,7 +380,7 @@ def draw_conversation_overlay(term: Terminal, game: Game, colors: ColorScheme):
     current_y = overlay.start_y + 2
 
     # If showing greeting
-    if hasattr(game, "_show_greeting") and game._show_greeting:
+    if hasattr(game, "show_greeting") and game.show_greeting:
         lines = wrap_text(conv.greeting, overlay.width - 4)
         for line in lines:
             if current_y < overlay.start_y + overlay.height - 2:
@@ -382,7 +398,7 @@ def draw_conversation_overlay(term: Terminal, game: Game, colors: ColorScheme):
         return
 
     # Check if we have a pending response to show
-    if hasattr(game, "_last_answer_response") and game._last_answer_response:
+    if hasattr(game, "last_answer_response") and game.last_answer_response:
         _draw_response(
             term,
             game,
@@ -433,7 +449,11 @@ def _draw_response(
         overlay_height: Height of the overlay
         colors: Color scheme for response colors
     """
-    response_text = game._last_answer_response
+    response_text = game.last_answer_response
+
+    # Handle None response text
+    if response_text is None:
+        return
 
     # Check if this is a completion response
     is_completion = "CONVERSATION COMPLETE" in response_text
@@ -477,10 +497,9 @@ def _draw_question(
     colors: ColorScheme,
     game: Game,
 ) -> None:
-    """
-    Draw current question and answers based on question type.
+    """Draw current question using appropriate renderer strategy.
 
-    Handles rendering for multiple choice, short answer, and yes/no questions.
+    Uses the Strategy pattern to delegate rendering to question-type-specific renderers.
 
     Args:
         term: Blessed Terminal instance for output
@@ -495,91 +514,28 @@ def _draw_question(
     """
     question = conv.questions[conv.current_question_idx]
 
-    # Question text
-    q_text = f"Q{conv.current_question_idx + 1}/{len(conv.questions)}: {question.question_text}"
-    lines = wrap_text(q_text, overlay_width - 4)
-    for line in lines:
-        if current_y < start_y + overlay_height - 4:
-            print(term.move_xy(start_x + 2, current_y) + term.bold_black(line), end="")
-            current_y += 1
+    # Get appropriate renderer for this question type
+    renderer = get_question_renderer(question.question_type)
 
-    current_y += 1
-
-    # Check question type
-    if question.question_type == QuestionType.MULTIPLE_CHOICE:
-        # Multiple choice - show numbered answers
-        for i, answer in enumerate(question.answers):
-            if current_y < start_y + overlay_height - 2:
-                choice_text = f"{i + 1}. {answer.text}"
-                lines = wrap_text(choice_text, overlay_width - 4)
-                for line in lines:
-                    if current_y < start_y + overlay_height - 2:
-                        print(
-                            term.move_xy(start_x + 2, current_y) + term.blue(line),
-                            end="",
-                        )
-                        current_y += 1
-
-        # Instructions at bottom
-        error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
-        print(
-            term.move_xy(start_x + 2, start_y + overlay_height - 2)
-            + error_color("Press 1-4 to answer | ESC to exit"),
-            end="",
-        )
-    else:
-        # Short answer or yes/no - show text input field
-        current_y += 1
-
-        # Input prompt
-        if question.question_type == QuestionType.YES_NO:
-            prompt_text = "Answer (yes/no):"
-        else:
-            prompt_text = "Your answer:"
-
-        print(term.move_xy(start_x + 2, current_y) + term.bold_black(prompt_text), end="")
-        current_y += 1
-
-        # Input box (visual indicator)
-        input_box = "┌" + "─" * (overlay_width - 6) + "┐"
-        print(term.move_xy(start_x + 2, current_y) + term.blue(input_box), end="")
-        current_y += 1
-
-        # Input area with user's typed text
-        text_buffer = getattr(game, "_text_input_buffer", "")
-        # Truncate if too long
-        max_text_length = overlay_width - 10
-        display_text = (
-            text_buffer[-max_text_length:] if len(text_buffer) > max_text_length else text_buffer
-        )
-        print(
-            term.move_xy(start_x + 2, current_y)
-            + term.blue("│ ")
-            + term.black(display_text)
-            + term.blue(" " * (overlay_width - 8 - len(display_text)) + " │"),
-            end="",
-        )
-        current_y += 1
-
-        # Bottom of box
-        input_box_bottom = "└" + "─" * (overlay_width - 6) + "┘"
-        print(term.move_xy(start_x + 2, current_y) + term.blue(input_box_bottom), end="")
-
-        # Instructions at bottom
-        error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
-        if question.question_type == QuestionType.YES_NO:
-            instruction_text = "Press Y/N or type answer and press ENTER | ESC to exit"
-        else:
-            instruction_text = "Type your answer and press ENTER | ESC to exit"
-        print(
-            term.move_xy(start_x + 2, start_y + overlay_height - 2) + error_color(instruction_text),
-            end="",
-        )
+    # Delegate rendering to the strategy
+    renderer.render(
+        term=term,
+        question=question,
+        question_number=conv.current_question_idx + 1,
+        total_questions=len(conv.questions),
+        start_x=start_x,
+        start_y=start_y,
+        current_y=current_y,
+        overlay_width=overlay_width,
+        overlay_height=overlay_height,
+        colors=colors,
+        game=game,
+    )
 
 
 def draw_completion_overlay(term: Terminal, game: Game, colors: ColorScheme):
-    """Draw completion message overlay when conversation is complete"""
-    response_text = game._last_answer_response
+    """Draw completion message overlay when conversation is complete."""
+    response_text = game.last_answer_response
 
     # Setup overlay with OverlayRenderer
     overlay = OverlayRenderer(

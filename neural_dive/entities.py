@@ -32,13 +32,10 @@ class Entity:
     def __repr__(self) -> str:
         return f"Entity(name={self.name}, pos=({self.x}, {self.y}))"
 
-    def distance_from_home(self) -> float:
-        """Calculate distance from home position."""
-        return float(((self.x - self.home_x) ** 2 + (self.y - self.home_y) ** 2) ** 0.5)
-
     def should_return_home(self, max_radius: int) -> bool:
         """Check if NPC should return to home position."""
-        return self.distance_from_home() > max_radius
+        distance = float(((self.x - self.home_x) ** 2 + (self.y - self.home_y) ** 2) ** 0.5)
+        return distance > max_radius
 
 
 class Stairs:
@@ -68,23 +65,3 @@ class InfoTerminal:
 
     def __repr__(self) -> str:
         return f"InfoTerminal(title={self.title}, pos=({self.x}, {self.y}))"
-
-
-class Gate:
-    """A locked gate that requires knowledge to pass."""
-
-    def __init__(self, x: int, y: int, required_knowledge: str):
-        self.x = x
-        self.y = y
-        self.char = "█"  # Block character
-        self.color = "magenta"
-        self.required_knowledge = required_knowledge  # Knowledge module needed
-        self.unlocked = False
-
-    def unlock(self) -> None:
-        """Unlock the gate."""
-        self.unlocked = True
-
-    def __repr__(self) -> str:
-        status = "unlocked" if self.unlocked else "locked"
-        return f"Gate(requires={self.required_knowledge}, {status}, pos=({self.x}, {self.y}))"

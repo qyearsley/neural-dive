@@ -10,7 +10,7 @@
   "CAPITAL_CURATOR": {
     "char": "C",
     "color": "yellow",
-    "floor": 2,
+    "floor": 1,
     "npc_type": "specialist",
     "greeting": "Welcome! I curate knowledge of the world's great cities and capitals. Show me what you know!",
     "questions": ["capital_france"]
@@ -18,7 +18,7 @@
   "OCEAN_GUARDIAN": {
     "char": "O",
     "color": "cyan",
-    "floor": 3,
+    "floor": 1,
     "npc_type": "specialist",
     "greeting": "The oceans cover most of our planet. As their guardian, I will test your maritime geography knowledge.",
     "questions": ["ocean_largest"]
@@ -26,17 +26,25 @@
   "CONTINENT_SAGE": {
     "char": "S",
     "color": "green",
-    "floor": 4,
-    "npc_type": "helper",
+    "floor": 2,
+    "npc_type": "specialist",
     "greeting": "I have traveled all seven continents. Let me share my wisdom with those who prove their knowledge!",
     "questions": ["country_australia", "capital_france"]
+  },
+  "WORLD_EXPLORER": {
+    "char": "W",
+    "color": "magenta",
+    "floor": 2,
+    "npc_type": "helper",
+    "greeting": "I've explored every corner of the globe! Test your knowledge of world geography and I'll share my discoveries.",
+    "questions": ["highest_mountain", "longest_river"]
   },
   "GEO_MASTER": {
     "char": "G",
     "color": "red",
-    "floor": 5,
+    "floor": 3,
     "npc_type": "enemy",
     "greeting": "You've journeyed far, but the ultimate test awaits. Only true geography masters can pass!",
-    "questions": ["highest_mountain", "largest_desert", "ocean_largest"]
+    "questions": ["highest_mountain", "largest_desert", "ocean_largest", "capital_france"]
   }
 }

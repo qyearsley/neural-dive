@@ -1,1 +1,18 @@
-__pycache__
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Unit test coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
