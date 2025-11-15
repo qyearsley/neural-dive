@@ -4,7 +4,7 @@ Unit tests for map generation and entities.
 
 import unittest
 
-from neural_dive.entities import Entity, Gate, InfoTerminal, Stairs
+from neural_dive.entities import Entity, InfoTerminal, Stairs
 from neural_dive.map_generation import create_map
 
 
@@ -115,41 +115,6 @@ class TestInfoTerminal(unittest.TestCase):
         self.assertEqual(len(terminal.content), 3)
         self.assertEqual(terminal.char, "T")
         self.assertEqual(terminal.color, "cyan")
-
-
-class TestGate(unittest.TestCase):
-    """Test Gate class"""
-
-    def test_gate_creation(self):
-        """Test creating a gate"""
-        gate = Gate(x=10, y=5, required_knowledge="binary_search")
-
-        self.assertEqual(gate.x, 10)
-        self.assertEqual(gate.y, 5)
-        self.assertEqual(gate.required_knowledge, "binary_search")
-        self.assertFalse(gate.unlocked)
-        self.assertEqual(gate.char, "█")
-        self.assertEqual(gate.color, "magenta")
-
-    def test_gate_unlock(self):
-        """Test unlocking a gate"""
-        gate = Gate(x=10, y=5, required_knowledge="binary_search")
-
-        self.assertFalse(gate.unlocked)
-        gate.unlock()
-        self.assertTrue(gate.unlocked)
-
-    def test_gate_repr(self):
-        """Test gate string representation"""
-        gate = Gate(x=10, y=5, required_knowledge="binary_search")
-
-        repr_str = repr(gate)
-        self.assertIn("binary_search", repr_str)
-        self.assertIn("locked", repr_str)
-
-        gate.unlock()
-        repr_str = repr(gate)
-        self.assertIn("unlocked", repr_str)
 
 
 if __name__ == "__main__":

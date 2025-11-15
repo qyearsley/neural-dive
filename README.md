@@ -148,7 +148,7 @@ mkdir -p neural_dive/data/content/my-topic
 }
 ```
 
-**3. Create questions** (`questions.json`) - see [QUESTION_GUIDE.md](QUESTION_GUIDE.md):
+**3. Create questions** (`questions.json`) - see [docs/question-guide.md](docs/question-guide.md):
 ```json
 {
   "question_id": {
@@ -223,7 +223,7 @@ cp neural_dive/data/content/algorithms/levels.py neural_dive/data/content/my-top
 
 **For algorithms content (default):**
 
-1. Edit `neural_dive/data/content/algorithms/questions.json` following [QUESTION_GUIDE.md](QUESTION_GUIDE.md):
+1. Edit `neural_dive/data/content/algorithms/questions.json` following [docs/question-guide.md](docs/question-guide.md):
    ```json
    "my_question": {
      "question_text": "What is...?",
@@ -291,8 +291,11 @@ ndive                         # Launcher
 
 ## Documentation
 
-- [Question Guide](QUESTION_GUIDE.md) - How to write good questions
-- [Scripts README](scripts/README.md) - Helper utilities
+- **[Question Guide](docs/question-guide.md)** - How to write good questions
+- **[Content Guide](docs/content-guide.md)** - How to create new content sets
+- **[Development Guide](CLAUDE.md)** - For AI assistants and contributors
+- **[Known Issues](docs/known-issues.md)** - Bug tracker
+- **[Scripts README](scripts/README.md)** - Helper utilities
 
 ---
 
@@ -314,7 +317,7 @@ MIT License - Free to use, modify, and distribute. See [LICENSE](LICENSE).
 
 ## Contributing
 
-Contributions welcome! Add questions, fix bugs, improve docs. See [QUESTION_GUIDE.md](QUESTION_GUIDE.md) for question guidelines.
+Contributions welcome! Add questions, fix bugs, improve docs. See [docs/question-guide.md](docs/question-guide.md) for question guidelines.
 
 **Made with ❤️ for CS learners everywhere**
 # neural-dive

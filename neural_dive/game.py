@@ -11,20 +11,17 @@ This module contains the main Game class that manages:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 import random
 import time
+from typing import TYPE_CHECKING
 
 from neural_dive.answer_matching import match_answer
 from neural_dive.config import (
     DEFAULT_MAP_HEIGHT,
     DEFAULT_MAP_WIDTH,
-    FLOOR_REQUIRED_NPCS,
     MAX_FLOORS,
     NPC_PLACEMENT_ATTEMPTS,
-    PLAYER_START_X,
-    PLAYER_START_Y,
     QUEST_COMPLETION_COHERENCE_BONUS,
     QUEST_TARGET_NPCS,
     STAIRS_DOWN_DEFAULT_X,
@@ -35,14 +32,18 @@ from neural_dive.config import (
     TERMINAL_X_OFFSET,
     TERMINAL_Y_OFFSET,
 )
-from neural_dive.data.levels import PARSED_LEVELS, ZONE_TERMINALS
-from neural_dive.data_loader import load_all_game_data
-from neural_dive.difficulty import DifficultyLevel, get_difficulty_settings
+from neural_dive.data.levels import ZONE_TERMINALS
+from neural_dive.difficulty import DifficultyLevel, DifficultySettings
 from neural_dive.entities import Entity, InfoTerminal, Stairs
 from neural_dive.enums import NPCType
-from neural_dive.managers.player_manager import PlayerManager
 from neural_dive.models import Answer, Conversation
 from neural_dive.question_types import QuestionType
+
+if TYPE_CHECKING:
+    from neural_dive.managers.conversation_engine import ConversationEngine
+    from neural_dive.managers.floor_manager import FloorManager
+    from neural_dive.managers.npc_manager import NPCManager
+    from neural_dive.managers.player_manager import PlayerManager
 
 
 class Game:
@@ -63,8 +64,7 @@ class Game:
         difficulty: DifficultyLevel = DifficultyLevel.NORMAL,
         content_set: str | None = None,
     ):
-        """
-        Initialize a new game.
+        """Initialize a new game.
 
         Args:
             map_width: Width of the game map in tiles
@@ -75,36 +75,38 @@ class Game:
             difficulty: Difficulty level determining game balance
             content_set: Content set to use (None for default)
         """
+        from neural_dive.game_builder import GameInitializer
+
         # Set up difficulty settings
-        self.difficulty = difficulty
-        self.difficulty_settings = get_difficulty_settings(difficulty)
+        self.difficulty: DifficultyLevel
+        self.difficulty_settings: DifficultySettings
+        self.difficulty, self.difficulty_settings = GameInitializer.setup_difficulty(difficulty)
+
         # Set up randomization
-        if seed is not None:
-            random.seed(seed)
-        self.rand = random
-        self.seed = seed
+        self.rand: random.Random
+        self.seed: int | None
+        self.rand, self.seed = GameInitializer.setup_randomization(seed)
 
         # Game dimensions and settings
         self.random_npcs = random_npcs
 
-        # Store content set
-        if content_set is None:
-            from neural_dive.data_loader import get_default_content_set
+        # Load all game data
+        (
+            self.content_set,
+            self.questions,
+            self.npc_data,
+            self.terminal_data,
+            self.level_data,
+        ) = GameInitializer.load_content(content_set)
 
-            content_set = get_default_content_set()
-        self.content_set = content_set
+        # Compute floor requirements based on loaded NPCs
+        from neural_dive.data_loader import compute_floor_requirements
 
-        # Load all game data from JSON files
-        self.questions, self.npc_data, self.terminal_data = load_all_game_data(content_set)
+        floor_requirements = compute_floor_requirements(self.npc_data)
 
         # Initialize Floor Manager
-        from neural_dive.managers.floor_manager import FloorManager
-
-        self.floor_manager = FloorManager(
-            max_floors=max_floors,
-            map_width=map_width,
-            map_height=map_height,
-            seed=seed,
+        self.floor_manager: FloorManager = GameInitializer.create_floor_manager(
+            max_floors, map_width, map_height, seed, self.level_data, floor_requirements
         )
 
         # Get map and dimensions from floor manager
@@ -112,62 +114,63 @@ class Game:
         self.map_width = self.floor_manager.map_width
         self.map_height = self.floor_manager.map_height
 
-        # Get player start position
-        level_data = PARSED_LEVELS.get(1)
-        if level_data and "player_start" in level_data and level_data["player_start"]:
-            player_start = level_data["player_start"]
-        else:
-            player_start = (PLAYER_START_X, PLAYER_START_Y)
-
         # Create player entity
-        self.player = Entity(player_start[0], player_start[1], "@", "cyan", "Data Runner")
-        self.old_player_pos: tuple[int, int] | None = None
+        self.player, self.old_player_pos = GameInitializer.create_player(self.level_data)
 
-        # Current floor entities (non-NPC)
-        self.stairs: list[Stairs] = []
-        self.terminals: list[InfoTerminal] = []
+        # Initialize entity lists
+        self.stairs, self.terminals = GameInitializer.initialize_entities()
 
         # Initialize NPC Manager
-        from neural_dive.managers.npc_manager import NPCManager
-
-        self.npc_manager = NPCManager(
-            npc_data=self.npc_data,
-            questions=self.questions,
-            rng=self.rand,
-            difficulty_settings=self.difficulty_settings,
-            seed=seed,
+        self.npc_manager: NPCManager = GameInitializer.create_npc_manager(
+            self.npc_data,
+            self.questions,
+            self.rand,
+            self.difficulty_settings,
+            seed,
+            self.level_data,
         )
 
         # Initialize Conversation Engine
-        from neural_dive.managers.conversation_engine import ConversationEngine
+        self.conversation_engine: ConversationEngine = GameInitializer.create_conversation_engine()
 
-        self.conversation_engine = ConversationEngine()
-
-        # Player stats (managed by PlayerManager with difficulty-based settings)
-        self.player_manager = PlayerManager(
-            coherence=self.difficulty_settings.starting_coherence,
-            max_coherence=self.difficulty_settings.max_coherence,
+        # Initialize Player Manager
+        self.player_manager: PlayerManager = GameInitializer.create_player_manager(
+            self.difficulty_settings
         )
 
-        # Score tracking
-        self.start_time = time.time()
-        self.questions_answered = 0
-        self.questions_correct = 0
-        self.questions_wrong = 0
-        self.npcs_completed: set[str] = set()  # NPCs with completed conversations
-        self.game_won = False
+        # Initialize statistics
+        (
+            self.start_time,
+            self.questions_answered,
+            self.questions_correct,
+            self.questions_wrong,
+            self.npcs_completed,
+            self.game_won,
+        ) = GameInitializer.initialize_stats()
 
         # Quest system
         self.quest_active = False
 
-        # UI message.
-        self.message = (
-            f"Welcome to Neural Dive! Descend through {max_floors} neural layers. "
-            "Answer questions to gain knowledge and progress."
-        )
+        # UI message
+        self.message = GameInitializer.create_welcome_message(max_floors)
 
-        # Generate the first floor entities.
+        # Generate the first floor entities
         self._generate_floor()
+
+    def _localize(self, en_text: str, zh_text: str | None = None) -> str:
+        """
+        Return localized text based on content set.
+
+        Args:
+            en_text: English text (default)
+            zh_text: Chinese text (optional)
+
+        Returns:
+            Localized text based on current content set
+        """
+        if self.content_set == "chinese-hsk6" and zh_text:
+            return zh_text
+        return en_text
 
     # Backward compatibility properties for FloorManager
     @property
@@ -269,42 +272,42 @@ class Game:
         self.conversation_engine.active_terminal = value
 
     @property
-    def _show_greeting(self) -> bool:
+    def show_greeting(self) -> bool:
         """Get show greeting from ConversationEngine."""
         return self.conversation_engine.show_greeting
 
-    @_show_greeting.setter
-    def _show_greeting(self, value: bool):
+    @show_greeting.setter
+    def show_greeting(self, value: bool):
         """Set show greeting on ConversationEngine."""
         self.conversation_engine.show_greeting = value
 
-    @_show_greeting.deleter
-    def _show_greeting(self):
+    @show_greeting.deleter
+    def show_greeting(self):
         """Delete show greeting from ConversationEngine."""
         self.conversation_engine.show_greeting = False
 
     @property
-    def _last_answer_response(self) -> str | None:
+    def last_answer_response(self) -> str | None:
         """Get last answer response from ConversationEngine."""
         return self.conversation_engine.last_answer_response
 
-    @_last_answer_response.setter
-    def _last_answer_response(self, value: str | None):
+    @last_answer_response.setter
+    def last_answer_response(self, value: str | None):
         """Set last answer response on ConversationEngine."""
         self.conversation_engine.last_answer_response = value
 
-    @_last_answer_response.deleter
-    def _last_answer_response(self):
+    @last_answer_response.deleter
+    def last_answer_response(self):
         """Delete last answer response from ConversationEngine."""
         self.conversation_engine.last_answer_response = None
 
     @property
-    def _text_input_buffer(self) -> str:
+    def text_input_buffer(self) -> str:
         """Get text input buffer from ConversationEngine."""
         return self.conversation_engine.text_input_buffer
 
-    @_text_input_buffer.setter
-    def _text_input_buffer(self, value: str):
+    @text_input_buffer.setter
+    def text_input_buffer(self, value: str):
         """Set text input buffer on ConversationEngine."""
         self.conversation_engine.text_input_buffer = value
 
@@ -325,6 +328,10 @@ class Game:
         self.stairs = []
         self.terminals = []
 
+        # Clear old position tracking when changing floors
+        self.npc_manager.old_positions.clear()
+        self.old_player_pos = None  # Clear player's old position to prevent stale rendering
+
         # Generate NPCs for this floor using NPCManager
         self.npc_manager.generate_npcs_for_floor(
             floor=self.current_floor,
@@ -344,7 +351,7 @@ class Game:
     def _generate_terminals(self):
         """Generate and place info terminals for the current floor."""
         # Get level data for terminal positions
-        level_data = PARSED_LEVELS.get(self.current_floor)
+        level_data = self.level_data.get(self.current_floor)
 
         if level_data and "terminal_positions" in level_data:
             # Use positions from level layout
@@ -409,22 +416,20 @@ class Game:
     def _generate_stairs(self):
         """Generate stairs up and/or down based on current floor."""
         # Get level data for stair positions
-        level_data = PARSED_LEVELS.get(self.current_floor)
+        level_data = self.level_data.get(self.current_floor)
 
         if level_data:
             # Use stairs from level layout
-            stairs_down_positions = level_data.get("stairs_down", [])
-            stairs_up_positions = level_data.get("stairs_up", [])
+            stairs_down_position = level_data.get("stairs_down")
+            stairs_up_position = level_data.get("stairs_up")
 
             # Add stairs down
-            if self.current_floor < self.max_floors and stairs_down_positions:
-                for x, y in stairs_down_positions:
-                    self.stairs.append(Stairs(x, y, "down"))
+            if self.current_floor < self.max_floors and stairs_down_position:
+                self._add_stairs_from_positions(stairs_down_position, "down")
 
             # Add stairs up
-            if self.current_floor > 1 and stairs_up_positions:
-                for x, y in stairs_up_positions:
-                    self.stairs.append(Stairs(x, y, "up"))
+            if self.current_floor > 1 and stairs_up_position:
+                self._add_stairs_from_positions(stairs_up_position, "up")
         else:
             # Fallback to placement strategy
             from neural_dive.placement import EntityPlacementStrategy
@@ -465,6 +470,22 @@ class Game:
                 if up_positions:
                     x, y = up_positions[0]
                     self.stairs.append(Stairs(x, y, "up"))
+
+    def _add_stairs_from_positions(self, position_data, direction: str):
+        """Add stairs from position data (may be tuple or list of tuples).
+
+        Args:
+            position_data: Either a single (x, y) tuple or list of (x, y) tuples
+            direction: "up" or "down"
+        """
+        if isinstance(position_data, tuple):
+            # Single position
+            x, y = position_data
+            self.stairs.append(Stairs(x, y, direction))
+        else:
+            # List of positions
+            for x, y in position_data:
+                self.stairs.append(Stairs(x, y, direction))
 
     def update_npc_wandering(self):
         """
@@ -533,7 +554,7 @@ class Game:
             self.message = ""
             return True
         else:
-            self.message = "Blocked by firewall!"
+            self.message = self._localize("Blocked by firewall!", "被防火墙阻挡！")
             return False
 
     def interact(self) -> bool:
@@ -627,7 +648,7 @@ class Game:
             self.message = conversation.greeting
             return True
         else:
-            self.message = f"{npc_name}: You have proven yourself. We have nothing more to discuss."
+            self.message = f"{npc_name}: {self._localize('You have proven yourself. We have nothing more to discuss.', '你已经证明了自己。我们没有更多可讨论的了。')}"
             return True
 
     def _handle_quest_npc(self, npc_name: str, conversation: Conversation) -> bool:
@@ -704,12 +725,8 @@ class Game:
 
         # Check if floor objectives are complete
         if not self.is_floor_complete():
-            required = FLOOR_REQUIRED_NPCS.get(self.current_floor, set())
-            incomplete = [
-                npc
-                for npc in required
-                if not self.npc_conversations.get(npc) or not self.npc_conversations[npc].completed
-            ]
+            required = self.floor_manager.floor_requirements.get(self.current_floor, set())
+            incomplete = [npc for npc in required if npc not in self.npcs_completed]
             self.message = f"Cannot descend! Complete conversations with: {', '.join(incomplete)}"
             return False
 
@@ -919,6 +936,20 @@ class Game:
 
         return True, response
 
+    def get_current_score(self) -> int:
+        """
+        Calculate the current score based on player progress.
+
+        Returns:
+            Current score value
+        """
+        return (
+            (self.questions_correct * 100)  # Points per correct answer
+            + (len(self.knowledge_modules) * 50)  # Points per knowledge module
+            + (len(self.npcs_completed) * 200)  # Points per NPC completed
+            + (self.coherence * 10)  # Bonus for remaining coherence
+        )
+
     def get_final_stats(self) -> dict:
         """
         Get final game statistics for victory/game over screen.
@@ -934,13 +965,8 @@ class Game:
         if self.questions_answered > 0:
             accuracy = (self.questions_correct / self.questions_answered) * 100
 
-        # Calculate score (simple formula - can be enhanced)
-        score = (
-            (self.questions_correct * 100)  # Points per correct answer
-            + (len(self.knowledge_modules) * 50)  # Points per knowledge module
-            + (len(self.npcs_completed) * 200)  # Points per NPC completed
-            + (self.coherence * 10)  # Bonus for remaining coherence
-        )
+        # Calculate score using current score method
+        score = self.get_current_score()
 
         return {
             "time_played": time_played,
@@ -1076,8 +1102,7 @@ class Game:
         }
 
     def save_game(self, filepath: str | Path | None = None) -> bool:
-        """
-        Save the current game state to a file.
+        """Save the current game state to a file.
 
         Args:
             filepath: Path to save file. If None, uses default location.
@@ -1085,61 +1110,13 @@ class Game:
         Returns:
             True if save successful, False otherwise
         """
-        if filepath is None:
-            # Default save location: ~/.neural_dive/save.json
-            save_dir = Path.home() / ".neural_dive"
-            save_dir.mkdir(exist_ok=True)
-            filepath = save_dir / "save.json"
-        else:
-            filepath = Path(filepath)
+        from neural_dive.game_serializer import GameSerializer
 
-        try:
-            # Collect all game state
-            save_data = {
-                # Game settings
-                "difficulty": self.difficulty.value,
-                "seed": self.seed,
-                "content_set": self.content_set,
-                "map_width": self.map_width,
-                "map_height": self.map_height,
-                "max_floors": self.max_floors,
-                "current_floor": self.current_floor,
-                "random_npcs": self.random_npcs,
-                # Player state (delegated to PlayerManager)
-                "player_manager": self.player_manager.to_dict(),
-                # Player position
-                "player_x": self.player.x,
-                "player_y": self.player.y,
-                # NPC state (delegated to NPCManager)
-                "npc_manager": self.npc_manager.to_dict(),
-                # Conversation state (delegated to ConversationEngine)
-                "conversation_engine": self.conversation_engine.to_dict(),
-                # Statistics
-                "start_time": self.start_time,
-                "questions_answered": self.questions_answered,
-                "questions_correct": self.questions_correct,
-                "questions_wrong": self.questions_wrong,
-                "npcs_completed": list(self.npcs_completed),
-                "game_won": self.game_won,
-                # Quest state
-                "quest_active": self.quest_active,
-                # Message
-                "message": self.message,
-            }
-
-            # Write to file
-            with open(filepath, "w") as f:
-                json.dump(save_data, f, indent=2)
-
-            return True
-        except Exception as e:
-            print(f"Error saving game: {e}")
-            return False
+        return GameSerializer.save(self, filepath)
 
     @staticmethod
     def load_game(filepath: str | Path | None = None) -> Game | None:
-        """
-        Load a saved game from a file.
+        """Load a saved game from a file.
 
         Args:
             filepath: Path to save file. If None, uses default location.
@@ -1147,79 +1124,6 @@ class Game:
         Returns:
             Loaded Game instance, or None if load failed
         """
-        if filepath is None:
-            # Default save location
-            filepath = Path.home() / ".neural_dive" / "save.json"
-        else:
-            filepath = Path(filepath)
+        from neural_dive.game_serializer import GameSerializer
 
-        if not filepath.exists():
-            return None
-
-        try:
-            # Read save data
-            with open(filepath) as f:
-                save_data = json.load(f)
-
-            # Create new game with saved settings
-            from neural_dive.difficulty import DifficultyLevel
-            from neural_dive.managers.conversation_engine import ConversationEngine
-            from neural_dive.managers.npc_manager import NPCManager
-
-            difficulty = DifficultyLevel(save_data["difficulty"])
-            game = Game(
-                map_width=save_data["map_width"],
-                map_height=save_data["map_height"],
-                random_npcs=save_data["random_npcs"],
-                seed=save_data["seed"],
-                max_floors=save_data["max_floors"],
-                difficulty=difficulty,
-                content_set=save_data.get("content_set"),  # Use .get() for backwards compatibility
-            )
-
-            # Restore game state
-            game.current_floor = save_data["current_floor"]
-
-            # Restore player state from PlayerManager
-            game.player_manager = PlayerManager.from_dict(save_data["player_manager"])
-
-            # Restore player position
-            game.player.x = save_data["player_x"]
-            game.player.y = save_data["player_y"]
-
-            # Restore NPC state from NPCManager
-            game.npc_manager = NPCManager.from_dict(
-                save_data["npc_manager"],
-                npc_data=game.npc_data,
-                questions=game.questions,
-                rng=game.rand,
-                difficulty_settings=game.difficulty_settings,
-                seed=game.seed,
-            )
-
-            # Restore conversation state from ConversationEngine
-            game.conversation_engine = ConversationEngine.from_dict(
-                save_data["conversation_engine"], npc_conversations=game.npc_conversations
-            )
-
-            # Restore statistics
-            game.start_time = save_data["start_time"]
-            game.questions_answered = save_data["questions_answered"]
-            game.questions_correct = save_data["questions_correct"]
-            game.questions_wrong = save_data["questions_wrong"]
-            game.npcs_completed = set(save_data["npcs_completed"])
-            game.game_won = save_data["game_won"]
-
-            # Restore quest state
-            game.quest_active = save_data["quest_active"]
-
-            # Restore message
-            game.message = save_data["message"]
-
-            # Regenerate the current floor (map and entities)
-            game._generate_floor()
-
-            return game
-        except Exception as e:
-            print(f"Error loading game: {e}")
-            return None
+        return GameSerializer.load(filepath)

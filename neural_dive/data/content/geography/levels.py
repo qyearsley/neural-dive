@@ -1,5 +1,5 @@
 """
-Level layouts for Neural Dive game.
+Level layouts for Geography content set.
 Each level is defined as a string map with zones and NPC placements.
 
 Legend:
@@ -9,242 +9,170 @@ Legend:
   < = stairs up
   > = stairs down
   T = terminal location
-  Letters (A, H, O, etc.) = NPC spawn points (must match NPC char in npcs.json)
+  Letters = NPC spawn points (must match NPC char in npcs.json)
 """
 
-# Floor 1: Learning Fundamentals - Open plaza with branching corridors
+# Floor 1: World Geography Basics
 FLOOR_1_LAYOUT = """
 ##################################################
-#.<..............................................##
-#.@...............................................#
-#.T...............................................#
-#.ENTRY.PLAZA.....................................#
-#.................................................#
-#..........H......................................#
-#.................................................#
-#.....O...................M.......................#
-#.................................................#
+#.<..............................................#
+#.@..............................................#
+#................................................#
+#................................................#
+#................................................#
+#................................................#
+#..................T.............................#
+#................................................#
+#..........M.....................................#
+#................................................#
+#................................................#
+#.....O..........................................#
+#................................................#
 #####......#########......########################
 #...#......#.......#......#.........#............#
-#.P.#......#...A...#......#....U....#............#
+#...#......#.......#......#.........#............#
 #...#......#.......#......#.........#............#
 #...#......#########......#.........#............#
-#...#.........................T.....#............#
-#...#.........................KNOWLEDGE..SECTOR..#
-#...#......................................Q.....#
-#...#........................................#...#
+#...#............................................#
+#...#............................................#
+#...#............................................#
+#...#..........................C.................#
 #...##########################################...#
-#.................................................#
-#..H..............................................#
-#.................................................#
-#.........................................>......##
+#................................................#
+#.........................................>......#
 ##################################################
 """
 
-# Floor 2: System Architecture - Serpentine path with chambers
+# Floor 2: Advanced Geography
 FLOOR_2_LAYOUT = """
 ##################################################
-##.<..............................................#
-#.@...............................................#
-#.T...............................................#
-#.INFRASTRUCTURE.LAYER............................#
-#.................................................#
-#.H...............................W...............#
-#.................................................#
+##.<.............................................#
+#.@..............................................#
+#................................................#
+#................................................#
+#................................................#
+#..................T.............................#
+#................................................#
+#................................................#
 #####.........########........####################
 #...#.........#......#........#..................#
-#.C.#.........#......#........#.......N..........#
+#...#.........#......#........#..................#
 #...#.........#......#........#..................#
 #...#.........########........####################
-#...#.............................................#
-#...#.........T...................................#
-#...#.........PROTOCOL.NEXUS......................#
-#...#.............................................#
-#...#.....########....############################
-#.K.#.....#......#....#..........................#
-#...#.....#......#....#..........S...............#
-#...#.....#......#....#..........................#
-#####.....########....############################
-#.................................................#
-#.........................................>......##
+#...#............................................#
+#...#...........S................................#
+#...#............................................#
+#...#............................................#
+#...#.....########..................##############
+#...#.....#......#..................#............#
+#...#.....#......#..................#............#
+#...#.....#......#..........W.......#............#
+#...#.....#......#..................#............#
+#####.....########..................##############
+#................................................#
+#.........................................>......#
 ##################################################
 """
 
-# Floor 3: Advanced Concepts - Three boss arenas
+# Floor 3: Geography Master Challenge
 FLOOR_3_LAYOUT = """
 ##################################################
-##.<..............................................#
-#.@...............................................#
-#.T...............................................#
-#.THE.CORE.LAYER..................................#
-#.................................................#
-#.H...............................................#
-#.................................................#
-####################......########################
-#..................#......#......................#
-#.T................#......#......................#
-#.ARENA.1:.........#......#......................#
-#.DISTRIBUTED.MIND.#......#......................#
-#.........R........#......#.........D............#
-#..................#......#......................#
-####################......########################
-#.................................................#
-####################......########################
-#.T................#......#......................#
-#.ARENA.2:.........#......#......................#
-#.ML.CONSCIOUSNESS.#......#......................#
-#..........F.......#......#..........L...........#
-#..................#......#......................#
-#.H................#......#......................#
-####################......########################
-#.................................................#
-#.T...............................................#
-#.FINAL.ARENA:..THE.CORE.ENTITY...................#
-#................E............B....................#
+##.<.............................................#
+#.@..............................................#
+#................................................#
+#................................................#
+#................................................#
+#..................T.............................#
+#................................................#
+#................................................#
+#................G...............................#
+#................................................#
+#................................................#
+#................................................#
 ##################################################
 """
 
 # Zone definitions - what terminal content to show for each zone
 ZONE_TERMINALS = {
-    1: {  # Floor 1
-        "ENTRY": {
-            "title": "Welcome to Neural Dive",
+    1: {
+        "WORLD": {
+            "title": "Welcome to Geography Quest",
             "content": [
-                "You have entered the Neural Network Core.",
+                "Welcome to the World of Geography!",
                 "",
-                "Your consciousness has been digitized and uploaded",
-                "into an AI training system. The neural network is",
-                "unstable and fragmenting.",
+                "You have entered a knowledge realm where understanding",
+                "of Earth's features, countries, and cultures is key.",
                 "",
-                "To escape, you must prove your knowledge and",
-                "restore coherence to the system. Answer questions",
-                "correctly to gain stability, but beware - wrong",
-                "answers will corrupt your data integrity.",
+                "To progress, you must prove your knowledge of",
+                "world geography, capitals, and physical features.",
                 "",
-                "Start with the fundamentals. Master the basics",
-                "before venturing deeper into the network.",
+                "Master the basics to unlock advanced challenges.",
             ],
         },
-        "KNOWLEDGE": {
-            "title": "Knowledge Sector",
+        "GEOGRAPHY": {
+            "title": "Geography Hall",
             "content": [
-                "You've entered the Knowledge Processing Zone.",
+                "You've entered the Geography Hall.",
                 "",
-                "Here you'll encounter specialists in various domains:",
-                "algorithms, data structures, design patterns, and",
-                "software engineering practices.",
+                "Here you'll encounter keepers of geographical knowledge:",
+                "from physical features to political boundaries.",
                 "",
-                "Each NPC holds unique knowledge modules. Prove",
-                "yourself to collect them all.",
+                "Each specialist holds unique geographical insights.",
+                "Prove yourself to gain their knowledge.",
             ],
         },
     },
-    2: {  # Floor 2
-        "INFRASTRUCTURE": {
-            "title": "Infrastructure Layer",
+    2: {
+        "ADVANCED": {
+            "title": "Advanced Geography Zone",
             "content": [
-                "Floor 2: System Architecture Layer",
+                "Floor 2: Advanced Geography",
                 "",
-                "You've descended into the infrastructure layer.",
-                "This is where the network's foundation is built.",
+                "You've reached the advanced knowledge layer.",
+                "Continental divisions, global exploration,",
+                "and comprehensive world knowledge await.",
                 "",
-                "Expect questions about web development, security,",
-                "cryptography, and system design. The specialists",
-                "here guard critical knowledge modules.",
-                "",
-                "Complete all required challenges to unlock",
-                "passage to the final floor.",
+                "Only those with solid foundations",
+                "can master these challenges.",
             ],
         },
-        "PROTOCOL": {
-            "title": "Protocol Nexus",
+        "CONTINENTAL": {
+            "title": "Continental Study",
             "content": [
-                "Network Protocol Processing Hub",
+                "Advanced Continental Knowledge",
                 "",
-                "Packets flow through this zone like data through",
-                "synapses. TCP handshakes, HTTP requests, and",
-                "cryptographic protocols are the language here.",
+                "This area tests deeper understanding",
+                "of continental geography, countries,",
+                "and their relationships.",
                 "",
-                "Master the protocols that power communication",
-                "and secure the network.",
+                "Prove your expertise to face the final challenge.",
             ],
         },
     },
-    3: {  # Floor 3
-        "THE": {
-            "title": "The Core Layer",
+    3: {
+        "MASTER": {
+            "title": "Master Geographer Chamber",
             "content": [
-                "Floor 3: The Neural Core",
+                "Final Challenge: Geography Mastery",
                 "",
-                "You've reached the deepest layer of the network.",
-                "The AI's core consciousness resides here.",
+                "You stand before the ultimate test.",
+                "The Master Geographer will challenge",
+                "your complete knowledge of Earth.",
                 "",
-                "This is a BOSS RUSH. Each boss entity will",
-                "challenge you with 4 difficult questions instead",
-                "of the usual 2-3.",
-                "",
-                "Steel yourself. Only the most knowledgeable",
-                "can escape the Neural Dive.",
-            ],
-        },
-        "ARENA": {
-            "title": "Boss Arena",
-            "content": [
-                "Boss Challenge Zone",
-                "",
-                "You stand before a powerful entity. This boss",
-                "will test your mastery of advanced topics.",
-                "",
-                "4 questions. No mercy. Prove your worth.",
-            ],
-        },
-        "FINAL": {
-            "title": "The Core Entity",
-            "content": [
-                "Final Boss: Integration Challenge",
-                "",
-                "The ultimate test. This boss draws from",
-                "ALL knowledge domains.",
-                "",
-                "Victory here means freedom from the Neural Dive.",
-                "Defeat means fragmentation and system restart.",
+                "Victory here proves true geographical mastery.",
             ],
         },
     },
-}
-
-# Topic indicators for NPCs - shown in brackets after their name
-NPC_TOPIC_INDICATORS = {
-    "ALGO_SPIRIT": "[Algorithms]",
-    "HEAP_MASTER": "[Data Structures]",
-    "DP_SAGE": "[Dynamic Programming]",
-    "PATTERN_ARCHITECT": "[Design Patterns]",
-    "NET_DAEMON": "[Networking]",
-    "WEB_ARCHITECT": "[Web Dev]",
-    "CRYPTO_GUARDIAN": "[Security]",
-    "SYSTEM_CORE": "[Systems]",
-    "SCALE_MASTER": "[System Design]",
-    "COMPILER_SAGE": "[Compilers]",
-    "DB_GUARDIAN": "[Databases]",
-    "THEORY_BOSS": "[Theory BOSS]",
-    "ML_BOSS": "[ML BOSS]",
-    "FINAL_BOSS": "[FINAL BOSS]",
-    "MEMORY_HEALER": "[Healer]",
-    "ORACLE": "[Quest]",
 }
 
 # Boss NPCs - these get 4 questions instead of 2-3
 BOSS_NPCS = {
-    "THEORY_BOSS",
-    "ML_BOSS",
-    "FINAL_BOSS",
-    "RESILIENCE_BOSS",
+    "GEO_MASTER",
 }
 
 
 def parse_level(layout_string: str) -> dict:
-    """
-    Parse a level layout string into structured data.
+    """Parse a level layout string into structured data.
 
     Returns:
         dict with keys:

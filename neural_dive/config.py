@@ -37,13 +37,6 @@ NPC_PLACEMENT_ATTEMPTS = 100
 TERMINAL_PLACEMENT_ATTEMPTS = 50
 TERMINAL_X_OFFSET = 3
 TERMINAL_Y_OFFSET = 3
-TERMINAL_X_BONUS = 5
-TERMINAL_Y_BONUS = 5
-
-# Gate placement
-GATE_PLACEMENT_ATTEMPTS = 20
-GATE_X_OFFSET = 3
-GATE_Y_OFFSET = 3
 
 # Rendering
 OVERLAY_MAX_WIDTH = 80  # Increased from 60 for better readability
@@ -53,7 +46,7 @@ UI_BOTTOM_OFFSET = 4
 
 # Floor completion requirements
 FLOOR_REQUIRED_NPCS = {
-    1: {"ALGO_SPIRIT", "HEAP_MASTER", "PATTERN_ARCHITECT", "TEST_ORACLE"},
+    1: {"ALGO_SPIRIT", "HEAP_MASTER", "TEST_ORACLE"},
     2: {"WEB_ARCHITECT", "NET_DAEMON", "COMPILER_SAGE", "SYSTEM_CORE"},
     3: set(),  # No requirements for final floor - boss rush with optional NPCs
 }
@@ -69,17 +62,17 @@ QUEST_TARGET_NPCS = {
 # NPC Wandering System
 # NPCs alternate between idle and wander states for natural movement
 NPC_WANDER_ENABLED = True  # Set to False to disable all NPC movement
-NPC_IDLE_TICKS_MIN = 15  # Minimum ticks to stay idle (increased for mostly stationary)
-NPC_IDLE_TICKS_MAX = 30  # Maximum ticks to stay idle (increased for mostly stationary)
-NPC_WANDER_TICKS_MIN = 1  # Minimum ticks to wander (reduced for brief movement)
-NPC_WANDER_TICKS_MAX = 2  # Maximum ticks to wander (reduced for brief movement)
+NPC_IDLE_TICKS_MIN = 10  # Minimum ticks to stay idle (balanced for natural movement)
+NPC_IDLE_TICKS_MAX = 20  # Maximum ticks to stay idle (balanced for natural movement)
+NPC_WANDER_TICKS_MIN = 2  # Minimum ticks to wander (brief movement)
+NPC_WANDER_TICKS_MAX = 3  # Maximum ticks to wander (brief movement)
 NPC_WANDER_RADIUS = 3  # Maximum distance from spawn point (reduced to keep NPCs close)
 
 # NPC movement speeds by type (ticks between moves, lower = faster)
 NPC_MOVEMENT_SPEEDS = {
-    "specialist": 999,  # Stationary - focused scholars don't wander
-    "helper": 999,  # Stationary - helpers wait for you to find them
-    "enemy": 3,  # Moderate speed - enemies patrol
+    "specialist": 12,  # Very slow - scholars occasionally shift positions
+    "helper": 15,  # Very slow - helpers meander slightly
+    "enemy": 6,  # Moderate speed - enemies patrol (slowed from 3)
     "quest": 999,  # Stationary - important quest givers stay put
     "boss": 999,  # Stationary - bosses wait in their chambers
 }

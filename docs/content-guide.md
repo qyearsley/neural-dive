@@ -72,7 +72,7 @@ Create `content.json`:
 
 Create `questions.json` with your educational content.
 
-See [QUESTION_GUIDE.md](QUESTION_GUIDE.md) for detailed question formatting.
+See [question-guide.md](question-guide.md) for detailed question formatting.
 
 **Example question:**
 
@@ -364,7 +364,7 @@ Want to share your content set with others?
 ## Advanced Topics
 
 ### Custom Question Types
-See [QUESTION_GUIDE.md](QUESTION_GUIDE.md) for advanced question formats.
+See [question-guide.md](question-guide.md) for advanced question formats.
 
 ### Dynamic Content
 Content is loaded at game start. For dynamic content, modify `data_loader.py`.

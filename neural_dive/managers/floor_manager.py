@@ -12,12 +12,10 @@ from typing import TYPE_CHECKING
 from neural_dive.config import (
     DEFAULT_MAP_HEIGHT,
     DEFAULT_MAP_WIDTH,
-    FLOOR_REQUIRED_NPCS,
     MAX_FLOORS,
     PLAYER_START_X,
     PLAYER_START_Y,
 )
-from neural_dive.data.levels import PARSED_LEVELS
 from neural_dive.map_generation import create_map
 
 if TYPE_CHECKING:
@@ -49,6 +47,8 @@ class FloorManager:
         map_width: int = DEFAULT_MAP_WIDTH,
         map_height: int = DEFAULT_MAP_HEIGHT,
         seed: int | None = None,
+        level_data: dict | None = None,
+        floor_requirements: dict[int, set[str]] | None = None,
     ):
         """
         Initialize FloorManager.
@@ -58,12 +58,16 @@ class FloorManager:
             map_width: Default map width
             map_height: Default map height
             seed: Random seed for reproducibility
+            level_data: Dictionary of parsed level data (PARSED_LEVELS)
+            floor_requirements: Dictionary mapping floor numbers to required NPC names
         """
         self.current_floor = 1
         self.max_floors = max_floors
         self.map_width = map_width
         self.map_height = map_height
         self.seed = seed
+        self.level_data = level_data if level_data is not None else {}
+        self.floor_requirements = floor_requirements if floor_requirements is not None else {}
 
         # Initialize map for first floor
         self.game_map = self._create_map_for_floor(1)
@@ -78,11 +82,11 @@ class FloorManager:
         Returns:
             2D map array
         """
-        level_data = PARSED_LEVELS.get(floor)
+        level_data = self.level_data.get(floor)
 
         if level_data and "tiles" in level_data:
             # Use predefined map from level data
-            game_map = level_data["tiles"]
+            game_map: list[list[str]] = level_data["tiles"]
             self.map_height = len(game_map)
             self.map_width = len(game_map[0]) if game_map else 0
             return game_map
@@ -105,7 +109,7 @@ class FloorManager:
         self.game_map = self._create_map_for_floor(floor)
 
         # Get player start position from level data
-        level_data = PARSED_LEVELS.get(floor)
+        level_data = self.level_data.get(floor)
         if level_data and "player_start" in level_data:
             player_start = level_data["player_start"]
             if player_start:
@@ -177,8 +181,8 @@ class FloorManager:
         Returns:
             True if floor completion requirements are met
         """
-        # Get required NPCs for this floor
-        required_npcs = FLOOR_REQUIRED_NPCS.get(self.current_floor, set())
+        # Get required NPCs for this floor from dynamic requirements
+        required_npcs = self.floor_requirements.get(self.current_floor, set())
 
         # Check if all required NPCs have been completed
         return all(npc_name in npcs_completed for npc_name in required_npcs)
@@ -207,13 +211,16 @@ class FloorManager:
         }
 
     @classmethod
-    def from_dict(cls, data: dict, seed: int | None = None) -> FloorManager:
+    def from_dict(
+        cls, data: dict, seed: int | None = None, level_data: dict | None = None
+    ) -> FloorManager:
         """
         Create FloorManager from serialized dictionary.
 
         Args:
             data: Serialized floor manager state
             seed: Random seed
+            level_data: Dictionary of parsed level data
 
         Returns:
             Restored FloorManager instance
@@ -223,6 +230,7 @@ class FloorManager:
             map_width=data.get("map_width", DEFAULT_MAP_WIDTH),
             map_height=data.get("map_height", DEFAULT_MAP_HEIGHT),
             seed=seed,
+            level_data=level_data,
         )
 
         # Restore current floor (will regenerate map)

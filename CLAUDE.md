@@ -225,10 +225,37 @@ def gain_coherence(self, amount: int):  # Missing return type
 
 ### 4. Documentation
 
+#### Docstring Style Convention
+
+**IMPORTANT: Opening quotes and first line on same line**
+
+```python
+# Good: Summary on same line as opening quotes
+def function_name(param: str) -> bool:
+    """Brief one-line summary of what this function does.
+
+    More detailed description if needed. Can span multiple
+    lines to provide additional context.
+
+    Args:
+        param: Description of parameter
+
+    Returns:
+        Description of return value
+    """
+```
+
+```python
+# Bad: Summary on separate line
+def function_name(param: str) -> bool:
+    """
+    Brief one-line summary.
+    """
+```
+
 #### Module Docstrings (Required)
 ```python
-"""
-Module purpose and overview.
+"""Module purpose and overview.
 
 This module handles X, Y, and Z. It provides:
 - Feature A
@@ -252,8 +279,7 @@ def create_randomized_conversation(
     seed: int | None = None,
     num_questions: int = 3,
 ) -> Conversation:
-    """
-    Create a conversation with randomized questions and answers.
+    """Create a conversation with randomized questions and answers.
 
     Args:
         npc_name: Name of the NPC for the conversation

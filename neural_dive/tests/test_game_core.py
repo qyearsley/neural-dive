@@ -267,6 +267,7 @@ class TestSaveLoad(unittest.TestCase):
             game2 = Game.load_game(str(save_path))
 
             self.assertIsNotNone(game2)
+            assert game2 is not None  # Type narrowing for mypy
             self.assertEqual(game2.coherence, 60)
             self.assertEqual(game2.current_floor, 1)
             self.assertEqual(game2.seed, 42)
@@ -294,6 +295,7 @@ class TestSaveLoad(unittest.TestCase):
             # Load
             game2 = Game.load_game(str(save_path))
             self.assertIsNotNone(game2)
+            assert game2 is not None  # Type narrowing for mypy
 
             # Verify state
             self.assertEqual(game2.coherence, 85)

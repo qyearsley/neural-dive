@@ -22,7 +22,7 @@ from neural_dive.config import (
     NPC_WANDER_TICKS_MIN,
 )
 from neural_dive.conversation import create_randomized_conversation
-from neural_dive.data.levels import BOSS_NPCS, PARSED_LEVELS
+from neural_dive.data.levels import BOSS_NPCS
 from neural_dive.entities import Entity
 from neural_dive.models import Conversation
 
@@ -59,6 +59,7 @@ class NPCManager:
         rng: random.Random,
         difficulty_settings: DifficultySettings,
         seed: int | None = None,
+        level_data: dict | None = None,
     ):
         """
         Initialize NPCManager.
@@ -69,12 +70,14 @@ class NPCManager:
             rng: Random number generator instance
             difficulty_settings: Difficulty settings for question counts
             seed: Random seed for reproducibility
+            level_data: Dictionary of parsed level data (PARSED_LEVELS)
         """
         self.npc_data = npc_data
         self.questions = questions
         self.rng = rng
         self.difficulty_settings = difficulty_settings
         self.seed = seed
+        self.level_data = level_data if level_data is not None else {}
 
         # Current floor NPCs
         self.npcs: list[Entity] = []
@@ -145,7 +148,7 @@ class NPCManager:
         self.npcs = []
 
         # Get level data
-        level_data = PARSED_LEVELS.get(floor)
+        level_data = self.level_data.get(floor)
 
         # Get NPCs for this floor
         floor_npcs = [
@@ -494,6 +497,7 @@ class NPCManager:
         rng: random.Random,
         difficulty_settings: DifficultySettings,
         seed: int | None = None,
+        level_data: dict | None = None,
     ) -> NPCManager:
         """
         Create NPCManager from serialized dictionary.
@@ -505,11 +509,12 @@ class NPCManager:
             rng: Random number generator
             difficulty_settings: Difficulty settings
             seed: Random seed
+            level_data: Dictionary of parsed level data
 
         Returns:
             Restored NPCManager instance
         """
-        manager = cls(npc_data, questions, rng, difficulty_settings, seed)
+        manager = cls(npc_data, questions, rng, difficulty_settings, seed, level_data)
 
         # Restore NPC state
         for npc_data_item in data.get("npcs", []):

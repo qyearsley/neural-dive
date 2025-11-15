@@ -107,6 +107,24 @@ CLASSIC_CHARS = CharacterSet(
     separator="-",
 )
 
+# Chinese/CJK full-width characters - elegant Han character style
+HANZI_CHARS = CharacterSet(
+    # Entities - meaningful Chinese characters
+    player="我",  # U+6211 "I/me" - the player
+    npc_default="人",  # U+4EBA "person" - generic NPC
+    stairs_up="上",  # U+4E0A "up/above"
+    stairs_down="下",  # U+4E0B "down/below"
+    terminal="書",  # U+66F8 "book/document" - info terminal
+    gate_locked="門",  # U+9580 "gate/door" - locked
+    gate_unlocked="开",  # U+5F00 "open" - unlocked gate
+    # Environment - geometric/structural characters
+    wall="█",  # U+2588 Full Block (works well with hanzi)
+    floor="　",  # U+3000 Ideographic Space (full-width space)
+    wall_alt="▓",  # U+2593 Dark Shade
+    # UI
+    separator="─",  # U+2500 Box Drawing Light Horizontal
+)
+
 
 # ============================================================================
 # COLOR SCHEMES - CYBERPUNK
@@ -203,6 +221,57 @@ CLASSIC_LIGHT = ColorScheme(
 
 
 # ============================================================================
+# COLOR SCHEMES - HANZI (Chinese characters)
+# ============================================================================
+
+# Dark mode - traditional Chinese aesthetic with warm colors
+HANZI_DARK = ColorScheme(
+    # Entities - traditional Chinese colors
+    player="bright_yellow",  # Gold/imperial yellow for the player (我)
+    npc_specialist="bright_red",  # Vermillion red for specialists
+    npc_helper="bright_green",  # Jade green for helpers
+    npc_enemy="red",  # Deep red for enemies
+    npc_quest="bright_cyan",  # Azure for quest givers
+    # Environment - subtle and elegant
+    wall="blue",  # Deep blue walls
+    floor="cyan",  # Subtle cyan floor
+    stairs="yellow",  # Gold stairs
+    terminal="bright_magenta",  # Purple for wisdom/knowledge
+    gate="magenta",  # Purple gates
+    # UI - elegant contrast
+    ui_primary="white",
+    ui_secondary="yellow",  # Gold accents
+    ui_accent="bright_red",  # Vermillion accents
+    ui_warning="yellow",
+    ui_error="red",
+    ui_success="green",
+)
+
+# Light mode - ink on rice paper aesthetic
+HANZI_LIGHT = ColorScheme(
+    # Entities - ink colors on light background
+    player="red",  # Red seal/chop mark for player
+    npc_specialist="magenta",  # Purple ink for specialists
+    npc_helper="green",  # Green ink for helpers
+    npc_enemy="red",  # Red ink for enemies
+    npc_quest="blue",  # Blue ink for quest givers
+    # Environment - paper and ink
+    wall="black",  # Black ink walls
+    floor="blue",  # Very subtle blue
+    stairs="magenta",  # Purple stairs
+    terminal="blue",  # Blue for knowledge
+    gate="magenta",  # Purple gates
+    # UI - calligraphy aesthetic
+    ui_primary="black",  # Black ink
+    ui_secondary="red",  # Red seal marks
+    ui_accent="magenta",  # Purple accents
+    ui_warning="red",
+    ui_error="red",
+    ui_success="green",
+)
+
+
+# ============================================================================
 # THEME DEFINITIONS
 # ============================================================================
 
@@ -218,6 +287,12 @@ THEMES: dict[str, Theme] = {
         characters=CLASSIC_CHARS,
         dark_colors=CLASSIC_DARK,
         light_colors=CLASSIC_LIGHT,
+    ),
+    "hanzi": Theme(
+        name="Hanzi (Chinese Characters)",
+        characters=HANZI_CHARS,
+        dark_colors=HANZI_DARK,
+        light_colors=HANZI_LIGHT,
     ),
 }
 
@@ -249,8 +324,3 @@ def get_theme(
     colors = theme.dark_colors if background == "dark" else theme.light_colors
 
     return theme.characters, colors
-
-
-def list_themes() -> list[str]:
-    """Get list of available theme names."""
-    return list(THEMES.keys())

@@ -7,10 +7,12 @@
     "vocabulary",
     "grammar",
     "idioms",
+    "measure_words",
     "reading_comprehension",
     "advanced_expressions"
   ],
   "difficulty_range": "advanced to expert",
-  "question_count": 5,
-  "floors": 5
+  "question_count": 23,
+  "floors": 3,
+  "default_theme": "hanzi"
 }

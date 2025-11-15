@@ -58,23 +58,23 @@
     "question_text": "What is the highest mountain peak in the world?",
     "answers": [
       {
-        "text": "Mount Everest (8,849m)",
+        "text": "Mount Everest",
         "correct": true,
-        "response": "Correct! Mount Everest, in the Himalayas, is Earth's highest mountain above sea level.",
+        "response": "Correct! Mount Everest, in the Himalayas, is Earth's highest mountain above sea level at 8,849m.",
         "reward_knowledge": "Mountain Systems"
       },
       {
-        "text": "K2 (8,611m)",
+        "text": "K2",
         "correct": false,
         "response": "Incorrect. K2 is the second highest peak. Mount Everest is the highest."
       },
       {
-        "text": "Kilimanjaro (5,895m)",
+        "text": "Kilimanjaro",
         "correct": false,
         "response": "Incorrect. Kilimanjaro is Africa's highest peak. Mount Everest is the world's highest."
       },
       {
-        "text": "Denali (6,190m)",
+        "text": "Denali",
         "correct": false,
         "response": "Incorrect. Denali is North America's highest peak. Mount Everest is the world's highest."
       }

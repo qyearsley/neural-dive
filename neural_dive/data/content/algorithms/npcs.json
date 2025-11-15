@@ -1,20 +1,4 @@
 {
-  "ORACLE": {
-    "char": "O",
-    "color": "white",
-    "floor": 1,
-    "npc_type": "quest",
-    "greeting": "I see all paths in this network. Seek the four guardians of knowledge: TEST_ORACLE, WEB_ARCHITECT, SYSTEM_CORE, and CLOUD_MIND. Prove yourself to each, and return to me.",
-    "questions": []
-  },
-  "MEMORY_HEALER": {
-    "char": "H",
-    "color": "cyan",
-    "floor": 1,
-    "npc_type": "helper",
-    "greeting": "Your coherence wanes, data runner. I can restore your system integrity. [Receive +20 Coherence]",
-    "questions": []
-  },
   "ALGO_SPIRIT": {
     "char": "A",
     "color": "magenta",
@@ -37,27 +21,11 @@
     "npc_type": "specialist",
     "greeting": "I manage the priority queues of this realm. Trees balanced, operations swift. Show me you understand efficient data structures.",
     "questions": [
-      "bloom_filter",
       "trie_usage",
       "arrays_vs_linked_lists",
       "tree_height",
       "heap_operations",
       "hash_table"
-    ]
-  },
-  "PATTERN_ARCHITECT": {
-    "char": "P",
-    "color": "cyan",
-    "floor": 1,
-    "npc_type": "specialist",
-    "greeting": "I am the Pattern Architect. Design patterns are the blueprints of elegant code. Show me you understand the fundamental patterns of software design.",
-    "questions": [
-      "adapter_pattern",
-      "decorator_pattern",
-      "factory_pattern",
-      "strategy_pattern",
-      "observer_pattern",
-      "singleton_pattern"
     ]
   },
   "CODE_AUDITOR": {
@@ -90,7 +58,6 @@
       "property_based_testing",
       "integration_testing",
       "test_pyramid",
-      "mocking_vs_stubs",
       "tdd_cycle"
     ]
   },

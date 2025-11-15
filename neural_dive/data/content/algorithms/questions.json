@@ -5427,5 +5427,572 @@
         "response": "That's permanent inconsistency! Eventual consistency means replicas will eventually agree, not stay stale forever."
       }
     ]
+  },
+  "dijkstra_algorithm": {
+    "question_text": "What algorithm finds the shortest path from a source to all other nodes in a weighted graph?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Dijkstra's algorithm",
+        "correct": true,
+        "response": "Correct! Dijkstra's algorithm uses a priority queue to greedily select the closest unvisited node. Works for non-negative edge weights. Time: O((V+E) log V) with a min-heap.",
+        "reward_knowledge": "graph_algorithms"
+      },
+      {
+        "text": "BFS (Breadth-First Search)",
+        "correct": false,
+        "response": "BFS only works for unweighted graphs or graphs where all edges have the same weight. Dijkstra's handles varying edge weights."
+      },
+      {
+        "text": "DFS (Depth-First Search)",
+        "correct": false,
+        "response": "DFS doesn't find shortest paths - it explores as deep as possible first. Use Dijkstra's or BFS for shortest paths."
+      },
+      {
+        "text": "Binary Search",
+        "correct": false,
+        "response": "Binary search is for sorted arrays, not graph traversal! For shortest paths, use Dijkstra's or Bellman-Ford."
+      }
+    ]
+  },
+  "bellman_ford": {
+    "question_text": "What advantage does Bellman-Ford have over Dijkstra's algorithm?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "It works with negative edge weights",
+        "correct": true,
+        "response": "Correct! Bellman-Ford handles negative weights and detects negative cycles. It's slower (O(VE)) but more robust than Dijkstra's (which requires non-negative weights).",
+        "reward_knowledge": "graph_algorithms_advanced"
+      },
+      {
+        "text": "It's always faster",
+        "correct": false,
+        "response": "Bellman-Ford is actually slower! O(VE) vs Dijkstra's O((V+E) log V). But Bellman-Ford handles negative weights."
+      },
+      {
+        "text": "It uses less memory",
+        "correct": false,
+        "response": "Memory isn't the key difference. Bellman-Ford's advantage is handling negative edge weights."
+      },
+      {
+        "text": "It only works on directed graphs",
+        "correct": false,
+        "response": "Both algorithms work on directed and undirected graphs. The difference is negative weight handling."
+      }
+    ]
+  },
+  "topological_sort": {
+    "question_text": "When can you perform a topological sort on a graph?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Only on directed acyclic graphs (DAGs)",
+        "correct": true,
+        "response": "Correct! Topological sort orders nodes so all edges point forward. Only possible without cycles! Use cases: build systems, course prerequisites, task scheduling. Implement with DFS or Kahn's algorithm.",
+        "reward_knowledge": "topological_sort"
+      },
+      {
+        "text": "On any graph, directed or undirected",
+        "correct": false,
+        "response": "You need a DAG (directed acyclic graph). Cycles make topological ordering impossible - you can't have a 'before/after' relationship that loops!"
+      },
+      {
+        "text": "Only on trees",
+        "correct": false,
+        "response": "Trees work (they're DAGs), but topological sort applies to any DAG, not just trees."
+      },
+      {
+        "text": "Only on weighted graphs",
+        "correct": false,
+        "response": "Weight doesn't matter! Topological sort needs a DAG (directed, no cycles), weighted or not."
+      }
+    ]
+  },
+  "minimum_spanning_tree": {
+    "question_text": "What do Kruskal's and Prim's algorithms both compute?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Minimum Spanning Tree (MST)",
+        "correct": true,
+        "response": "Correct! Both find the minimum spanning tree - connecting all nodes with minimum total edge weight. Kruskal: sort edges, add if no cycle (union-find). Prim: grow tree from a node (like Dijkstra's).",
+        "reward_knowledge": "mst_algorithms"
+      },
+      {
+        "text": "Maximum flow in a network",
+        "correct": false,
+        "response": "That's Ford-Fulkerson or Edmonds-Karp! Kruskal's and Prim's find minimum spanning trees, not maximum flow."
+      },
+      {
+        "text": "Shortest path between two nodes",
+        "correct": false,
+        "response": "That's Dijkstra's or Bellman-Ford! MST algorithms connect all nodes with minimum total weight, not shortest paths."
+      },
+      {
+        "text": "Strongly connected components",
+        "correct": false,
+        "response": "That's Tarjan's or Kosaraju's algorithm! MST algorithms find trees that span the graph with minimum weight."
+      }
+    ]
+  },
+  "union_find": {
+    "question_text": "What data structure efficiently tracks disjoint sets with union and find operations?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Union-Find (Disjoint Set Union)",
+        "correct": true,
+        "response": "Correct! Union-Find tracks partitions with near-constant time operations using path compression + union by rank. Essential for Kruskal's MST and detecting cycles. Amortized O(α(n)) ≈ O(1)!",
+        "reward_knowledge": "union_find"
+      },
+      {
+        "text": "Binary Search Tree",
+        "correct": false,
+        "response": "BSTs are for ordered data with logarithmic operations. Union-Find is specialized for partition tracking with near-constant time."
+      },
+      {
+        "text": "Hash Table",
+        "correct": false,
+        "response": "Hash tables don't efficiently handle set merging (union). Union-Find is optimized specifically for disjoint set operations."
+      },
+      {
+        "text": "Linked List",
+        "correct": false,
+        "response": "Linked lists would make union expensive (O(n)). Union-Find achieves near-constant time with clever optimizations."
+      }
+    ]
+  },
+  "bit_manipulation_count": {
+    "question_text": "What's the fastest way to count the number of 1 bits in an integer?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Use n & (n-1) repeatedly until n becomes 0",
+        "correct": true,
+        "response": "Correct! Brian Kernighan's algorithm: n & (n-1) clears the lowest set bit. Count iterations until n=0. O(number of 1 bits) instead of O(32 or 64). Also: some CPUs have popcount instruction!",
+        "reward_knowledge": "bit_manipulation"
+      },
+      {
+        "text": "Convert to string and count '1' characters",
+        "correct": false,
+        "response": "That works but is slower! Bit manipulation n & (n-1) is much more efficient than string conversion."
+      },
+      {
+        "text": "Divide by 2 repeatedly and check remainders",
+        "correct": false,
+        "response": "That works (checking n % 2 for each bit) but is slower. The n & (n-1) trick is faster - it skips zeros."
+      },
+      {
+        "text": "Use a lookup table for all possible integers",
+        "correct": false,
+        "response": "For 32-bit integers, that's 4 billion entries! Impractical. Use bit manipulation or split into bytes with small lookup tables."
+      }
+    ]
+  },
+  "two_pointers": {
+    "question_text": "What technique uses two pointers to find a pair in a sorted array that sums to a target?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Two pointers (one at start, one at end)",
+        "correct": true,
+        "response": "Correct! Start with left=0, right=n-1. If sum too small, move left++. If too large, move right--. O(n) time, O(1) space. Also works for 3-sum, palindrome checking, and container problems!",
+        "reward_knowledge": "two_pointers"
+      },
+      {
+        "text": "Binary search for each element's complement",
+        "correct": false,
+        "response": "That works (O(n log n)) but two pointers is more elegant for sorted arrays - O(n) with one pass!"
+      },
+      {
+        "text": "Hash table to store complements",
+        "correct": false,
+        "response": "Hash table works for unsorted arrays (O(n) time, O(n) space). But for sorted arrays, two pointers is better (O(1) space)."
+      },
+      {
+        "text": "Check all pairs with nested loops",
+        "correct": false,
+        "response": "That's O(n²) - too slow! Two pointers technique achieves O(n) for sorted arrays."
+      }
+    ]
+  },
+  "sliding_window": {
+    "question_text": "What technique maintains a window over an array to find max sum of k consecutive elements?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Sliding window",
+        "correct": true,
+        "response": "Correct! Sliding window maintains a running sum: add new element, subtract old element. O(n) vs O(nk) naive. Also for longest substring problems, variable-size windows, and streaming data!",
+        "reward_knowledge": "sliding_window"
+      },
+      {
+        "text": "Recalculate sum for each position",
+        "correct": false,
+        "response": "That's O(nk) - recalculating wastes work! Sliding window reuses the previous sum for O(n)."
+      },
+      {
+        "text": "Binary search for the maximum",
+        "correct": false,
+        "response": "Binary search doesn't apply here - you're not searching in sorted space. Use sliding window for O(n)."
+      },
+      {
+        "text": "Dynamic programming with memoization",
+        "correct": false,
+        "response": "DP is overkill for this! Sliding window is simpler and more efficient - just maintain a running sum."
+      }
+    ]
+  },
+  "backtracking_use": {
+    "question_text": "What algorithm design technique explores all possibilities by trying, then undoing (backtracking)?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Backtracking",
+        "correct": true,
+        "response": "Correct! Backtracking builds solutions incrementally, abandoning invalid paths. Classic for N-Queens, Sudoku, permutations, subset sum. It's DFS with pruning - try a choice, recurse, undo if invalid!",
+        "reward_knowledge": "backtracking"
+      },
+      {
+        "text": "Divide and conquer",
+        "correct": false,
+        "response": "Divide and conquer splits problems into independent subproblems. Backtracking explores a tree of choices with pruning."
+      },
+      {
+        "text": "Dynamic programming",
+        "correct": false,
+        "response": "DP solves overlapping subproblems with optimal substructure. Backtracking exhaustively searches the solution space with pruning."
+      },
+      {
+        "text": "Greedy algorithm",
+        "correct": false,
+        "response": "Greedy makes one choice and never reconsiders. Backtracking tries options and backtracks when they don't work."
+      }
+    ]
+  },
+  "kmp_algorithm": {
+    "question_text": "What's the time complexity of the KMP (Knuth-Morris-Pratt) string matching algorithm?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "O(n + m) where n is text length, m is pattern length",
+        "correct": true,
+        "response": "Correct! KMP builds a failure function in O(m), then scans text in O(n) without backtracking. Much better than naive O(nm)! The failure function remembers where to continue after a mismatch.",
+        "reward_knowledge": "string_algorithms"
+      },
+      {
+        "text": "O(nm) same as naive string matching",
+        "correct": false,
+        "response": "KMP is faster! It avoids backtracking in the text by using a failure function, achieving O(n+m) vs naive O(nm)."
+      },
+      {
+        "text": "O(n log m) using binary search",
+        "correct": false,
+        "response": "KMP doesn't use binary search. It processes text linearly with a clever failure function for O(n+m)."
+      },
+      {
+        "text": "O(n²) in worst case",
+        "correct": false,
+        "response": "Even in worst case, KMP is O(n+m)! That's its advantage - guaranteed linear time unlike naive matching."
+      }
+    ]
+  },
+  "rabin_karp": {
+    "question_text": "What string matching algorithm uses hashing to find patterns?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Rabin-Karp",
+        "correct": true,
+        "response": "Correct! Rabin-Karp computes rolling hash of pattern and text windows. Hash match → verify characters. Average O(n+m), worst O(nm). Great for multiple pattern search!",
+        "reward_knowledge": "string_algorithms_advanced"
+      },
+      {
+        "text": "KMP (Knuth-Morris-Pratt)",
+        "correct": false,
+        "response": "KMP uses a failure function, not hashing. Rabin-Karp is the hashing-based string matching algorithm."
+      },
+      {
+        "text": "Boyer-Moore",
+        "correct": false,
+        "response": "Boyer-Moore uses suffix matching and jump tables, not hashing. Rabin-Karp is the hash-based approach."
+      },
+      {
+        "text": "Z-algorithm",
+        "correct": false,
+        "response": "Z-algorithm computes longest prefix matches, not hashes. Rabin-Karp uses rolling hash for pattern matching."
+      }
+    ]
+  },
+  "kadanes_algorithm": {
+    "question_text": "What algorithm finds the maximum sum subarray in O(n) time?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Kadane's algorithm",
+        "correct": true,
+        "response": "Correct! Kadane's: track max_ending_here and max_so_far. At each position: max_ending_here = max(arr[i], max_ending_here + arr[i]). Elegant DP solution - one pass, O(n) time, O(1) space!",
+        "reward_knowledge": "kadanes_algorithm"
+      },
+      {
+        "text": "Try all possible subarrays",
+        "correct": false,
+        "response": "That's O(n²) or O(n³)! Kadane's algorithm finds max subarray sum in just O(n) with one pass."
+      },
+      {
+        "text": "Divide and conquer",
+        "correct": false,
+        "response": "Divide and conquer works (O(n log n)) but Kadane's is simpler and faster at O(n)."
+      },
+      {
+        "text": "Sliding window",
+        "correct": false,
+        "response": "Sliding window needs fixed window size. Kadane's handles variable-length subarrays with dynamic programming."
+      }
+    ]
+  },
+  "longest_common_subsequence": {
+    "question_text": "What's the time complexity of finding the longest common subsequence (LCS) of two strings?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "O(mn) using dynamic programming",
+        "correct": true,
+        "response": "Correct! Build a 2D table where dp[i][j] = LCS of first i chars and first j chars. If match: dp[i][j] = dp[i-1][j-1] + 1. Classic DP problem - also used for diff tools!",
+        "reward_knowledge": "dp_strings"
+      },
+      {
+        "text": "O(n + m) with two pointers",
+        "correct": false,
+        "response": "Two pointers work for longest common prefix/suffix, not subsequence. LCS allows non-contiguous matches, requiring O(mn) DP."
+      },
+      {
+        "text": "O(n) with sliding window",
+        "correct": false,
+        "response": "Sliding window is for contiguous subarrays. Subsequences can skip characters, needing O(mn) dynamic programming."
+      },
+      {
+        "text": "O(log n) with binary search",
+        "correct": false,
+        "response": "Binary search doesn't apply to LCS. You need DP to track all possible subsequences, taking O(mn)."
+      }
+    ]
+  },
+  "edit_distance": {
+    "question_text": "What does the edit distance (Levenshtein distance) measure?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Minimum operations (insert/delete/replace) to transform one string to another",
+        "correct": true,
+        "response": "Correct! Edit distance uses DP with O(mn) time. dp[i][j] = min cost to transform first i chars to first j chars. Used for spell check, DNA sequencing, plagiarism detection!",
+        "reward_knowledge": "edit_distance"
+      },
+      {
+        "text": "Number of characters that differ at the same position",
+        "correct": false,
+        "response": "That's Hamming distance (for equal-length strings). Edit distance handles different lengths with insert/delete operations."
+      },
+      {
+        "text": "Length of the longest common substring",
+        "correct": false,
+        "response": "That's a different problem! Edit distance counts operations needed to transform strings, not common substrings."
+      },
+      {
+        "text": "Number of characters in common",
+        "correct": false,
+        "response": "That's intersection. Edit distance measures how many operations (insert/delete/replace) to transform one string to another."
+      }
+    ]
+  },
+  "knapsack_01": {
+    "question_text": "What's the difference between 0/1 knapsack and fractional knapsack?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "0/1: take whole item or nothing (DP). Fractional: take fractions (greedy)",
+        "correct": true,
+        "response": "Correct! 0/1 knapsack requires DP O(nW) - you can't split items. Fractional knapsack: sort by value/weight ratio, take greedily - O(n log n). Continuous vs discrete choices!",
+        "reward_knowledge": "knapsack_problems"
+      },
+      {
+        "text": "They're the same problem, just different names",
+        "correct": false,
+        "response": "Very different! 0/1 is discrete (take or leave), needs DP. Fractional allows fractions, solvable with greedy."
+      },
+      {
+        "text": "0/1 is easier to solve than fractional",
+        "correct": false,
+        "response": "Opposite! Fractional is easier (greedy O(n log n)). 0/1 is NP-hard without constraints, needs DP O(nW)."
+      },
+      {
+        "text": "Fractional requires dynamic programming",
+        "correct": false,
+        "response": "Fractional knapsack is solvable with greedy (sort by value/weight). 0/1 knapsack needs DP."
+      }
+    ]
+  },
+  "avl_tree": {
+    "question_text": "What property do AVL trees maintain?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Height difference between left and right subtrees is at most 1",
+        "correct": true,
+        "response": "Correct! AVL trees maintain |height(left) - height(right)| ≤ 1 at every node through rotations. First self-balancing BST! Guarantees O(log n) operations but more rotations than Red-Black trees.",
+        "reward_knowledge": "balanced_trees"
+      },
+      {
+        "text": "All nodes have exactly two children",
+        "correct": false,
+        "response": "That's a full binary tree. AVL trees maintain balanced heights (difference ≤ 1), not fixed structure."
+      },
+      {
+        "text": "Left subtree has all smaller values",
+        "correct": false,
+        "response": "That's a Binary Search Tree property, not specific to AVL. AVL adds balance constraint: height difference ≤ 1."
+      },
+      {
+        "text": "Every node is red or black",
+        "correct": false,
+        "response": "That's Red-Black trees! AVL trees use height balance (difference ≤ 1), not colors."
+      }
+    ]
+  },
+  "red_black_tree": {
+    "question_text": "What advantage do Red-Black trees have over AVL trees?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Fewer rotations during insertion/deletion (faster writes)",
+        "correct": true,
+        "response": "Correct! Red-Black trees are less rigidly balanced (height ≤ 2 log n vs AVL's log n), requiring fewer rotations. Better for write-heavy workloads. AVL is better for read-heavy (stricter balance).",
+        "reward_knowledge": "balanced_trees_advanced"
+      },
+      {
+        "text": "Faster search operations",
+        "correct": false,
+        "response": "AVL trees are actually slightly faster for search (stricter balance). Red-Black trees excel at insertion/deletion with fewer rotations."
+      },
+      {
+        "text": "Use less memory per node",
+        "correct": false,
+        "response": "Red-Black trees store an extra color bit. Memory difference is minimal. The advantage is fewer rotations during modifications."
+      },
+      {
+        "text": "Can store more than binary data",
+        "correct": false,
+        "response": "Both are binary search trees. The difference is balancing strategy: Red-Black uses colors and relaxed balance."
+      }
+    ]
+  },
+  "segment_tree": {
+    "question_text": "What data structure efficiently answers range queries on arrays?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Segment Tree",
+        "correct": true,
+        "response": "Correct! Segment trees support range queries (sum, min, max) and point updates in O(log n). Build in O(n), use for range sum, RMQ, lazy propagation. Alternative: Fenwick Tree (simpler but less general).",
+        "reward_knowledge": "segment_tree"
+      },
+      {
+        "text": "Binary Search Tree",
+        "correct": false,
+        "response": "BSTs are for searching sorted data, not range queries on arrays. Segment trees are specifically designed for range operations."
+      },
+      {
+        "text": "Hash Table",
+        "correct": false,
+        "response": "Hash tables provide O(1) lookup but can't efficiently handle range queries. Use segment trees for range operations."
+      },
+      {
+        "text": "Linked List",
+        "correct": false,
+        "response": "Linked lists would be O(n) for range queries. Segment trees achieve O(log n) through tree structure."
+      }
+    ]
+  },
+  "fenwick_tree": {
+    "question_text": "What's another name for a Fenwick Tree?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Binary Indexed Tree (BIT)",
+        "correct": true,
+        "response": "Correct! Fenwick Tree = Binary Indexed Tree. Supports prefix sum queries and point updates in O(log n). Simpler than segment tree but less general. Uses bit manipulation for parent/child calculation!",
+        "reward_knowledge": "fenwick_tree"
+      },
+      {
+        "text": "B-tree",
+        "correct": false,
+        "response": "B-trees are for databases with wide nodes. Fenwick Tree (BIT) is for efficient prefix sums with bit manipulation."
+      },
+      {
+        "text": "Trie",
+        "correct": false,
+        "response": "Tries are for string prefix matching. Fenwick Tree (Binary Indexed Tree) is for range queries on numeric arrays."
+      },
+      {
+        "text": "Heap",
+        "correct": false,
+        "response": "Heaps maintain priority queues. Fenwick Tree (BIT) is for prefix sums and range queries."
+      }
+    ]
+  },
+  "floyd_warshall": {
+    "question_text": "What algorithm finds shortest paths between all pairs of nodes?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Floyd-Warshall",
+        "correct": true,
+        "response": "Correct! Floyd-Warshall uses DP: try each node as intermediate. O(V³) time, works with negative weights. For each pair (i,j), check if path through k is shorter. Simple triple loop!",
+        "reward_knowledge": "all_pairs_shortest_path"
+      },
+      {
+        "text": "Dijkstra's algorithm",
+        "correct": false,
+        "response": "Dijkstra finds single-source shortest paths. Run it V times for all pairs (O(V²E log V)) or use Floyd-Warshall (O(V³))."
+      },
+      {
+        "text": "BFS (Breadth-First Search)",
+        "correct": false,
+        "response": "BFS finds shortest paths from one source in unweighted graphs. Floyd-Warshall finds all pairs in weighted graphs."
+      },
+      {
+        "text": "DFS (Depth-First Search)",
+        "correct": false,
+        "response": "DFS doesn't find shortest paths at all! Use Floyd-Warshall for all-pairs shortest paths in weighted graphs."
+      }
+    ]
+  },
+  "a_star_heuristic": {
+    "question_text": "What makes A* search efficient for pathfinding?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Uses heuristic to guide search toward goal",
+        "correct": true,
+        "response": "Correct! A* = Dijkstra + heuristic. f(n) = g(n) + h(n) where g = cost so far, h = estimated cost to goal. With admissible heuristic, finds optimal path faster than Dijkstra. Common for game AI!",
+        "reward_knowledge": "informed_search"
+      },
+      {
+        "text": "It's always faster than BFS",
+        "correct": false,
+        "response": "With a good heuristic, A* is faster. But with a bad heuristic (h=0), it's just Dijkstra. Heuristic quality matters!"
+      },
+      {
+        "text": "It doesn't need to track visited nodes",
+        "correct": false,
+        "response": "A* still tracks visited nodes! The heuristic guides which nodes to explore first, reducing search space."
+      },
+      {
+        "text": "It uses randomness to find paths",
+        "correct": false,
+        "response": "A* is deterministic, not random. It uses a heuristic function to intelligently guide search toward the goal."
+      }
+    ]
   }
 }

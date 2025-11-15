@@ -1,42 +1,106 @@
 {
   "CHINESE_SCHOLAR": {
     "char": "文",
-    "color": "red",
+    "color": "cyan",
     "floor": 1,
     "npc_type": "specialist",
-    "greeting": "你好！Welcome to the realm of advanced Chinese. I am the Scholar of Written Language. Let me test your mastery of HSK 6 vocabulary and idioms.",
+    "greeting": "你好！我是文学士，专门研究汉语词汇。让我考考你的词汇水平吧！",
     "questions": ["vocab_arduous", "vocab_emerge", "vocab_profound"]
+  },
+  "VOCAB_MASTER": {
+    "char": "词",
+    "color": "blue",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "欢迎来到词汇殿堂！我是词汇大师，掌握高级词汇是理解中文的关键。",
+    "questions": ["vocab_flourish", "vocab_persevere", "vocab_subtle", "vocab_reform"]
+  },
+  "CONTEMPLATION_SAGE": {
+    "char": "思",
+    "color": "magenta",
+    "floor": 1,
+    "npc_type": "helper",
+    "greeting": "沉思者需要深厚的词汇基础。我可以帮助那些证明自己实力的学习者。",
+    "questions": ["vocab_contemplate", "vocab_essence", "vocab_precious"]
   },
   "IDIOM_MASTER": {
     "char": "成",
     "color": "yellow",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "成语是中华文化的精髓！我是成语大师，来挑战这些古老的智慧吧！",
+    "questions": ["idiom_dragons", "idiom_add_flower", "idiom_drop_in_ocean"]
+  },
+  "CULTURE_SAGE": {
+    "char": "化",
+    "color": "green",
     "floor": 2,
     "npc_type": "specialist",
-    "greeting": "欢迎！I am the Keeper of Idioms. Four-character phrases hold the wisdom of millennia. Show me your understanding of 成语.",
-    "questions": ["idiom_dragons"]
+    "greeting": "了解文化才能真正掌握语言。我是文化智者，让我看看你对中国文化的理解。",
+    "questions": ["culture_spring_festival", "culture_mid_autumn", "culture_dragon_boat", "culture_zodiac"]
+  },
+  "PROVERB_KEEPER": {
+    "char": "谚",
+    "color": "white",
+    "floor": 2,
+    "npc_type": "helper",
+    "greeting": "谚语和成语相辅相成。掌握了基础，我可以教你更多。",
+    "questions": ["idiom_draw_snake_feet", "idiom_frog_in_well", "idiom_paper_tiger"]
+  },
+  "MEASURE_GUARDIAN": {
+    "char": "量",
+    "color": "cyan",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "量词是汉语的特色！作为量词守护者，我将测试你对量词的掌握。",
+    "questions": ["measure_word_books", "measure_word_people", "measure_word_vehicles"]
   },
   "GRAMMAR_SAGE": {
     "char": "语",
-    "color": "green",
-    "floor": 3,
+    "color": "blue",
+    "floor": 2,
     "npc_type": "specialist",
-    "greeting": "问候！As the Grammar Sage, I will challenge your understanding of complex Chinese sentence structures and patterns.",
-    "questions": ["grammar_despite"]
+    "greeting": "语法是语言的骨架。我是语法圣人，准备好接受高级语法的考验了吗？",
+    "questions": ["grammar_despite", "grammar_passive", "grammar_ba_construction"]
+  },
+  "PARTICLE_SCHOLAR": {
+    "char": "助",
+    "color": "magenta",
+    "floor": 2,
+    "npc_type": "helper",
+    "greeting": "助词虽小，作用巨大。让我看看你对细节的把握。",
+    "questions": ["grammar_progressive", "grammar_completion"]
   },
   "LANGUAGE_GUARDIAN": {
-    "char": "言",
-    "color": "magenta",
-    "floor": 4,
-    "npc_type": "helper",
-    "greeting": "很高兴见到你！I protect the knowledge of the Chinese language. Answer correctly, and I will aid you on your journey.",
-    "questions": ["vocab_profound", "vocab_emerge"]
+    "char": "汉",
+    "color": "red",
+    "floor": 3,
+    "npc_type": "enemy",
+    "greeting": "你已经走了很远，但真正的考验现在才开始。我是汉语守护者，只有精通者才能通过！",
+    "questions": ["vocab_magnificent", "vocab_diligent", "vocab_harmony", "idiom_melon_ripe", "measure_word_animals"]
   },
-  "HSK_BOSS": {
+  "WISDOM_ELDER": {
+    "char": "智",
+    "color": "white",
+    "floor": 3,
+    "npc_type": "helper",
+    "greeting": "智慧来自于积累。你已经学到了很多，让我分享更多的知识。",
+    "questions": ["idiom_blind_men_elephant", "vocab_humble", "measure_word_flowers"]
+  },
+  "HSK_EXAMINER": {
     "char": "考",
     "color": "red",
-    "floor": 5,
-    "npc_type": "enemy",
-    "greeting": "你终于来了！I am the final examiner. Only those who have mastered HSK 6 can pass through. Prepare for the ultimate test!",
-    "questions": ["vocab_arduous", "idiom_dragons", "grammar_despite"]
+    "floor": 3,
+    "npc_type": "boss",
+    "greeting": "恭喜你到达最后一关！我是HSK6级考官，这是最终测试。证明你的汉语水平吧！",
+    "questions": ["vocab_prosperity", "idiom_kill_two_birds", "measure_word_paper", "grammar_progressive", "culture_zodiac"]
+  },
+  "CALLIGRAPHY_MASTER": {
+    "char": "书",
+    "color": "yellow",
+    "floor": 3,
+    "npc_type": "helper",
+    "greeting": "书法是中国艺术的巅峰。掌握了语言，就该欣赏其美。",
+    "questions": ["idiom_dragons", "vocab_essence", "grammar_ba_construction"]
   }
 }
