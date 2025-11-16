@@ -163,13 +163,13 @@ CYBERPUNK_LIGHT = ColorScheme(
     npc_quest="blue",  # Dark blue instead of yellow
     # Environment - visible on light
     wall="blue",  # Blue walls
-    floor="blue",  # Subtle blue floor
+    floor="cyan",  # Subtle cyan floor
     stairs="magenta",  # Visible stairs
     terminal="blue",  # Info terminals
     gate="magenta",  # Locked gates
-    # UI - readable on light
-    ui_primary="black",
-    ui_secondary="blue",
+    # UI - readable on light (blue instead of black to avoid bold_black gray issue)
+    ui_primary="blue",
+    ui_secondary="cyan",
     ui_accent="magenta",
     ui_warning="red",  # Red instead of yellow for visibility
     ui_error="red",
@@ -201,18 +201,18 @@ CLASSIC_DARK = ColorScheme(
 )
 
 CLASSIC_LIGHT = ColorScheme(
-    player="black",
+    player="blue",  # Blue for visibility (bold_black is gray on light bg)
     npc_specialist="magenta",
     npc_helper="green",
     npc_enemy="red",
     npc_quest="blue",  # Blue instead of yellow for readability
-    wall="black",
-    floor="blue",  # Subtle blue instead of black
+    wall="blue",  # Blue walls for visibility
+    floor="cyan",  # Subtle cyan instead of blue
     stairs="magenta",  # Magenta instead of yellow
     terminal="blue",  # Blue instead of cyan
     gate="magenta",
-    ui_primary="black",
-    ui_secondary="blue",
+    ui_primary="blue",  # Blue instead of black (bold_black is gray)
+    ui_secondary="cyan",
     ui_accent="magenta",
     ui_warning="red",  # Red instead of yellow
     ui_error="red",
@@ -256,13 +256,13 @@ HANZI_LIGHT = ColorScheme(
     npc_enemy="red",  # Red ink for enemies
     npc_quest="blue",  # Blue ink for quest givers
     # Environment - paper and ink
-    wall="black",  # Black ink walls
-    floor="blue",  # Very subtle blue
+    wall="blue",  # Blue ink walls (not black - bold_black is gray)
+    floor="cyan",  # Very subtle cyan
     stairs="magenta",  # Purple stairs
     terminal="blue",  # Blue for knowledge
     gate="magenta",  # Purple gates
-    # UI - calligraphy aesthetic
-    ui_primary="black",  # Black ink
+    # UI - calligraphy aesthetic (blue instead of black to avoid gray issue)
+    ui_primary="blue",  # Blue ink
     ui_secondary="red",  # Red seal marks
     ui_accent="magenta",  # Purple accents
     ui_warning="red",
