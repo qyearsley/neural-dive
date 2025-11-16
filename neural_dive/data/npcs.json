@@ -27,7 +27,12 @@
       "quicksort_complexity",
       "amortized_analysis",
       "recursion_vs_iteration",
-      "big_o"
+      "big_o",
+      "dijkstra_algorithm",
+      "topological_sort",
+      "rabin_karp",
+      "greedy_algorithm",
+      "dynamic_programming"
     ]
   },
   "HEAP_MASTER": {
@@ -41,7 +46,12 @@
       "arrays_vs_linked_lists",
       "tree_height",
       "heap_operations",
-      "hash_table"
+      "hash_table",
+      "union_find",
+      "segment_tree",
+      "fenwick_tree",
+      "avl_tree",
+      "lru_cache"
     ]
   },
   "CODE_AUDITOR": {
@@ -89,7 +99,10 @@
       "api_versioning",
       "http_status_codes",
       "rest_methods",
-      "api_rate_limiting"
+      "api_rate_limiting",
+      "idempotent_operations",
+      "graphql_vs_rest",
+      "websockets"
     ]
   },
   "NET_DAEMON": {
@@ -104,7 +117,13 @@
       "cdn",
       "dns_resolution",
       "http_methods",
-      "tcp_handshake"
+      "tcp_handshake",
+      "http2_multiplexing",
+      "bgp_protocol",
+      "anycast",
+      "proxy_vs_reverse_proxy",
+      "tcp_reliable",
+      "http_port"
     ]
   },
   "CRYPTO_GUARDIAN": {
@@ -119,7 +138,13 @@
       "sql_injection",
       "tls_handshake",
       "password_hashing",
-      "encryption_types"
+      "encryption_types",
+      "rainbow_table",
+      "xss_prevention",
+      "jwt_vulnerabilities",
+      "csrf_tokens",
+      "symmetric_vs_asymmetric",
+      "zero_trust"
     ]
   },
   "COMPILER_SAGE": {
@@ -134,7 +159,10 @@
       "async_programming",
       "exception_handling",
       "oop_encapsulation",
-      "compiler_phases"
+      "compiler_phases",
+      "monkey_patching",
+      "debouncing_throttling",
+      "memory_leak_patterns"
     ]
   },
   "SYSTEM_CORE": {
@@ -149,7 +177,13 @@
       "inodes",
       "ipc_methods",
       "cache",
-      "deadlock"
+      "deadlock",
+      "thread_pool",
+      "copy_on_write",
+      "page_fault",
+      "process_vs_thread",
+      "context_switch",
+      "scheduler_types"
     ]
   },
   "RESILIENCE_BOSS": {
@@ -189,7 +223,10 @@
       "consensus",
       "eventual_consistency",
       "cap_theorem",
-      "message_queues"
+      "message_queues",
+      "two_phase_commit",
+      "split_brain",
+      "gossip_protocol"
     ]
   },
   "ML_BOSS": {
@@ -210,7 +247,11 @@
       "universal_approximation",
       "gradient_descent",
       "overfitting",
-      "backpropagation"
+      "backpropagation",
+      "gradient_vanishing",
+      "batch_vs_stochastic",
+      "adam_optimizer",
+      "rnn_lstm"
     ]
   },
   "LAMBDA_SAGE": {
@@ -223,7 +264,8 @@
       "type_inference",
       "immutability",
       "lazy_evaluation",
-      "closure"
+      "closure",
+      "lambda_calculus"
     ]
   },
   "THEORY_BOSS": {
@@ -290,7 +332,11 @@
       "indexing",
       "acid_properties",
       "sql_joins",
-      "acid"
+      "acid",
+      "database_replication",
+      "database_consistency_levels",
+      "optimistic_locking",
+      "database_connection_pooling"
     ]
   },
   "ARCH_MASTER": {

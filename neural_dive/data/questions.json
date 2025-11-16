@@ -5427,5 +5427,950 @@
         "response": "That's permanent inconsistency! Eventual consistency means replicas will eventually agree, not stay stale forever."
       }
     ]
+  },
+  "dijkstra_algorithm": {
+    "question_text": "What does Dijkstra's algorithm find in a graph?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Shortest paths from a source to all other vertices",
+        "correct": true,
+        "response": "Correct! Dijkstra's algorithm finds the shortest path from a single source using a greedy approach with a priority queue.",
+        "reward_knowledge": "shortest_path"
+      },
+      {
+        "text": "The minimum spanning tree",
+        "correct": false,
+        "response": "That's Prim's or Kruskal's algorithm. Dijkstra finds shortest paths, not spanning trees."
+      },
+      {
+        "text": "All cycles in the graph",
+        "correct": false,
+        "response": "Dijkstra doesn't detect cycles. It finds shortest paths in weighted graphs."
+      },
+      {
+        "text": "The longest path in the graph",
+        "correct": false,
+        "response": "Dijkstra finds the shortest path, not the longest. Longest path is NP-hard!"
+      }
+    ]
+  },
+  "topological_sort": {
+    "question_text": "When can you perform a topological sort on a graph?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Only on directed acyclic graphs (DAGs)",
+        "correct": true,
+        "response": "Correct! Topological sort requires a DAG. It orders vertices so all edges point forward in the sequence.",
+        "reward_knowledge": "graph_algorithms"
+      },
+      {
+        "text": "On any graph with cycles",
+        "correct": false,
+        "response": "Cycles prevent topological sorting! You can't order vertices if there's a circular dependency."
+      },
+      {
+        "text": "Only on undirected graphs",
+        "correct": false,
+        "response": "Topological sort needs directed edges to establish ordering. Undirected graphs don't work."
+      },
+      {
+        "text": "On weighted graphs only",
+        "correct": false,
+        "response": "Weight doesn't matter for topological sort. It's about the structure (DAG), not weights."
+      }
+    ]
+  },
+  "rabin_karp": {
+    "question_text": "What technique does the Rabin-Karp string matching algorithm use?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Rolling hash to quickly compare substrings",
+        "correct": true,
+        "response": "Correct! Rabin-Karp uses a rolling hash to efficiently check for pattern matches in O(n+m) average time.",
+        "reward_knowledge": "string_algorithms"
+      },
+      {
+        "text": "Binary search on sorted strings",
+        "correct": false,
+        "response": "That's not how Rabin-Karp works. It uses hashing, not binary search."
+      },
+      {
+        "text": "Finite state machine",
+        "correct": false,
+        "response": "That's the KMP algorithm. Rabin-Karp uses rolling hashes for pattern matching."
+      },
+      {
+        "text": "Suffix trees",
+        "correct": false,
+        "response": "Suffix trees are a different approach. Rabin-Karp uses rolling hashes for efficiency."
+      }
+    ]
+  },
+  "union_find": {
+    "question_text": "What problem does the Union-Find (Disjoint Set) data structure efficiently solve?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Determining if two elements are in the same connected component",
+        "correct": true,
+        "response": "Correct! Union-Find tracks connected components with near-constant time operations using path compression and union by rank.",
+        "reward_knowledge": "union_find"
+      },
+      {
+        "text": "Finding the shortest path between nodes",
+        "correct": false,
+        "response": "That's for pathfinding algorithms. Union-Find tracks connectivity, not distances."
+      },
+      {
+        "text": "Sorting elements in a set",
+        "correct": false,
+        "response": "Union-Find doesn't sort. It maintains disjoint sets for connectivity queries."
+      },
+      {
+        "text": "Balancing binary trees",
+        "correct": false,
+        "response": "That's AVL or Red-Black trees. Union-Find manages set membership."
+      }
+    ]
+  },
+  "segment_tree": {
+    "question_text": "What is a segment tree primarily used for?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Efficient range queries and updates on arrays",
+        "correct": true,
+        "response": "Correct! Segment trees answer range queries (sum, min, max) in O(log n) and handle updates efficiently.",
+        "reward_knowledge": "advanced_trees"
+      },
+      {
+        "text": "String pattern matching",
+        "correct": false,
+        "response": "Tries or suffix trees are for strings. Segment trees handle range queries on arrays."
+      },
+      {
+        "text": "Graph traversal",
+        "correct": false,
+        "response": "Segment trees work on arrays, not graphs. Use BFS/DFS for graph traversal."
+      },
+      {
+        "text": "Priority queue operations",
+        "correct": false,
+        "response": "That's a heap. Segment trees are for range queries on arrays."
+      }
+    ]
+  },
+  "fenwick_tree": {
+    "question_text": "What advantage does a Fenwick Tree (Binary Indexed Tree) have over a segment tree?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Simpler implementation with less memory",
+        "correct": true,
+        "response": "Correct! Fenwick trees use half the memory and simpler code, though they're less flexible than segment trees.",
+        "reward_knowledge": "fenwick_tree"
+      },
+      {
+        "text": "Faster query time",
+        "correct": false,
+        "response": "Both are O(log n) for queries. Fenwick's advantage is simplicity and memory, not speed."
+      },
+      {
+        "text": "Works on 2D arrays natively",
+        "correct": false,
+        "response": "Both can be extended to 2D. Fenwick's advantage is simpler implementation."
+      },
+      {
+        "text": "Supports more types of operations",
+        "correct": false,
+        "response": "Segment trees are actually more flexible! Fenwick trees are limited to invertible operations."
+      }
+    ]
+  },
+  "avl_tree": {
+    "question_text": "What does an AVL tree guarantee?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Height difference between left and right subtrees is at most 1",
+        "correct": true,
+        "response": "Correct! AVL trees maintain strict balance: |height(left) - height(right)| ≤ 1 for all nodes.",
+        "reward_knowledge": "balanced_trees"
+      },
+      {
+        "text": "All leaves are at the same level",
+        "correct": false,
+        "response": "That's a complete binary tree. AVL allows ±1 height difference between subtrees."
+      },
+      {
+        "text": "Insertion is always O(1)",
+        "correct": false,
+        "response": "AVL insertion is O(log n) due to rebalancing. The guarantee is about height balance."
+      },
+      {
+        "text": "No duplicate values allowed",
+        "correct": false,
+        "response": "That's a BST property, not specific to AVL. AVL's guarantee is about balance."
+      }
+    ]
+  },
+  "lru_cache": {
+    "question_text": "What data structures efficiently implement an LRU cache?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Hash map + doubly linked list",
+        "correct": true,
+        "response": "Correct! Hash map gives O(1) lookup, doubly linked list maintains LRU order with O(1) updates.",
+        "reward_knowledge": "cache_structures"
+      },
+      {
+        "text": "Binary search tree only",
+        "correct": false,
+        "response": "BST doesn't track access order efficiently. You need a list to maintain LRU order."
+      },
+      {
+        "text": "Array with linear search",
+        "correct": false,
+        "response": "Too slow! LRU cache needs O(1) lookup and update. Arrays give O(n) for one of these."
+      },
+      {
+        "text": "Stack + queue",
+        "correct": false,
+        "response": "Stacks and queues don't support the random access needed for LRU updates."
+      }
+    ]
+  },
+  "thread_pool": {
+    "question_text": "Why use a thread pool instead of creating threads on demand?",
+    "topic": "systems",
+    "answers": [
+      {
+        "text": "Reusing threads avoids expensive creation/destruction overhead",
+        "correct": true,
+        "response": "Correct! Thread creation is expensive (syscalls, stack allocation). Thread pools amortize this cost.",
+        "reward_knowledge": "concurrency_patterns"
+      },
+      {
+        "text": "Thread pools are always faster",
+        "correct": false,
+        "response": "Not always! For rare tasks, the pool overhead isn't worth it. Benefits come from reuse."
+      },
+      {
+        "text": "You can't create threads dynamically",
+        "correct": false,
+        "response": "You can create threads anytime. Thread pools are an optimization, not a necessity."
+      },
+      {
+        "text": "Thread pools eliminate all race conditions",
+        "correct": false,
+        "response": "Thread pools don't prevent race conditions! You still need proper synchronization."
+      }
+    ]
+  },
+  "copy_on_write": {
+    "question_text": "What is Copy-on-Write (CoW) in operating systems?",
+    "topic": "systems",
+    "answers": [
+      {
+        "text": "Delay copying memory until one process modifies it",
+        "correct": true,
+        "response": "Correct! CoW lets processes share memory initially. Copying only happens on write, saving time and memory.",
+        "reward_knowledge": "memory_optimization"
+      },
+      {
+        "text": "Always copy memory immediately on fork()",
+        "correct": false,
+        "response": "That would be wasteful! CoW delays copying until necessary, making fork() fast."
+      },
+      {
+        "text": "Write data to copy of disk instead of original",
+        "correct": false,
+        "response": "That's snapshots in filesystems. CoW for processes is about memory sharing."
+      },
+      {
+        "text": "Copy data every time it's read",
+        "correct": false,
+        "response": "CoW is about delaying copies on write, not reading. Reads don't require copying."
+      }
+    ]
+  },
+  "page_fault": {
+    "question_text": "What causes a page fault in virtual memory?",
+    "topic": "systems",
+    "answers": [
+      {
+        "text": "Accessing a page not currently in physical memory",
+        "correct": true,
+        "response": "Correct! Page faults trigger the OS to load the page from disk into RAM. This is how virtual memory works.",
+        "reward_knowledge": "virtual_memory_details"
+      },
+      {
+        "text": "Writing to read-only memory",
+        "correct": false,
+        "response": "That's a protection fault, different from a page fault. Page faults are about presence, not permissions."
+      },
+      {
+        "text": "Stack overflow",
+        "correct": false,
+        "response": "Stack overflow is hitting stack limits. Page faults are about missing pages in RAM."
+      },
+      {
+        "text": "NULL pointer dereference",
+        "correct": false,
+        "response": "NULL derefs cause segfaults (invalid access), not page faults (missing pages)."
+      }
+    ]
+  },
+  "http2_multiplexing": {
+    "question_text": "What does HTTP/2 multiplexing enable?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "Multiple requests/responses over a single TCP connection simultaneously",
+        "correct": true,
+        "response": "Correct! HTTP/2 multiplexing sends multiple streams concurrently, eliminating head-of-line blocking from HTTP/1.1.",
+        "reward_knowledge": "http2"
+      },
+      {
+        "text": "Using multiple domain names for one website",
+        "correct": false,
+        "response": "That's domain sharding (HTTP/1.1 workaround). HTTP/2 multiplexing is about concurrent streams."
+      },
+      {
+        "text": "Compressing all HTTP headers",
+        "correct": false,
+        "response": "HTTP/2 does compress headers (HPACK), but multiplexing is about concurrent streams."
+      },
+      {
+        "text": "Encrypting HTTP traffic",
+        "correct": false,
+        "response": "That's HTTPS/TLS. HTTP/2 multiplexing is about stream concurrency."
+      }
+    ]
+  },
+  "bgp_protocol": {
+    "question_text": "What is BGP (Border Gateway Protocol) used for?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "Routing between different autonomous systems on the internet",
+        "correct": true,
+        "response": "Correct! BGP is the protocol that makes the internet work by routing traffic between ISPs and organizations.",
+        "reward_knowledge": "routing_protocols"
+      },
+      {
+        "text": "Routing within a single organization",
+        "correct": false,
+        "response": "That's OSPF or RIP. BGP routes between autonomous systems (ISPs, large orgs)."
+      },
+      {
+        "text": "Encrypting network packets",
+        "correct": false,
+        "response": "BGP doesn't encrypt. It's a routing protocol that determines internet paths."
+      },
+      {
+        "text": "Assigning IP addresses",
+        "correct": false,
+        "response": "That's DHCP. BGP determines routes, not addresses."
+      }
+    ]
+  },
+  "anycast": {
+    "question_text": "What is anycast routing?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "Multiple servers share the same IP, requests route to the nearest one",
+        "correct": true,
+        "response": "Correct! Anycast improves performance and reliability by routing to the closest server. Used by CDNs and DNS.",
+        "reward_knowledge": "routing_advanced"
+      },
+      {
+        "text": "Sending packets to all hosts on a network",
+        "correct": false,
+        "response": "That's broadcast. Anycast routes to the nearest of multiple servers with the same IP."
+      },
+      {
+        "text": "One sender to one specific receiver",
+        "correct": false,
+        "response": "That's unicast. Anycast routes to the nearest of multiple servers."
+      },
+      {
+        "text": "Sending to a group of interested receivers",
+        "correct": false,
+        "response": "That's multicast. Anycast routes to one server (the nearest) from a group."
+      }
+    ]
+  },
+  "rainbow_table": {
+    "question_text": "What is a rainbow table attack?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Precomputed hash tables to crack password hashes quickly",
+        "correct": true,
+        "response": "Correct! Rainbow tables trade space for time, storing hash chains. Salting passwords defeats this attack.",
+        "reward_knowledge": "password_attacks"
+      },
+      {
+        "text": "Brute forcing all possible passwords",
+        "correct": false,
+        "response": "That's brute force. Rainbow tables use precomputed hashes, not live computation."
+      },
+      {
+        "text": "SQL injection with colored syntax",
+        "correct": false,
+        "response": "Not related to SQL! Rainbow tables crack password hashes using precomputed lookups."
+      },
+      {
+        "text": "Network packet sniffing",
+        "correct": false,
+        "response": "That's packet capture. Rainbow tables are for offline password cracking."
+      }
+    ]
+  },
+  "xss_prevention": {
+    "question_text": "What's the best defense against XSS (Cross-Site Scripting)?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Escape/sanitize user input before displaying it",
+        "correct": true,
+        "response": "Correct! Always escape HTML/JavaScript in user input. Use Content Security Policy as an additional layer.",
+        "reward_knowledge": "xss_defense"
+      },
+      {
+        "text": "Use HTTPS only",
+        "correct": false,
+        "response": "HTTPS prevents eavesdropping but doesn't stop XSS. You must sanitize input."
+      },
+      {
+        "text": "Disable JavaScript completely",
+        "correct": false,
+        "response": "Impractical for modern web apps! Proper escaping allows safe JavaScript use."
+      },
+      {
+        "text": "Use strong passwords",
+        "correct": false,
+        "response": "Passwords don't prevent XSS. Input sanitization is the defense."
+      }
+    ]
+  },
+  "jwt_vulnerabilities": {
+    "question_text": "What's a common JWT (JSON Web Token) vulnerability?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Algorithm confusion (alg: none) allowing signature bypass",
+        "correct": true,
+        "response": "Correct! Attackers can set 'alg' to 'none' or HS256 instead of RS256 to bypass verification. Always validate the algorithm!",
+        "reward_knowledge": "jwt_security"
+      },
+      {
+        "text": "JWTs are always encrypted",
+        "correct": false,
+        "response": "JWTs are signed, not encrypted by default! Anyone can read the payload. Use JWE for encryption."
+      },
+      {
+        "text": "JWTs prevent XSS attacks",
+        "correct": false,
+        "response": "JWTs don't prevent XSS. Store them carefully (not in localStorage if XSS risk exists)."
+      },
+      {
+        "text": "JWTs can't be stolen",
+        "correct": false,
+        "response": "JWTs can be stolen via XSS, man-in-the-middle, etc. Treat them like passwords!"
+      }
+    ]
+  },
+  "database_replication": {
+    "question_text": "In leader-follower database replication, what happens if the leader fails?",
+    "topic": "databases",
+    "answers": [
+      {
+        "text": "A follower is promoted to leader (failover)",
+        "correct": true,
+        "response": "Correct! Automatic or manual failover promotes a follower. The challenge is detecting failure and avoiding split-brain.",
+        "reward_knowledge": "replication_patterns"
+      },
+      {
+        "text": "All data is permanently lost",
+        "correct": false,
+        "response": "Data persists on followers! Failover promotes one to continue operations."
+      },
+      {
+        "text": "The system immediately shards the data",
+        "correct": false,
+        "response": "Sharding is unrelated to failover. A follower gets promoted to leader."
+      },
+      {
+        "text": "Clients connect directly to followers",
+        "correct": false,
+        "response": "One follower is promoted to leader. Clients don't connect to multiple followers directly."
+      }
+    ]
+  },
+  "database_consistency_levels": {
+    "question_text": "What does 'linearizability' guarantee in distributed databases?",
+    "topic": "databases",
+    "answers": [
+      {
+        "text": "Operations appear instantaneous and in a total order",
+        "correct": true,
+        "response": "Correct! Linearizability is the strongest consistency model - operations look atomic despite distribution.",
+        "reward_knowledge": "consistency_models"
+      },
+      {
+        "text": "All replicas are always identical",
+        "correct": false,
+        "response": "That's strong consistency. Linearizability is stronger - it's about operation ordering."
+      },
+      {
+        "text": "Reads always return the latest write",
+        "correct": false,
+        "response": "That's sequential consistency. Linearizability additionally requires real-time ordering."
+      },
+      {
+        "text": "Operations are logged in a line",
+        "correct": false,
+        "response": "The name comes from total ordering, but linearizability is about apparent atomicity."
+      }
+    ]
+  },
+  "optimistic_locking": {
+    "question_text": "How does optimistic locking work in databases?",
+    "topic": "databases",
+    "answers": [
+      {
+        "text": "Assume no conflicts, check version before committing",
+        "correct": true,
+        "response": "Correct! Read with version number, check version hasn't changed before writing. Retry on conflict. Great for low-contention scenarios.",
+        "reward_knowledge": "locking_strategies"
+      },
+      {
+        "text": "Lock rows immediately on read",
+        "correct": false,
+        "response": "That's pessimistic locking. Optimistic assumes no conflict and checks at commit time."
+      },
+      {
+        "text": "Never lock anything, accept data loss",
+        "correct": false,
+        "response": "Optimistic locking still prevents conflicts! It checks versions before committing."
+      },
+      {
+        "text": "Use the most optimistic transaction isolation level",
+        "correct": false,
+        "response": "Not about isolation levels. It's a versioning technique to detect conflicts."
+      }
+    ]
+  },
+  "gradient_vanishing": {
+    "question_text": "What causes the vanishing gradient problem in deep neural networks?",
+    "topic": "ai_ml",
+    "answers": [
+      {
+        "text": "Gradients become extremely small in early layers during backpropagation",
+        "correct": true,
+        "response": "Correct! Repeated multiplication of small derivatives causes gradients to vanish. ReLU, batch norm, and residual connections help.",
+        "reward_knowledge": "training_challenges"
+      },
+      {
+        "text": "Learning rate is too high",
+        "correct": false,
+        "response": "High learning rate causes instability, not vanishing gradients. Vanishing happens with many layers."
+      },
+      {
+        "text": "Too much training data",
+        "correct": false,
+        "response": "Data amount doesn't cause vanishing gradients. It's about network depth and activation functions."
+      },
+      {
+        "text": "Insufficient GPU memory",
+        "correct": false,
+        "response": "Memory limits batch size, not gradient flow. Vanishing gradients are a mathematical issue."
+      }
+    ]
+  },
+  "batch_vs_stochastic": {
+    "question_text": "What's the difference between batch and stochastic gradient descent?",
+    "topic": "ai_ml",
+    "answers": [
+      {
+        "text": "Batch uses all data per update, stochastic uses one sample",
+        "correct": true,
+        "response": "Correct! Batch GD is smooth but slow. SGD is noisy but fast. Mini-batch GD balances both. The noise in SGD can help escape local minima!",
+        "reward_knowledge": "optimization_variants"
+      },
+      {
+        "text": "Batch is always better than stochastic",
+        "correct": false,
+        "response": "Neither is always better! Batch is more stable, SGD is faster and can escape local minima."
+      },
+      {
+        "text": "Stochastic uses random architecture",
+        "correct": false,
+        "response": "Stochastic refers to sampling one example per update, not randomizing the network."
+      },
+      {
+        "text": "They always converge to the same solution",
+        "correct": false,
+        "response": "Different paths! SGD's noise can lead to different local minima than batch GD."
+      }
+    ]
+  },
+  "adam_optimizer": {
+    "question_text": "What makes Adam optimizer effective for training neural networks?",
+    "topic": "ai_ml",
+    "answers": [
+      {
+        "text": "Combines momentum and adaptive learning rates per parameter",
+        "correct": true,
+        "response": "Correct! Adam uses first and second moment estimates, adapting learning rates individually. Often works well out of the box!",
+        "reward_knowledge": "optimizers"
+      },
+      {
+        "text": "It's always faster than all other optimizers",
+        "correct": false,
+        "response": "Not always! Adam is versatile but SGD with momentum sometimes converges better on specific tasks."
+      },
+      {
+        "text": "It eliminates the need for backpropagation",
+        "correct": false,
+        "response": "Adam still uses backprop! It's an optimization algorithm that updates weights using gradients."
+      },
+      {
+        "text": "It only works with convolutional networks",
+        "correct": false,
+        "response": "Adam works with any neural network! It's a general-purpose optimizer."
+      }
+    ]
+  },
+  "rnn_lstm": {
+    "question_text": "What problem do LSTMs solve compared to vanilla RNNs?",
+    "topic": "ai_ml",
+    "answers": [
+      {
+        "text": "Better handling of long-range dependencies via gated memory cells",
+        "correct": true,
+        "response": "Correct! LSTMs use gates (forget, input, output) to control information flow, mitigating vanishing gradients in sequences.",
+        "reward_knowledge": "sequence_models"
+      },
+      {
+        "text": "LSTMs are faster to train than RNNs",
+        "correct": false,
+        "response": "LSTMs are actually slower (more parameters)! Their benefit is capturing long-term dependencies."
+      },
+      {
+        "text": "LSTMs work on images, RNNs don't",
+        "correct": false,
+        "response": "Both can process sequences. LSTMs' advantage is memory over long sequences."
+      },
+      {
+        "text": "LSTMs don't require backpropagation",
+        "correct": false,
+        "response": "LSTMs still use backpropagation through time! Gates help gradients flow better."
+      }
+    ]
+  },
+  "two_phase_commit": {
+    "question_text": "What is two-phase commit (2PC) in distributed systems?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "A protocol for atomic commits across multiple nodes",
+        "correct": true,
+        "response": "Correct! 2PC ensures all nodes commit or all abort. Phase 1: vote. Phase 2: commit/abort. But it's blocking - coordinator failure stalls the system.",
+        "reward_knowledge": "distributed_transactions"
+      },
+      {
+        "text": "Committing changes twice for safety",
+        "correct": false,
+        "response": "Not about redundant commits! It's a coordination protocol with prepare and commit phases."
+      },
+      {
+        "text": "A faster alternative to single-node transactions",
+        "correct": false,
+        "response": "2PC is slower due to coordination! It's for atomicity across nodes, not speed."
+      },
+      {
+        "text": "Running commits in two different data centers",
+        "correct": false,
+        "response": "2PC works across any number of nodes. The 'two phases' are prepare and commit."
+      }
+    ]
+  },
+  "split_brain": {
+    "question_text": "What is the split-brain problem in distributed systems?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "Network partition causes two groups to act as independent leaders",
+        "correct": true,
+        "response": "Correct! Split-brain leads to divergent state. Solutions: quorum, fencing, witness nodes. Consistency vs availability tradeoff!",
+        "reward_knowledge": "distributed_failures"
+      },
+      {
+        "text": "CPU divided between two processes",
+        "correct": false,
+        "response": "Not about CPU! Split-brain is when network partition creates multiple leaders."
+      },
+      {
+        "text": "Database replication delay",
+        "correct": false,
+        "response": "Replication lag is different. Split-brain is multiple nodes thinking they're the leader."
+      },
+      {
+        "text": "Memory corruption across servers",
+        "correct": false,
+        "response": "Not about memory! Split-brain is conflicting leadership due to network partition."
+      }
+    ]
+  },
+  "gossip_protocol": {
+    "question_text": "What is a gossip protocol in distributed systems?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "Nodes randomly share information with peers to propagate updates",
+        "correct": true,
+        "response": "Correct! Gossip protocols spread information like rumors - eventually consistent, fault-tolerant. Used in Cassandra, Consul.",
+        "reward_knowledge": "distributed_protocols"
+      },
+      {
+        "text": "A protocol for secure communication",
+        "correct": false,
+        "response": "Gossip doesn't inherently provide security. It's about information propagation."
+      },
+      {
+        "text": "Centralized broadcast from leader",
+        "correct": false,
+        "response": "Gossip is decentralized! Nodes randomly share with peers, no central coordinator."
+      },
+      {
+        "text": "Immediate consistency across all nodes",
+        "correct": false,
+        "response": "Gossip provides eventual consistency, not immediate. Updates propagate gradually."
+      }
+    ]
+  },
+  "proxy_vs_reverse_proxy": {
+    "question_text": "What's the difference between a proxy and a reverse proxy?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "Proxy serves clients, reverse proxy serves servers",
+        "correct": true,
+        "response": "Correct! Forward proxy: client → proxy → internet. Reverse proxy: internet → proxy → backend servers. Nginx is often a reverse proxy.",
+        "reward_knowledge": "proxy_patterns"
+      },
+      {
+        "text": "Reverse proxy runs traffic backwards",
+        "correct": false,
+        "response": "Not literal reversal! Reverse proxy sits in front of servers, forward proxy in front of clients."
+      },
+      {
+        "text": "They're the same thing",
+        "correct": false,
+        "response": "Different purposes! Proxy hides clients, reverse proxy hides servers."
+      },
+      {
+        "text": "Proxy is for HTTP, reverse proxy for HTTPS",
+        "correct": false,
+        "response": "Both work with any protocol. The difference is which side they serve."
+      }
+    ]
+  },
+  "database_connection_pooling": {
+    "question_text": "Why use database connection pooling?",
+    "topic": "databases",
+    "answers": [
+      {
+        "text": "Reuse connections to avoid expensive setup/teardown",
+        "correct": true,
+        "response": "Correct! Creating DB connections is slow (TCP handshake, auth, etc.). Pools reuse connections, improving performance and limiting load.",
+        "reward_knowledge": "connection_management"
+      },
+      {
+        "text": "To store pool of query results",
+        "correct": false,
+        "response": "That's query caching. Connection pooling reuses DB connections, not results."
+      },
+      {
+        "text": "To run queries in parallel always",
+        "correct": false,
+        "response": "Pooling enables parallelism but doesn't force it. It's mainly about connection reuse."
+      },
+      {
+        "text": "To automatically shard the database",
+        "correct": false,
+        "response": "Connection pools don't shard. They manage connection reuse for efficiency."
+      }
+    ]
+  },
+  "lambda_calculus": {
+    "question_text": "What is lambda calculus?",
+    "topic": "theory",
+    "answers": [
+      {
+        "text": "A formal system for expressing computation using function abstraction",
+        "correct": true,
+        "response": "Correct! Lambda calculus is Turing-complete using only functions. It's the foundation of functional programming languages.",
+        "reward_knowledge": "computation_models"
+      },
+      {
+        "text": "A way to calculate Lambda (λ) symbol usage",
+        "correct": false,
+        "response": "Not about the symbol! Lambda calculus is a model of computation based on functions."
+      },
+      {
+        "text": "Cloud computing with AWS Lambda",
+        "correct": false,
+        "response": "AWS Lambda is named after lambda calculus, but they're different concepts."
+      },
+      {
+        "text": "A type of differential calculus",
+        "correct": false,
+        "response": "Different field! Lambda calculus is computer science, not mathematics calculus."
+      }
+    ]
+  },
+  "monkey_patching": {
+    "question_text": "What is monkey patching?",
+    "topic": "programming_fundamentals",
+    "answers": [
+      {
+        "text": "Dynamically modifying a class or module at runtime",
+        "correct": true,
+        "response": "Correct! Monkey patching changes code behavior without modifying source. Powerful but dangerous - can break assumptions and make debugging hard.",
+        "reward_knowledge": "metaprogramming"
+      },
+      {
+        "text": "Fixing bugs quickly with temporary code",
+        "correct": false,
+        "response": "Not just for quick fixes! Monkey patching is runtime modification of classes/modules."
+      },
+      {
+        "text": "Testing with simulated monkeys",
+        "correct": false,
+        "response": "That's chaos engineering/monkey testing. Monkey patching is about runtime code modification."
+      },
+      {
+        "text": "A design pattern from Gang of Four",
+        "correct": false,
+        "response": "Not a formal pattern! It's a dynamic language technique to modify code at runtime."
+      }
+    ]
+  },
+  "idempotent_operations": {
+    "question_text": "Why is idempotency important for REST APIs?",
+    "topic": "web_development",
+    "answers": [
+      {
+        "text": "Safe to retry failed requests without side effects",
+        "correct": true,
+        "response": "Correct! Networks are unreliable. Idempotent operations (GET, PUT, DELETE) can be safely retried. POST is not idempotent!",
+        "reward_knowledge": "api_reliability"
+      },
+      {
+        "text": "Makes APIs faster",
+        "correct": false,
+        "response": "Not about speed! Idempotency is about safely retrying operations without duplicates."
+      },
+      {
+        "text": "Reduces server memory usage",
+        "correct": false,
+        "response": "Not about memory! It's about predictable behavior when operations are repeated."
+      },
+      {
+        "text": "Required by HTTP specification",
+        "correct": false,
+        "response": "HTTP defines which methods should be idempotent, but it's about safe retry semantics."
+      }
+    ]
+  },
+  "debouncing_throttling": {
+    "question_text": "What's the difference between debouncing and throttling?",
+    "topic": "programming_fundamentals",
+    "answers": [
+      {
+        "text": "Debounce waits for quiet period, throttle limits rate",
+        "correct": true,
+        "response": "Correct! Debounce: execute after events stop. Throttle: execute at most once per interval. Debounce for search, throttle for scroll!",
+        "reward_knowledge": "event_handling"
+      },
+      {
+        "text": "They're the same technique",
+        "correct": false,
+        "response": "Different! Debounce delays until quiet, throttle enforces maximum rate."
+      },
+      {
+        "text": "Debouncing is for backend, throttling for frontend",
+        "correct": false,
+        "response": "Both work anywhere! They're about timing, not architecture layer."
+      },
+      {
+        "text": "Throttling is always faster",
+        "correct": false,
+        "response": "Neither is 'faster' - they solve different problems with event frequency."
+      }
+    ]
+  },
+  "csrf_tokens": {
+    "question_text": "How do CSRF tokens prevent cross-site request forgery?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Include unpredictable token in forms that attacker sites can't access",
+        "correct": true,
+        "response": "Correct! Server generates unique token per session. Forms include it. Attacker sites can't read it due to same-origin policy, so forged requests fail.",
+        "reward_knowledge": "csrf_protection"
+      },
+      {
+        "text": "Encrypt all form data",
+        "correct": false,
+        "response": "CSRF tokens don't encrypt. They prove the request came from your site, not an attacker's."
+      },
+      {
+        "text": "Block all POST requests",
+        "correct": false,
+        "response": "POST requests are fine! CSRF tokens verify they originated from legitimate forms."
+      },
+      {
+        "text": "Require HTTPS",
+        "correct": false,
+        "response": "HTTPS helps but doesn't prevent CSRF. Tokens verify request origin."
+      }
+    ]
+  },
+  "memory_leak_patterns": {
+    "question_text": "What's a common cause of memory leaks in event-driven applications?",
+    "topic": "programming_fundamentals",
+    "answers": [
+      {
+        "text": "Not removing event listeners when objects are destroyed",
+        "correct": true,
+        "response": "Correct! Event listeners hold references, preventing garbage collection. Always clean up listeners in destructors/unmount handlers!",
+        "reward_knowledge": "memory_management_patterns"
+      },
+      {
+        "text": "Using too much RAM",
+        "correct": false,
+        "response": "That's high memory usage, not a leak. Leaks grow unbounded over time."
+      },
+      {
+        "text": "Allocating large arrays",
+        "correct": false,
+        "response": "Large allocations aren't leaks if freed properly. Leaks are objects that can't be freed."
+      },
+      {
+        "text": "Running the program for too long",
+        "correct": false,
+        "response": "Well-behaved programs run indefinitely. Leaks are bugs, not time-related."
+      }
+    ]
   }
 }
