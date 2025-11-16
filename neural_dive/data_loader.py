@@ -200,6 +200,22 @@ def load_all_game_data(content_set: str | None = None):
     terminals = load_terminals(content_set)
     levels = load_levels(content_set)
 
+    # Validate NPC/layout consistency and warn about issues
+    try:
+        from neural_dive.data.content.algorithms.levels import validate_npc_layout_consistency
+
+        # Only validate for algorithms content set (where the validation function exists)
+        if content_set == "algorithms":
+            warnings = validate_npc_layout_consistency(npcs, levels)
+            if warnings:
+                print("\n⚠️  NPC/Layout Validation Warnings:")
+                for warning in warnings:
+                    print(f"  - {warning}")
+                print()
+    except (ImportError, AttributeError):
+        # Validation function not available for this content set
+        pass
+
     return questions, npcs, terminals, levels
 
 

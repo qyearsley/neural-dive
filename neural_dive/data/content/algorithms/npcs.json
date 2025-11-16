@@ -259,7 +259,7 @@
     ]
   },
   "DB_KEEPER": {
-    "char": "T",
+    "char": "D",
     "color": "blue",
     "floor": 2,
     "npc_type": "specialist",
