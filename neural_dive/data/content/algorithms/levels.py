@@ -49,9 +49,9 @@ FLOOR_2_LAYOUT = """
 #......T.........................................#
 #.INFRASTRUCTURE.LAYER...........................#
 #................................................#
-#.H..............................W...............#
+#...................D....................W.......#
 #................................................#
-#####.........########........####################
+##.##.........########........####################
 #...#.........#......#...........................#
 #.C.#.........#......#................N..........#
 #...#.........#......#...........................#
@@ -59,14 +59,14 @@ FLOOR_2_LAYOUT = """
 #...#............................................#
 #...#.........T..................................#
 #...#.........PROTOCOL.NEXUS.....................#
-#...#............................................#
+#...#.............................X..............#
 #...#.....########..................##############
 #.K.#.....#......#..................#............#
 #...#.....#......#...............S..#............#
 #...#.....#......#..................#............#
-#####.....########..................##############
+##.##.....########..................##############
 #................................................#
-#.........................................>......#
+#.............................Y.................>#
 ##################################################
 """
 
@@ -305,3 +305,67 @@ PARSED_LEVELS = {
     2: parse_level(FLOOR_2_LAYOUT),
     3: parse_level(FLOOR_3_LAYOUT),
 }
+
+
+def validate_npc_layout_consistency(npc_data: dict, parsed_levels: dict) -> list[str]:
+    """Validate that NPCs in layout match NPCs defined for each floor.
+
+    Checks for:
+    1. NPCs assigned to a floor but not placed in the layout
+    2. NPC characters in layout that don't match any NPC for that floor
+    3. Character conflicts (e.g., 'T' used for both terminals and NPCs)
+
+    Args:
+        npc_data: Dictionary mapping NPC names to their data (from npcs.json)
+        parsed_levels: Dictionary of parsed level layouts
+
+    Returns:
+        List of warning/error messages, empty if all valid
+    """
+    warnings = []
+
+    # Reserved characters that shouldn't be used for NPCs
+    reserved_chars = {"T", "@", "<", ">", "#", "."}
+
+    for floor_num, level_data in parsed_levels.items():
+        # Get all NPCs assigned to this floor
+        floor_npcs = {
+            name: data
+            for name, data in npc_data.items()
+            if data.get("floor") == floor_num and data.get("npc_type") in ["specialist", "enemy"]
+        }
+
+        # Get all NPC characters placed in the layout
+        layout_chars = set(level_data.get("npc_positions", {}).keys())
+
+        # Check for reserved character conflicts
+        for npc_name, npc_data_item in floor_npcs.items():
+            npc_char = npc_data_item["char"]
+            if npc_char in reserved_chars:
+                warnings.append(
+                    f"Floor {floor_num}: NPC {npc_name} uses reserved character '{npc_char}' "
+                    f"(conflicts with game mechanic)"
+                )
+
+        # Check for NPCs defined but not placed in layout
+        expected_chars = {data["char"] for data in floor_npcs.values()}
+        missing_chars = expected_chars - layout_chars - reserved_chars
+
+        if missing_chars:
+            missing_npcs = [
+                name for name, data in floor_npcs.items() if data["char"] in missing_chars
+            ]
+            warnings.append(
+                f"Floor {floor_num}: Required NPCs not placed in layout: {', '.join(missing_npcs)} "
+                f"(characters: {', '.join(sorted(missing_chars))})"
+            )
+
+        # Check for layout characters that don't match any NPC for this floor
+        unexpected_chars = layout_chars - expected_chars
+        if unexpected_chars:
+            warnings.append(
+                f"Floor {floor_num}: Characters in layout don't match any NPC for this floor: "
+                f"{', '.join(sorted(unexpected_chars))}"
+            )
+
+    return warnings
