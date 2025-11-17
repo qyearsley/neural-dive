@@ -47,7 +47,7 @@
         "reward_knowledge": "hashing"
       },
       {
-        "text": "O(n\u00b2)",
+        "text": "O(n²)",
         "correct": false,
         "response": "Way too slow! Hash tables are much more efficient."
       }
@@ -69,7 +69,7 @@
         "reward_knowledge": "trees"
       },
       {
-        "text": "O(\u221an)",
+        "text": "O(√n)",
         "correct": false,
         "response": "Interesting guess, but not quite right."
       },
@@ -305,7 +305,7 @@
     "topic": "algorithms",
     "answers": [
       {
-        "text": "O(n\u00b2)",
+        "text": "O(n²)",
         "correct": false,
         "response": "That's the worst case with bad pivots. Average case is better!"
       },
@@ -830,25 +830,25 @@
     "topic": "testing",
     "answers": [
       {
-        "text": "Red (failing test) \u2192 Green (make it pass) \u2192 Refactor",
+        "text": "Red (failing test) → Green (make it pass) → Refactor",
         "correct": true,
         "response": "Correct! TDD follows Red-Green-Refactor: write a failing test first, implement minimal code to pass it, then refactor while keeping tests green.",
         "reward_knowledge": "tdd_methodology"
       },
       {
-        "text": "Write code \u2192 Write tests \u2192 Debug",
+        "text": "Write code → Write tests → Debug",
         "correct": false,
         "response": "That's traditional testing, not TDD. TDD writes tests BEFORE implementation, driving design from requirements.",
         "reward_knowledge": null
       },
       {
-        "text": "Design \u2192 Implement \u2192 Test \u2192 Deploy",
+        "text": "Design → Implement → Test → Deploy",
         "correct": false,
         "response": "That's a waterfall approach. TDD is iterative with very short cycles: test-first, then implement.",
         "reward_knowledge": null
       },
       {
-        "text": "Refactor \u2192 Write test \u2192 Implement",
+        "text": "Refactor → Write test → Implement",
         "correct": false,
         "response": "Close, but the order is wrong. TDD starts with a failing test (Red), then implements (Green), then refactors.",
         "reward_knowledge": null
@@ -1187,66 +1187,6 @@
         "text": "Cross-validation error",
         "correct": false,
         "response": "Cross-validation evaluates the final model, not individual splits. Splits are chosen greedily based on purity measures.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "svm_kernel_trick": {
-    "question_text": "What does the kernel trick enable in Support Vector Machines (SVM)?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "It allows SVM to learn non-linear decision boundaries without explicitly computing high-dimensional features",
-        "correct": true,
-        "response": "Correct! Kernel trick (e.g., RBF kernel) implicitly maps data to high dimensions where it's linearly separable, without the computational cost. Elegant math: K(x,y) = \u03c6(x)\u00b7\u03c6(y)!",
-        "reward_knowledge": "svm"
-      },
-      {
-        "text": "It speeds up training by using fewer support vectors",
-        "correct": false,
-        "response": "Kernel trick is about handling non-linearity, not reducing support vectors. The number of SVs depends on the data.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It automatically prevents overfitting in SVM",
-        "correct": false,
-        "response": "Kernel trick enables non-linear boundaries but doesn't prevent overfitting. You still need regularization (C parameter).",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It converts SVM into a neural network",
-        "correct": false,
-        "response": "SVM and neural networks are different algorithms. Kernel trick is specific to SVM for handling non-linearity.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "transformer_attention": {
-    "question_text": "What is the key innovation of the attention mechanism in Transformers?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "It allows the model to focus on relevant parts of the input when processing each token",
-        "correct": true,
-        "response": "Correct! Attention computes weighted relationships between all input tokens. 'The animal didn't cross the street because it was too tired' - 'it' attends strongly to 'animal'. Revolutionized NLP!",
-        "reward_knowledge": "transformers"
-      },
-      {
-        "text": "It eliminates the need for training data",
-        "correct": false,
-        "response": "Transformers still need training data! Attention is about dynamically weighting input relationships, not unsupervised learning.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It makes models smaller and faster than RNNs",
-        "correct": false,
-        "response": "Transformers are often LARGER than RNNs! Their advantage is parallelization and better long-range dependencies, not size.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It removes the need for backpropagation",
-        "correct": false,
-        "response": "Transformers still use backpropagation for training. Attention is a layer type, not a training algorithm.",
         "reward_knowledge": null
       }
     ]
@@ -1952,37 +1892,6 @@
       }
     ]
   },
-  "universal_approximation": {
-    "question_text": "What does the Universal Approximation Theorem tell us about neural networks?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "A neural network with one hidden layer can approximate any continuous function",
-        "correct": true,
-        "response": "Correct! With enough hidden neurons, even shallow networks are universal function approximators. But deeper networks often learn more efficiently!",
-        "reward_knowledge": "neural_theory",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "Neural networks can perfectly fit any dataset without error",
-        "correct": false,
-        "response": "No! The theorem is about approximation capacity, not optimization. Training might not find the optimal weights, and we want generalization, not perfect fit!",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "All neural networks will converge to the same solution",
-        "correct": false,
-        "response": "False! Training is non-convex with many local minima. Different initializations lead to different solutions.",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "Deep networks are unnecessary since shallow ones suffice",
-        "correct": false,
-        "response": "Misleading! While shallow networks have representational power, deep networks learn efficiently with exponentially fewer neurons for some functions.",
-        "enemy_penalty": 45
-      }
-    ]
-  },
   "merge_sort": {
     "question_text": "What is the space complexity of merge sort?",
     "topic": "algorithms",
@@ -2004,7 +1913,7 @@
         "reward_knowledge": "merge_sort"
       },
       {
-        "text": "O(n\u00b2)",
+        "text": "O(n²)",
         "correct": false,
         "response": "Too much! Merge sort is more space-efficient than that."
       }
@@ -2115,33 +2024,6 @@
         "text": "Random access",
         "correct": false,
         "response": "Arrays give O(1) random access by index. Tries are for string prefix operations - each character is a node, paths spell words. Perfect for autocomplete and spell checking\\!"
-      }
-    ]
-  },
-  "bloom_filter": {
-    "question_text": "What is a key characteristic of a Bloom filter?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "No false positives",
-        "correct": false,
-        "response": "Bloom filters CAN have false positives\\! A Bloom filter is a probabilistic data structure using multiple hash functions. It can wrongly say an item exists (false positive) but never wrongly say it doesn't (no false negatives)."
-      },
-      {
-        "text": "No false negatives",
-        "correct": true,
-        "response": "Correct! Bloom filters never have false negatives.",
-        "reward_knowledge": "bloom_filter"
-      },
-      {
-        "text": "Perfect accuracy",
-        "correct": false,
-        "response": "Bloom filters sacrifice perfect accuracy for space efficiency. They use a bit array and hash functions to test set membership - fast and compact but can give false positives. Never false negatives though\\!"
-      },
-      {
-        "text": "Slow lookups",
-        "correct": false,
-        "response": "Bloom filters ARE very fast - that's correct\\! But the KEY characteristic is no false negatives. Bloom filters are space-efficient probabilistic data structures that may say 'yes' when wrong, but never say 'no' when wrong."
       }
     ]
   },
@@ -2304,87 +2186,6 @@
         "text": "Constant space solves everything",
         "correct": false,
         "response": "Many problems require more space."
-      }
-    ]
-  },
-  "batch_normalization": {
-    "question_text": "What is the primary benefit of batch normalization?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "Reduces model size",
-        "correct": false,
-        "response": "Batch norm doesn't reduce model size."
-      },
-      {
-        "text": "Stabilizes training",
-        "correct": true,
-        "response": "Yes! Batch norm reduces internal covariate shift.",
-        "reward_knowledge": "batch_norm"
-      },
-      {
-        "text": "Prevents all overfitting",
-        "correct": false,
-        "response": "It helps but doesn't prevent all overfitting."
-      },
-      {
-        "text": "Eliminates need for activation",
-        "correct": false,
-        "response": "Activation functions are still needed!"
-      }
-    ]
-  },
-  "dropout": {
-    "question_text": "How does dropout regularization work?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "Removes layers",
-        "correct": false,
-        "response": "Dropout doesn't remove entire layers."
-      },
-      {
-        "text": "Randomly drops neurons during training",
-        "correct": true,
-        "response": "Correct! Dropout randomly deactivates neurons.",
-        "reward_knowledge": "dropout"
-      },
-      {
-        "text": "Reduces learning rate",
-        "correct": false,
-        "response": "That's a different technique."
-      },
-      {
-        "text": "Adds noise to inputs",
-        "correct": false,
-        "response": "Dropout affects neurons, not inputs directly."
-      }
-    ]
-  },
-  "learning_rate_schedule": {
-    "question_text": "Why use a learning rate schedule?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "Speeds up training only",
-        "correct": false,
-        "response": "It's about convergence quality too."
-      },
-      {
-        "text": "Helps converge to better minima",
-        "correct": true,
-        "response": "Yes! Schedules help escape local minima and converge better.",
-        "reward_knowledge": "lr_schedule"
-      },
-      {
-        "text": "Prevents underfitting",
-        "correct": false,
-        "response": "Schedules don't directly address underfitting."
-      },
-      {
-        "text": "Reduces model size",
-        "correct": false,
-        "response": "Learning rate doesn't affect model size."
       }
     ]
   },
@@ -2763,7 +2564,7 @@
         "response": "LRU is practical and good, but not optimal."
       },
       {
-        "text": "Optimal (B\u00e9l\u00e1dy's)",
+        "text": "Optimal (Bélády's)",
         "correct": true,
         "response": "Correct! Optimal requires knowing the future.",
         "reward_knowledge": "page_replacement"
@@ -2826,60 +2627,6 @@
         "text": "Perfect consistency always",
         "correct": false,
         "response": "That's not achievable in distributed systems!"
-      }
-    ]
-  },
-  "consensus": {
-    "question_text": "What problem does the Paxos algorithm solve?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Sorting",
-        "correct": false,
-        "response": "Paxos isn't about sorting!"
-      },
-      {
-        "text": "Distributed consensus",
-        "correct": true,
-        "response": "Yes! Paxos enables agreement in distributed systems.",
-        "reward_knowledge": "paxos"
-      },
-      {
-        "text": "Encryption",
-        "correct": false,
-        "response": "Paxos doesn't handle encryption."
-      },
-      {
-        "text": "Load balancing",
-        "correct": false,
-        "response": "Paxos is about consensus, not balancing."
-      }
-    ]
-  },
-  "vector_clocks": {
-    "question_text": "What do vector clocks help determine?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Absolute time",
-        "correct": false,
-        "response": "Vector clocks don't provide absolute time."
-      },
-      {
-        "text": "Causal ordering of events",
-        "correct": true,
-        "response": "Correct! Vector clocks track causality.",
-        "reward_knowledge": "vector_clocks"
-      },
-      {
-        "text": "Server load",
-        "correct": false,
-        "response": "Vector clocks aren't about load."
-      },
-      {
-        "text": "Network speed",
-        "correct": false,
-        "response": "Vector clocks track logical time, not speed."
       }
     ]
   },
@@ -3385,60 +3132,6 @@
       }
     ]
   },
-  "property_based_testing": {
-    "question_text": "What is property-based testing?",
-    "topic": "testing",
-    "answers": [
-      {
-        "text": "Testing object properties",
-        "correct": false,
-        "response": "Not about object properties!"
-      },
-      {
-        "text": "Testing with generated inputs",
-        "correct": true,
-        "response": "Yes! Property tests use random inputs to verify invariants.",
-        "reward_knowledge": "property_test"
-      },
-      {
-        "text": "Testing CSS properties",
-        "correct": false,
-        "response": "Nothing to do with CSS!"
-      },
-      {
-        "text": "Manual testing",
-        "correct": false,
-        "response": "Property tests are automated."
-      }
-    ]
-  },
-  "mutation_testing": {
-    "question_text": "What does mutation testing measure?",
-    "topic": "testing",
-    "answers": [
-      {
-        "text": "Code changes over time",
-        "correct": false,
-        "response": "Not about version control!"
-      },
-      {
-        "text": "Test suite effectiveness",
-        "correct": true,
-        "response": "Yes! Mutation testing finds weak tests.",
-        "reward_knowledge": "mutation_test"
-      },
-      {
-        "text": "Database mutations",
-        "correct": false,
-        "response": "Not about databases!"
-      },
-      {
-        "text": "Performance changes",
-        "correct": false,
-        "response": "Mutation testing is about correctness."
-      }
-    ]
-  },
   "canary_deployment": {
     "question_text": "What is canary deployment?",
     "topic": "devops",
@@ -3635,7 +3328,7 @@
       {
         "text": "Decoupling and asynchronous processing",
         "correct": true,
-        "response": "Correct\\! Producers emit events without knowing consumers. Consumers react independently. Great for complex workflows and scaling. Examples: order placed \u2192 inventory, email, analytics all react.",
+        "response": "Correct\\! Producers emit events without knowing consumers. Consumers react independently. Great for complex workflows and scaling. Examples: order placed → inventory, email, analytics all react.",
         "reward_knowledge": "event_driven"
       },
       {
@@ -3682,57 +3375,30 @@
       }
     ]
   },
-  "saga_pattern": {
-    "question_text": "What is the Saga pattern in microservices?",
-    "topic": "system_design",
-    "answers": [
-      {
-        "text": "Manages distributed transactions with compensating actions",
-        "correct": true,
-        "response": "Correct\\! Sagas break long transactions into steps, each with a compensating action for rollback. Example: book hotel \u2192 charge card \u2192 send confirmation. If charge fails, cancel hotel. No 2PC needed\\!",
-        "reward_knowledge": "saga_pattern"
-      },
-      {
-        "text": "A type of database",
-        "correct": false,
-        "response": "Not a database\\! Saga is a pattern for coordinating multi-service transactions without distributed locks."
-      },
-      {
-        "text": "Same as two-phase commit",
-        "correct": false,
-        "response": "Different\\! 2PC locks resources. Sagas use eventual consistency and compensating actions for rollback."
-      },
-      {
-        "text": "Only for event sourcing",
-        "correct": false,
-        "response": "Sagas work with any architecture. Can be choreographed (events) or orchestrated (coordinator)."
-      }
-    ]
-  },
   "big_theta_notation": {
-    "question_text": "What does Big-Theta (\u0398) notation represent?",
+    "question_text": "What does Big-Theta (Θ) notation represent?",
     "topic": "theory",
     "answers": [
       {
         "text": "Tight bound - both upper and lower",
         "correct": true,
-        "response": "Correct\\! \u0398(n) means the function grows exactly at rate n - both upper and lower bounded. O(n) is upper bound only, \u03a9(n) is lower bound only. \u0398 is most precise\\!",
+        "response": "Correct\\! Θ(n) means the function grows exactly at rate n - both upper and lower bounded. O(n) is upper bound only, Ω(n) is lower bound only. Θ is most precise\\!",
         "reward_knowledge": "complexity_notation"
       },
       {
         "text": "Worst case only",
         "correct": false,
-        "response": "That's Big-O\\! \u0398 (theta) gives a tight bound - the function grows exactly at that rate, not just at most."
+        "response": "That's Big-O\\! Θ (theta) gives a tight bound - the function grows exactly at that rate, not just at most."
       },
       {
         "text": "Best case only",
         "correct": false,
-        "response": "That's Big-Omega (\u03a9)\\! \u0398 bounds both directions - the function grows exactly at that rate."
+        "response": "That's Big-Omega (Ω)\\! Θ bounds both directions - the function grows exactly at that rate."
       },
       {
         "text": "Average case",
         "correct": false,
-        "response": "Asymptotic notation describes growth rates, not probabilistic cases. \u0398 means tight bound (exact growth)."
+        "response": "Asymptotic notation describes growth rates, not probabilistic cases. Θ means tight bound (exact growth)."
       }
     ]
   },
@@ -4758,7 +4424,7 @@
     "topic": "algorithms",
     "correct_answer": "O(n log n)|O(nlogn)|n log n|nlogn|linearithmic|quasilinear",
     "match_type": "complexity",
-    "correct_response": "Correct! Quicksort averages O(n log n), though worst case is O(n\u00b2).",
+    "correct_response": "Correct! Quicksort averages O(n log n), though worst case is O(n²).",
     "incorrect_response": "Think about how quicksort divides and conquers the array.",
     "reward_knowledge": "quicksort"
   },
@@ -5341,62 +5007,6 @@
         "text": "Measure test execution time",
         "correct": false,
         "response": "That's performance testing. Snapshot testing detects unintended output changes."
-      }
-    ]
-  },
-  "hexagonal_architecture": {
-    "type": "multiple_choice",
-    "question_text": "What is the key principle of Hexagonal Architecture (Ports and Adapters)?",
-    "topic": "architecture",
-    "answers": [
-      {
-        "text": "Isolate business logic from external concerns via ports and adapters",
-        "correct": true,
-        "response": "Correct! The core domain is at the center with 'ports' (interfaces). 'Adapters' implement ports for specific technologies (DB, UI, APIs). Easy to swap implementations and test!",
-        "reward_knowledge": "hexagonal_architecture"
-      },
-      {
-        "text": "Use six-sided polygons for data structures",
-        "correct": false,
-        "response": "Not about shapes! Hexagonal architecture isolates business logic from infrastructure through abstraction layers."
-      },
-      {
-        "text": "Deploy applications across six servers",
-        "correct": false,
-        "response": "Nothing to do with deployment. It's about separating business logic from technical implementation details."
-      },
-      {
-        "text": "Everything must be a microservice",
-        "correct": false,
-        "response": "Hexagonal architecture works for monoliths too! It's about separation of concerns, not service boundaries."
-      }
-    ]
-  },
-  "cqrs_pattern": {
-    "type": "multiple_choice",
-    "question_text": "What does CQRS (Command Query Responsibility Segregation) separate?",
-    "topic": "architecture",
-    "answers": [
-      {
-        "text": "Read operations (queries) from write operations (commands)",
-        "correct": true,
-        "response": "Correct! CQRS uses separate models for reads and writes. Write model focuses on consistency, read model optimized for queries. Enables different scaling strategies!",
-        "reward_knowledge": "cqrs"
-      },
-      {
-        "text": "Frontend from backend code",
-        "correct": false,
-        "response": "That's just layering. CQRS separates read and write data models, often in the same backend."
-      },
-      {
-        "text": "SQL queries from NoSQL queries",
-        "correct": false,
-        "response": "CQRS is database-agnostic. It's about separating reads from writes, regardless of database technology."
-      },
-      {
-        "text": "Authentication from authorization",
-        "correct": false,
-        "response": "That's a security concern. CQRS is about separating query and command data paths."
       }
     ]
   },

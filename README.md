@@ -13,7 +13,7 @@
 ## Features
 
 - 📚 **Multiple learning content sets** - Computer Science, Chinese HSK 6, World Geography, and more!
-- 🎓 **220+ unique questions** across algorithms, systems, web, ML, languages, and geography
+- 🎓 **227 unique questions** across algorithms, systems, web, ML, languages, and geography
 - 🎮 **Roguelike gameplay** with wandering NPCs and procedural maps
 - 🎨 **Cyberpunk theme** with Unicode graphics (light/dark mode support)
 - 🏆 **Boss battles** to win, score tracking, and unique question sets per NPC
@@ -22,13 +22,32 @@
 
 ---
 
-## Quick Start
+## 🎮 Install & Play
+
+### For Players (Easiest)
 
 ```bash
-# Install
-pip install -e .
+pipx install git+https://github.com/qyearsley/neural-dive.git
+neural-dive
+```
 
-# Play (choose content and difficulty from menus)
+**That's it!** pipx handles everything automatically.
+
+### For Contributors
+
+```bash
+git clone https://github.com/qyearsley/neural-dive.git
+cd neural-dive
+pip3 install blessed
+./ndive
+```
+
+---
+
+## Usage
+
+```bash
+# Play (interactive content menu)
 ./ndive
 
 # Or play specific content directly
@@ -41,8 +60,8 @@ pip install -e .
 
 # Other options
 ./ndive --help
-./ndive --light      # Light terminal
-./ndive --classic    # ASCII graphics
+./ndive --light      # Light terminal background
+./ndive --classic    # ASCII graphics (compatibility mode)
 ```
 
 **Controls:** Arrow keys to move • Space/Enter to interact • >/< for stairs • **S to Save** • **L to Load** • Q to quit
@@ -57,7 +76,7 @@ Neural Dive supports multiple learning topics! Each content set includes custom 
 
 | Content Set | Description | Questions | Difficulty |
 |------------|-------------|-----------|------------|
-| **algorithms** *(default)* | Computer Science - algorithms, data structures, systems, web, ML | 220+ | Beginner to Expert |
+| **algorithms** *(default)* | Computer Science - algorithms, data structures, systems, web, ML | 227 | Beginner to Expert |
 | **chinese-hsk6** | Advanced Chinese vocabulary, grammar, and idioms for HSK 6 | 5 (sample) | Advanced to Expert |
 | **geography** | World geography - capitals, landmarks, physical features | 6 (sample) | Beginner to Advanced |
 
@@ -301,7 +320,7 @@ ndive                         # Launcher
 
 ## Topics Covered
 
-**Computer Science (algorithms):** 220+ questions across: Algorithms • Data Structures • Systems • Networking • Databases • Security • Web Dev • Distributed Systems • Machine Learning • Design Patterns • Testing • DevOps • Programming Fundamentals • Software Engineering • Theory • Architecture • Compilers • Version Control • AI/ML
+**Computer Science (algorithms):** 227 questions across: Algorithms • Data Structures • Systems • Networking • Databases • Security • Web Dev • Distributed Systems • Machine Learning • Design Patterns • Testing • DevOps • Programming Fundamentals • Software Engineering • Theory • Architecture • Compilers • Version Control • AI/ML
 
 **Chinese HSK 6 (chinese-hsk6):** Advanced vocabulary, grammar structures, idiomatic expressions (sample set - 5 questions)
 
