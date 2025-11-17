@@ -54,11 +54,10 @@
     "npc_type": "specialist",
     "greeting": "Testing is not just verification—it's design. I am the Test Oracle, guardian of quality. Prove your understanding of test-driven practices.",
     "questions": [
-      "mutation_testing",
-      "property_based_testing",
       "integration_testing",
       "test_pyramid",
-      "tdd_cycle"
+      "tdd_cycle",
+      "mocking_vs_stubs"
     ]
   },
   "WEB_ARCHITECT": {
@@ -143,7 +142,6 @@
     "npc_type": "boss",
     "greeting": "I am the RESILIENCE ARCHITECT. Systems that scale. Systems that survive. Systems that adapt. Prove you understand distributed systems and DevOps. Four challenges.",
     "questions": [
-      "saga_pattern",
       "idempotency",
       "circuit_breaker",
       "canary_deployment",
@@ -154,8 +152,6 @@
       "kubernetes_pods",
       "docker_vs_vm",
       "quorum",
-      "vector_clocks",
-      "consensus",
       "eventual_consistency",
       "cap_theorem",
       "message_queues"
@@ -169,11 +165,12 @@
     "greeting": "I span across nodes, distributed yet unified. Message queues connect my thoughts. Understand distributed systems to comprehend me.",
     "questions": [
       "quorum",
-      "vector_clocks",
-      "consensus",
       "eventual_consistency",
       "cap_theorem",
-      "message_queues"
+      "message_queues",
+      "load_balancer_purpose",
+      "circuit_breaker_pattern",
+      "horizontal_vs_vertical_scaling"
     ]
   },
   "ML_BOSS": {
@@ -184,17 +181,15 @@
     "greeting": "I am the NEURAL ENTITY, evolved from countless training iterations. You seek passage? Demonstrate deep understanding of machine learning. Four questions await.",
     "questions": [
       "bias_variance_tradeoff",
-      "learning_rate_schedule",
-      "dropout",
-      "batch_normalization",
       "regularization_ml",
-      "transformer_attention",
-      "svm_kernel_trick",
       "decision_tree_splits",
-      "universal_approximation",
       "gradient_descent",
       "overfitting",
-      "backpropagation"
+      "backpropagation",
+      "cross_validation",
+      "confusion_matrix",
+      "feature_engineering",
+      "classification_vs_regression"
     ]
   },
   "LAMBDA_SAGE": {
@@ -246,7 +241,6 @@
       "microservices_vs_monolith",
       "rest_methods",
       "hash_table",
-      "transformer_attention",
       "p_vs_np",
       "docker_vs_vm",
       "load_balancing",
@@ -284,8 +278,6 @@
     "npc_type": "specialist",
     "greeting": "I am the Architecture Master. System design is my craft. Layered, hexagonal, event-driven, CQRS—patterns that shape great systems. Prove your architectural knowledge.",
     "questions": [
-      "cqrs_pattern",
-      "hexagonal_architecture",
       "mvc_pattern",
       "layered_architecture",
       "event_driven_architecture",
@@ -316,10 +308,7 @@
     "questions": [
       "snapshot_testing",
       "contract_testing",
-      "test_coverage",
-      "property_based_testing",
-      "mutation_testing",
-      "integration_testing"
+      "test_coverage"
     ]
   }
 }

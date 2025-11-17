@@ -921,7 +921,7 @@ class Game:
             # Check for victory condition on final floor
             if self.floor_manager.is_final_floor():
                 # Victory bosses - defeating any of these wins the game
-                victory_bosses = {"VIRUS_HUNTER", "THEORY_ORACLE", "AI_CONSCIOUSNESS"}
+                victory_bosses = {"FINAL_BOSS", "RESILIENCE_BOSS", "ML_BOSS", "THEORY_BOSS"}
                 if npc_name in victory_bosses:
                     self.game_won = True
 
