@@ -109,8 +109,13 @@ class MultipleChoiceRenderer:
 
         current_y += 1
 
-        # Show numbered answers
+        # Show numbered answers (skip eliminated ones)
+        eliminated = game.eliminated_answers
         for i, answer in enumerate(question.answers):
+            # Skip eliminated answers
+            if i in eliminated:
+                continue
+
             if current_y < start_y + overlay_height - 2:
                 choice_text = f"{i + 1}. {answer.text}"
                 lines = wrap_text(choice_text, overlay_width - 4)
@@ -122,11 +127,18 @@ class MultipleChoiceRenderer:
                         )
                         current_y += 1
 
-        # Instructions at bottom
+        # Instructions at bottom - show hint option if available
+        from neural_dive.items import ItemType
+
+        has_hints = game.player_manager.has_item_type(ItemType.HINT_TOKEN)
+        has_snippets = game.player_manager.has_item_type(ItemType.CODE_SNIPPET)
         error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
+
+        hint_text = " | H: Use Hint" if has_hints else ""
+        snippet_text = " | S: View Snippet" if has_snippets else ""
         print(
             term.move_xy(start_x + 2, start_y + overlay_height - 2)
-            + error_color("Press 1-4 to answer | ESC/Q to exit"),
+            + error_color(f"Press 1-4 to answer{hint_text}{snippet_text} | ESC/Q to exit"),
             end="",
         )
 

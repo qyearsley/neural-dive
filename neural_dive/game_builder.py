@@ -13,6 +13,7 @@ from neural_dive.config import PLAYER_START_X, PLAYER_START_Y
 from neural_dive.data_loader import get_default_content_set, load_all_game_data
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings, get_difficulty_settings
 from neural_dive.entities import Entity, InfoTerminal, Stairs
+from neural_dive.items import ItemPickup
 
 
 class GameInitializer:
@@ -51,20 +52,20 @@ class GameInitializer:
         return random.Random() if seed is None else random.Random(seed), seed
 
     @staticmethod
-    def load_content(content_set: str | None) -> tuple[str, dict, dict, dict, dict]:
+    def load_content(content_set: str | None) -> tuple[str, dict, dict, dict, dict, dict]:
         """Load game content data.
 
         Args:
             content_set: Content set identifier (None for default)
 
         Returns:
-            Tuple of (content_set, questions, npc_data, terminal_data, level_data)
+            Tuple of (content_set, questions, npc_data, terminal_data, level_data, snippets)
         """
         if content_set is None:
             content_set = get_default_content_set()
 
-        questions, npc_data, terminal_data, level_data = load_all_game_data(content_set)
-        return content_set, questions, npc_data, terminal_data, level_data
+        questions, npc_data, terminal_data, level_data, snippets = load_all_game_data(content_set)
+        return content_set, questions, npc_data, terminal_data, level_data, snippets
 
     @staticmethod
     def create_floor_manager(
@@ -198,13 +199,13 @@ class GameInitializer:
         )
 
     @staticmethod
-    def initialize_entities() -> tuple[list[Stairs], list[InfoTerminal]]:
+    def initialize_entities() -> tuple[list[Stairs], list[InfoTerminal], list[ItemPickup]]:
         """Initialize entity lists.
 
         Returns:
-            Tuple of (stairs, terminals)
+            Tuple of (stairs, terminals, item_pickups)
         """
-        return [], []
+        return [], [], []
 
     @staticmethod
     def create_welcome_message(max_floors: int) -> str:

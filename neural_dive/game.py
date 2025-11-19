@@ -97,6 +97,7 @@ class Game:
             self.npc_data,
             self.terminal_data,
             self.level_data,
+            self.snippets,
         ) = GameInitializer.load_content(content_set)
 
         # Compute floor requirements based on loaded NPCs
@@ -118,7 +119,7 @@ class Game:
         self.player, self.old_player_pos = GameInitializer.create_player(self.level_data)
 
         # Initialize entity lists
-        self.stairs, self.terminals = GameInitializer.initialize_entities()
+        self.stairs, self.terminals, self.item_pickups = GameInitializer.initialize_entities()
 
         # Initialize NPC Manager
         self.npc_manager: NPCManager = GameInitializer.create_npc_manager(
@@ -272,6 +273,26 @@ class Game:
         self.conversation_engine.active_terminal = value
 
     @property
+    def active_inventory(self) -> bool:
+        """Get active inventory state from ConversationEngine."""
+        return self.conversation_engine.active_inventory
+
+    @active_inventory.setter
+    def active_inventory(self, value: bool):
+        """Set active inventory state on ConversationEngine."""
+        self.conversation_engine.active_inventory = value
+
+    @property
+    def active_snippet(self) -> dict | None:
+        """Get active snippet from ConversationEngine."""
+        return self.conversation_engine.active_snippet
+
+    @active_snippet.setter
+    def active_snippet(self, value: dict | None):
+        """Set active snippet on ConversationEngine."""
+        self.conversation_engine.active_snippet = value
+
+    @property
     def show_greeting(self) -> bool:
         """Get show greeting from ConversationEngine."""
         return self.conversation_engine.show_greeting
@@ -311,9 +332,13 @@ class Game:
         """Set text input buffer on ConversationEngine."""
         self.conversation_engine.text_input_buffer = value
 
+    @property
+    def eliminated_answers(self) -> set[int]:
+        """Get eliminated answers from ConversationEngine."""
+        return self.conversation_engine.eliminated_answers
+
     def _generate_floor(self):
-        """
-        Generate all entities (NPCs, terminals, stairs) for the current floor.
+        """Generate all entities (NPCs, terminals, stairs, items) for the current floor.
 
         This method is called when entering a new floor or starting the game.
         It clears existing floor entities and creates new ones based on the current floor.
@@ -327,6 +352,7 @@ class Game:
         # Clear current floor entities (non-NPC)
         self.stairs = []
         self.terminals = []
+        self.item_pickups = []
 
         # Clear old position tracking when changing floors
         self.npc_manager.old_positions.clear()
@@ -347,6 +373,9 @@ class Game:
 
         # Generate stairs
         self._generate_stairs()
+
+        # Generate items
+        self._generate_items()
 
     def _generate_terminals(self):
         """Generate and place info terminals for the current floor."""
@@ -487,6 +516,65 @@ class Game:
             for x, y in position_data:
                 self.stairs.append(Stairs(x, y, direction))
 
+    def _generate_items(self):
+        """Generate and place item pickups for the current floor."""
+        from neural_dive.items import CodeSnippet, HintToken, ItemPickup
+        from neural_dive.placement import EntityPlacementStrategy
+
+        strategy = EntityPlacementStrategy(
+            game_map=self.game_map,
+            random_mode=self.random_npcs,
+            rng=self.rand,
+            map_width=self.map_width,
+            map_height=self.map_height,
+        )
+
+        # Number of items per floor (increases with floor difficulty)
+        num_hint_tokens = 1 + (self.current_floor // 2)  # 1 on floor 1, 2 on floors 2-3
+        num_snippets = 1 if self.current_floor >= 2 else 0  # 1 snippet starting on floor 2
+
+        # Place hint tokens
+        hint_positions = strategy.place_entities(
+            level_positions=None,
+            default_positions=[],
+            num_attempts=50,
+            x_range=(3, self.map_width - 3),
+            y_range=(3, self.map_height - 3),
+            count=num_hint_tokens,
+            validation_fn=lambda x, y: abs(x - self.player.x) + abs(y - self.player.y) > 8,
+        )
+
+        for x, y in hint_positions:
+            hint_item = HintToken()
+            pickup = ItemPickup(x, y, hint_item)
+            self.item_pickups.append(pickup)
+
+        # Place code snippets
+        if num_snippets > 0 and self.snippets:
+            snippet_positions = strategy.place_entities(
+                level_positions=None,
+                default_positions=[],
+                num_attempts=50,
+                x_range=(3, self.map_width - 3),
+                y_range=(3, self.map_height - 3),
+                count=num_snippets,
+                validation_fn=lambda x, y: abs(x - self.player.x) + abs(y - self.player.y) > 8,
+            )
+
+            # Pick random snippets from available ones
+            available_snippet_ids = list(self.snippets.keys())
+            for x, y in snippet_positions:
+                if available_snippet_ids:
+                    snippet_id = self.rand.choice(available_snippet_ids)
+                    snippet_data = self.snippets[snippet_id]
+                    snippet_item = CodeSnippet(
+                        name=snippet_data["name"],
+                        topic=snippet_data["topic"],
+                        content=snippet_data["content"],
+                    )
+                    pickup = ItemPickup(x, y, snippet_item)
+                    self.item_pickups.append(pickup)
+
     def update_npc_wandering(self):
         """
         Update NPC wandering AI.
@@ -543,6 +631,18 @@ class Game:
             self.old_player_pos = (self.player.x, self.player.y)
             self.player.x = new_x
             self.player.y = new_y
+
+            # Check for item pickups
+            for pickup in self.item_pickups[:]:  # Use slice to allow removal during iteration
+                if self.player.x == pickup.x and self.player.y == pickup.y:
+                    # Try to add to inventory
+                    if self.player_manager.add_item(pickup.item):
+                        self.item_pickups.remove(pickup)
+                        self.message = f"Picked up {pickup.item.name}!"
+                        return True
+                    else:
+                        self.message = "Inventory full!"
+                        return True
 
             # Check if standing on stairs and show hint
             for stair in self.stairs:
@@ -761,6 +861,66 @@ class Game:
         self.message = f"Ascended to Neural Layer {self.current_floor}"
         return True
 
+    def use_hint(self) -> tuple[bool, str]:
+        """Use a hint token to eliminate wrong answers in the current question.
+
+        Returns:
+            Tuple of (success, message)
+        """
+        from neural_dive.items import ItemType
+
+        # Check if we have hint tokens
+        if not self.player_manager.has_item_type(ItemType.HINT_TOKEN):
+            return False, "No hint tokens available"
+
+        # Check if in a conversation
+        if not self.active_conversation:
+            return False, "Not in a conversation"
+
+        # Try to use the hint
+        success, message = self.conversation_engine.use_hint_token()
+
+        if success:
+            # Remove one hint token from inventory
+            hint_tokens = self.player_manager.get_items_by_type(ItemType.HINT_TOKEN)
+            if hint_tokens:
+                self.player_manager.remove_item(hint_tokens[0])
+                return True, message
+
+        return False, message
+
+    def view_snippet(self) -> tuple[bool, str]:
+        """View a code snippet during a conversation.
+
+        Returns:
+            Tuple of (success, message)
+        """
+        from neural_dive.items import ItemType
+
+        # Check if we have code snippets
+        snippets = self.player_manager.get_items_by_type(ItemType.CODE_SNIPPET)
+        if not snippets:
+            return False, "No code snippets available"
+
+        # Check if in a conversation
+        if not self.active_conversation:
+            return False, "Not in a conversation"
+
+        # For now, show the first snippet
+        # TODO: Could add a menu to choose between multiple snippets
+        snippet_item = snippets[0]
+
+        # Find the snippet data
+        # CodeSnippet items have a topic attribute we can use to find the full data
+        if hasattr(snippet_item, "topic"):
+            # Find matching snippet in snippets data
+            for _snippet_id, snippet_data in self.snippets.items():
+                if snippet_data.get("topic") == snippet_item.topic:
+                    self.active_snippet = snippet_data
+                    return True, "Viewing snippet"
+
+        return False, "Snippet not found"
+
     def answer_question(self, answer_index: int) -> tuple[bool, str]:
         """
         Answer the current conversation question.
@@ -918,6 +1078,9 @@ class Game:
             # Track completion
             self.npcs_completed.add(npc_name)
 
+            # Give item rewards based on NPC type
+            response = self._give_npc_rewards(conv.npc_type, response)
+
             # Check for victory condition on final floor
             if self.floor_manager.is_final_floor():
                 # Victory bosses - defeating any of these wins the game
@@ -935,6 +1098,40 @@ class Game:
             response += f"\n\n{npc_name}: You have proven your worth. I grant you passage."
 
         return True, response
+
+    def _give_npc_rewards(self, npc_type: NPCType, response: str) -> str:
+        """Give item rewards when completing NPC conversations.
+
+        Args:
+            npc_type: Type of NPC being completed
+            response: Current response message
+
+        Returns:
+            Updated response message with reward information
+        """
+        from neural_dive.items import HintToken
+
+        # Helper NPCs give hint tokens
+        if npc_type == NPCType.HELPER:
+            hint = HintToken()
+            if self.player_manager.add_item(hint):
+                response += "\n\n[Received: Hint Token]"
+        # Specialists give snippets (if available and inventory not full)
+        elif npc_type == NPCType.SPECIALIST and self.snippets:
+            from neural_dive.items import CodeSnippet
+
+            # Pick a random snippet
+            snippet_id = self.rand.choice(list(self.snippets.keys()))
+            snippet_data = self.snippets[snippet_id]
+            snippet = CodeSnippet(
+                name=snippet_data["name"],
+                topic=snippet_data["topic"],
+                content=snippet_data["content"],
+            )
+            if self.player_manager.add_item(snippet):
+                response += f"\n\n[Received: {snippet.name}]"
+
+        return response
 
     def get_current_score(self) -> int:
         """
