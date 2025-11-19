@@ -11,8 +11,7 @@ from neural_dive.models import Conversation
 
 
 class ConversationEngine:
-    """
-    Manages conversation state and flow.
+    """Manages conversation state and flow.
 
     The ConversationEngine encapsulates all conversation-related state and provides
     a clean interface for conversation management. This makes it easier to:
@@ -24,6 +23,7 @@ class ConversationEngine:
     Attributes:
         active_conversation: Current active conversation, if any
         active_terminal: Currently viewing info terminal, if any
+        active_inventory: Whether inventory UI is currently displayed
         show_greeting: Whether to display conversation greeting
         last_answer_response: Last response text from answering a question
         text_input_buffer: Buffer for text-based question answers
@@ -33,13 +33,15 @@ class ConversationEngine:
         """Initialize ConversationEngine with default state."""
         self.active_conversation: Conversation | None = None
         self.active_terminal = None  # InfoTerminal type, avoiding circular import
+        self.active_inventory: bool = False
+        self.active_snippet: dict | None = None  # Currently viewing snippet
         self.show_greeting: bool = False
         self.last_answer_response: str | None = None
         self.text_input_buffer: str = ""
+        self.eliminated_answers: set[int] = set()  # Track eliminated answer indices
 
     def start_conversation(self, conversation: Conversation) -> None:
-        """
-        Start a new conversation.
+        """Start a new conversation.
 
         Args:
             conversation: The conversation to start
@@ -48,6 +50,7 @@ class ConversationEngine:
         self.show_greeting = True
         self.last_answer_response = None
         self.text_input_buffer = ""
+        self.eliminated_answers = set()  # Clear eliminated answers
 
     def end_conversation(self) -> None:
         """End the current conversation and reset state."""
@@ -55,6 +58,7 @@ class ConversationEngine:
         self.show_greeting = False
         self.last_answer_response = None
         self.text_input_buffer = ""
+        self.eliminated_answers = set()  # Clear eliminated answers
 
     def answer_question(self, answer_idx: int) -> tuple[bool, str]:
         """
@@ -86,6 +90,7 @@ class ConversationEngine:
 
         # Advance to next question
         conv.current_question_idx += 1
+        self.eliminated_answers = set()  # Clear eliminated answers for next question
 
         # Check if conversation is now complete
         if conv.current_question_idx >= len(conv.questions):
@@ -98,13 +103,55 @@ class ConversationEngine:
         return answer.correct, answer.response
 
     def is_active(self) -> bool:
-        """
-        Check if a conversation is currently active.
+        """Check if a conversation is currently active.
 
         Returns:
             True if conversation is active
         """
         return self.active_conversation is not None
+
+    def use_hint_token(self, num_to_eliminate: int = 1) -> tuple[bool, str]:
+        """Use a hint token to eliminate wrong answers in the current question.
+
+        Args:
+            num_to_eliminate: Number of wrong answers to eliminate (default 1)
+
+        Returns:
+            Tuple of (success, message)
+        """
+        if not self.active_conversation:
+            return False, "No active conversation"
+
+        conv = self.active_conversation
+        if conv.current_question_idx >= len(conv.questions):
+            return False, "No more questions"
+
+        question = conv.questions[conv.current_question_idx]
+
+        # Only works for multiple choice questions
+        from neural_dive.question_types import QuestionType
+
+        if question.question_type != QuestionType.MULTIPLE_CHOICE:
+            return False, "Hints only work for multiple choice questions"
+
+        # Find wrong answers that haven't been eliminated yet
+        wrong_answers = [
+            i
+            for i, answer in enumerate(question.answers)
+            if not answer.correct and i not in self.eliminated_answers
+        ]
+
+        if not wrong_answers:
+            return False, "No wrong answers left to eliminate"
+
+        # Eliminate up to num_to_eliminate wrong answers
+        import random
+
+        to_eliminate = min(num_to_eliminate, len(wrong_answers))
+        eliminated = random.sample(wrong_answers, to_eliminate)
+        self.eliminated_answers.update(eliminated)
+
+        return True, f"Eliminated {to_eliminate} wrong answer(s)"
 
     def get_current_question(self):
         """

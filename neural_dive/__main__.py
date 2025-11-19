@@ -103,6 +103,28 @@ def run_interactive(game: Game, chars, colors):
                         first_draw = True
                     continue
 
+                # View inventory (V key)
+                if key.lower() == "v" and not game.active_conversation and not game.active_terminal:
+                    game.active_inventory = not game.active_inventory
+                    first_draw = True
+                    continue
+
+                # In inventory viewing mode
+                if game.active_inventory:
+                    # ESC or V closes inventory
+                    if key.name == "KEY_ESCAPE" or key.lower() == "v":
+                        game.active_inventory = False
+                        first_draw = True
+                    continue
+
+                # In snippet viewing mode
+                if game.active_snippet:
+                    # ESC or S closes snippet
+                    if key.name == "KEY_ESCAPE" or key.lower() == "s":
+                        game.active_snippet = None
+                        first_draw = True
+                    continue
+
                 # In terminal reading mode
                 if game.active_terminal:
                     # Any key closes terminal
@@ -191,6 +213,25 @@ def run_interactive(game: Game, chars, colors):
 
                         # Handle multiple choice questions
                         elif current_question.question_type == QuestionType.MULTIPLE_CHOICE:
+                            # Handle hint usage (H key)
+                            if key.lower() == "h":
+                                success, message = game.use_hint()
+                                if success:
+                                    game.message = message
+                                    first_draw = True  # Force redraw to show eliminated answers
+                                else:
+                                    game.message = message
+                                continue
+
+                            # Handle snippet viewing (S key)
+                            if key.lower() == "s":
+                                success, message = game.view_snippet()
+                                if success:
+                                    first_draw = True  # Force redraw to show snippet
+                                else:
+                                    game.message = message
+                                continue
+
                             # Handle answer selection (1-4)
                             if key in ["1", "2", "3", "4"]:
                                 answer_idx = int(key) - 1
@@ -304,7 +345,7 @@ Environment Variables:
 
 Controls:
   Arrow keys: Move  |  Space/Enter: Interact  |  >/< : Stairs
-  S: Save  |  L: Load  |  Q: Quit
+  V: Inventory  |  S: Save  |  L: Load  |  Q: Quit
         """,
     )
 
@@ -316,7 +357,7 @@ Controls:
         type=str,
         choices=["cyberpunk", "classic", "hanzi"],
         metavar="THEME",
-        help="Visual theme: 'cyberpunk' (Unicode), 'classic' (ASCII), or 'hanzi' (Chinese characters)",
+        help="Visual theme: 'cyberpunk' (Unicode), 'classic' (ASCII), or 'hanzi' (Chinese)",
     )
     visual.add_argument(
         "--background",

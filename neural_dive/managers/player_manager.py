@@ -2,20 +2,23 @@
 Player state management for Neural Dive.
 
 This module provides the PlayerManager class which handles all player-related
-state including coherence (health), knowledge modules, and related mechanics.
+state including coherence (health), knowledge modules, and inventory.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from neural_dive.config import MAX_COHERENCE, STARTING_COHERENCE
+
+if TYPE_CHECKING:
+    from neural_dive.items import Item, ItemType
 
 
 @dataclass
 class PlayerManager:
-    """
-    Manages player state including coherence (health) and knowledge modules.
+    """Manages player state including coherence (health), knowledge modules, and inventory.
 
     The PlayerManager encapsulates all player-related state and provides
     a clean interface for modifying player stats. This makes it easier to:
@@ -28,11 +31,15 @@ class PlayerManager:
         coherence: Current coherence (health) value
         max_coherence: Maximum coherence capacity
         knowledge_modules: Set of acquired knowledge module names
+        inventory: List of items the player is carrying
+        max_inventory_size: Maximum number of items (default 20)
     """
 
     coherence: int = STARTING_COHERENCE
     max_coherence: int = MAX_COHERENCE
     knowledge_modules: set[str] = field(default_factory=set)
+    inventory: list[Item] = field(default_factory=list)
+    max_inventory_size: int = 20
 
     def gain_coherence(self, amount: int) -> int:
         """
@@ -159,8 +166,7 @@ class PlayerManager:
         return self.coherence > 0
 
     def get_knowledge_count(self) -> int:
-        """
-        Get the total number of knowledge modules acquired.
+        """Get the total number of knowledge modules acquired.
 
         Returns:
             Number of unique knowledge modules
@@ -176,33 +182,174 @@ class PlayerManager:
         """
         return len(self.knowledge_modules)
 
-    def to_dict(self) -> dict:
+    def add_item(self, item: Item) -> bool:
+        """Add an item to the player's inventory.
+
+        Args:
+            item: The item to add
+
+        Returns:
+            True if item was added, False if inventory is full
+
+        Example:
+            >>> from neural_dive.items import HintToken
+            >>> pm = PlayerManager()
+            >>> pm.add_item(HintToken())
+            True
+            >>> len(pm.inventory)
+            1
         """
-        Serialize player state to a dictionary.
+        if len(self.inventory) >= self.max_inventory_size:
+            return False
+
+        self.inventory.append(item)
+        return True
+
+    def remove_item(self, item: Item) -> bool:
+        """Remove an item from the player's inventory.
+
+        Args:
+            item: The item to remove
+
+        Returns:
+            True if item was removed, False if not found
+
+        Example:
+            >>> from neural_dive.items import HintToken
+            >>> pm = PlayerManager()
+            >>> hint = HintToken()
+            >>> pm.add_item(hint)
+            True
+            >>> pm.remove_item(hint)
+            True
+            >>> len(pm.inventory)
+            0
+        """
+        if item in self.inventory:
+            self.inventory.remove(item)
+            return True
+        return False
+
+    def has_item_type(self, item_type: ItemType) -> bool:
+        """Check if player has any items of a specific type.
+
+        Args:
+            item_type: The type of item to check for
+
+        Returns:
+            True if player has at least one item of this type
+
+        Example:
+            >>> from neural_dive.items import HintToken, ItemType
+            >>> pm = PlayerManager()
+            >>> pm.add_item(HintToken())
+            True
+            >>> pm.has_item_type(ItemType.HINT_TOKEN)
+            True
+            >>> pm.has_item_type(ItemType.CODE_SNIPPET)
+            False
+        """
+        return any(item.item_type == item_type for item in self.inventory)
+
+    def get_items_by_type(self, item_type: ItemType) -> list[Item]:
+        """Get all items of a specific type from inventory.
+
+        Args:
+            item_type: The type of items to retrieve
+
+        Returns:
+            List of items matching the type
+
+        Example:
+            >>> from neural_dive.items import HintToken, ItemType
+            >>> pm = PlayerManager()
+            >>> pm.add_item(HintToken())
+            True
+            >>> pm.add_item(HintToken())
+            True
+            >>> hints = pm.get_items_by_type(ItemType.HINT_TOKEN)
+            >>> len(hints)
+            2
+        """
+        return [item for item in self.inventory if item.item_type == item_type]
+
+    def get_inventory_count(self) -> int:
+        """Get the current number of items in inventory.
+
+        Returns:
+            Number of items in inventory
+
+        Example:
+            >>> from neural_dive.items import HintToken
+            >>> pm = PlayerManager()
+            >>> pm.get_inventory_count()
+            0
+            >>> pm.add_item(HintToken())
+            True
+            >>> pm.get_inventory_count()
+            1
+        """
+        return len(self.inventory)
+
+    def is_inventory_full(self) -> bool:
+        """Check if inventory is at maximum capacity.
+
+        Returns:
+            True if inventory is full
+
+        Example:
+            >>> pm = PlayerManager(max_inventory_size=2)
+            >>> pm.is_inventory_full()
+            False
+            >>> from neural_dive.items import HintToken
+            >>> pm.add_item(HintToken())
+            True
+            >>> pm.add_item(HintToken())
+            True
+            >>> pm.is_inventory_full()
+            True
+        """
+        return len(self.inventory) >= self.max_inventory_size
+
+    def to_dict(self) -> dict:
+        """Serialize player state to a dictionary.
 
         Returns:
             Dictionary containing all player state for serialization
 
         Example:
+            >>> from neural_dive.items import HintToken
             >>> pm = PlayerManager(coherence=85)
             >>> pm.add_knowledge("algorithms")
+            True
+            >>> pm.add_item(HintToken())
             True
             >>> state = pm.to_dict()
             >>> state["coherence"]
             85
             >>> "algorithms" in state["knowledge_modules"]
             True
+            >>> len(state["inventory"])
+            1
         """
         return {
             "coherence": self.coherence,
             "max_coherence": self.max_coherence,
             "knowledge_modules": list(self.knowledge_modules),
+            "inventory": [
+                {
+                    "name": item.name,
+                    "description": item.description,
+                    "item_type": item.item_type.value,
+                }
+                for item in self.inventory
+            ],
+            "max_inventory_size": self.max_inventory_size,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> PlayerManager:
-        """
-        Create PlayerManager instance from serialized dictionary.
+        """Create PlayerManager instance from serialized dictionary.
 
         Args:
             data: Dictionary containing serialized player state
@@ -214,7 +361,9 @@ class PlayerManager:
             >>> data = {
             ...     "coherence": 85,
             ...     "max_coherence": 100,
-            ...     "knowledge_modules": ["algorithms", "data_structures"]
+            ...     "knowledge_modules": ["algorithms", "data_structures"],
+            ...     "inventory": [],
+            ...     "max_inventory_size": 20,
             ... }
             >>> pm = PlayerManager.from_dict(data)
             >>> pm.coherence
@@ -222,8 +371,20 @@ class PlayerManager:
             >>> pm.get_knowledge_count()
             2
         """
+        from neural_dive.items import HintToken, ItemType
+
+        # Reconstruct inventory items
+        inventory: list[Item] = []
+        for item_data in data.get("inventory", []):
+            item_type = ItemType(item_data["item_type"])
+            if item_type == ItemType.HINT_TOKEN:
+                inventory.append(HintToken())
+            # TODO: Add CodeSnippet reconstruction when loading snippets
+
         return cls(
             coherence=data.get("coherence", STARTING_COHERENCE),
             max_coherence=data.get("max_coherence", MAX_COHERENCE),
             knowledge_modules=set(data.get("knowledge_modules", [])),
+            inventory=inventory,
+            max_inventory_size=data.get("max_inventory_size", 20),
         )

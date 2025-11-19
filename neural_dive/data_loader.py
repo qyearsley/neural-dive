@@ -160,8 +160,7 @@ def load_terminals(content_set: str = "algorithms") -> dict[str, dict]:
 
 
 def load_levels(content_set: str = "algorithms") -> dict:
-    """
-    Load level layouts for a specific content set.
+    """Load level layouts for a specific content set.
 
     Args:
         content_set: Content set identifier
@@ -190,8 +189,30 @@ def load_levels(content_set: str = "algorithms") -> dict:
     return {}
 
 
+def load_snippets() -> dict[str, dict]:
+    """Load code snippets for reference during questions.
+
+    Returns:
+        Dictionary mapping snippet IDs to snippet data
+    """
+    import json
+
+    snippets_file = Path(__file__).parent / "data" / "snippets.json"
+
+    if not snippets_file.exists():
+        return {}
+
+    try:
+        with open(snippets_file, encoding="utf-8") as f:
+            data: dict[str, dict] = json.load(f)
+            return data
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"Error loading snippets: {e}")
+        return {}
+
+
 def load_all_game_data(content_set: str | None = None):
-    """Load all game data (questions, NPCs, terminals, levels) for a specific content set."""
+    """Load all game data (questions, NPCs, terminals, levels, snippets)."""
     if content_set is None:
         content_set = get_default_content_set()
 
@@ -199,6 +220,7 @@ def load_all_game_data(content_set: str | None = None):
     npcs = load_npcs(questions, content_set)
     terminals = load_terminals(content_set)
     levels = load_levels(content_set)
+    snippets = load_snippets()
 
     # Validate NPC/layout consistency and warn about issues
     try:
@@ -216,7 +238,7 @@ def load_all_game_data(content_set: str | None = None):
         # Validation function not available for this content set
         pass
 
-    return questions, npcs, terminals, levels
+    return questions, npcs, terminals, levels, snippets
 
 
 def compute_floor_requirements(npc_data: dict) -> dict[int, set[str]]:

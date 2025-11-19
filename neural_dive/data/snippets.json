@@ -1,0 +1,118 @@
+{
+  "big_o_basics": {
+    "name": "Big O Notation Cheat Sheet",
+    "topic": "algorithms",
+    "content": [
+      "Big O Notation - Time Complexity:",
+      "",
+      "O(1)      - Constant time (array access, hash lookup)",
+      "O(log n)  - Logarithmic (binary search, balanced BST)",
+      "O(n)      - Linear (simple loop, linear search)",
+      "O(n log n) - Log-linear (merge sort, quick sort avg)",
+      "O(n²)     - Quadratic (nested loops, bubble sort)",
+      "O(2^n)    - Exponential (recursive fibonacci)",
+      "",
+      "Common Operations:",
+      "• Array access: O(1)",
+      "• Array search: O(n)",
+      "• Hash table insert/lookup: O(1) average",
+      "• Binary search tree: O(log n) balanced"
+    ]
+  },
+  "data_structures": {
+    "name": "Data Structures Quick Reference",
+    "topic": "data_structures",
+    "content": [
+      "Common Data Structures:",
+      "",
+      "Array: Fixed size, O(1) access, O(n) insert/delete",
+      "Linked List: Dynamic, O(n) access, O(1) insert at head",
+      "Stack: LIFO, O(1) push/pop",
+      "Queue: FIFO, O(1) enqueue/dequeue",
+      "Hash Table: O(1) avg insert/lookup/delete",
+      "Binary Search Tree: O(log n) balanced operations",
+      "Heap: O(log n) insert/delete, O(1) find min/max",
+      "Graph: Adjacency list or matrix representation",
+      "",
+      "When to use what:",
+      "• Fast lookup by key? → Hash Table",
+      "• Ordered data? → BST or sorted array",
+      "• LIFO operations? → Stack",
+      "• FIFO operations? → Queue"
+    ]
+  },
+  "recursion_guide": {
+    "name": "Recursion Patterns",
+    "topic": "algorithms",
+    "content": [
+      "Recursion Template:",
+      "",
+      "def recursive_function(params):",
+      "    # Base case - when to stop",
+      "    if base_condition:",
+      "        return base_value",
+      "    ",
+      "    # Recursive case - smaller problem",
+      "    return combine(recursive_function(smaller_params))",
+      "",
+      "Common Patterns:",
+      "• Divide & Conquer: Break into subproblems",
+      "• Backtracking: Try options, undo if fail",
+      "• Dynamic Programming: Cache results (memoization)",
+      "",
+      "Tips:",
+      "• Always have a base case",
+      "• Make progress toward base case",
+      "• Consider iterative alternative for efficiency"
+    ]
+  },
+  "sorting_algorithms": {
+    "name": "Sorting Algorithms Comparison",
+    "topic": "algorithms",
+    "content": [
+      "Sorting Algorithm Comparison:",
+      "",
+      "Algorithm    | Time (avg)  | Time (worst) | Space",
+      "-------------|-------------|--------------|-------",
+      "Bubble Sort  | O(n²)       | O(n²)        | O(1)",
+      "Quick Sort   | O(n log n)  | O(n²)        | O(log n)",
+      "Merge Sort   | O(n log n)  | O(n log n)   | O(n)",
+      "Heap Sort    | O(n log n)  | O(n log n)   | O(1)",
+      "Counting Sort| O(n+k)      | O(n+k)       | O(k)",
+      "",
+      "When to use:",
+      "• Nearly sorted? → Insertion Sort O(n) best case",
+      "• Need stable? → Merge Sort (preserves order)",
+      "• In-place needed? → Quick Sort or Heap Sort",
+      "• Small range integers? → Counting Sort"
+    ]
+  },
+  "python_basics": {
+    "name": "Python Built-ins Reference",
+    "topic": "python",
+    "content": [
+      "Python Common Operations:",
+      "",
+      "Lists:",
+      "  list.append(x)     - Add to end",
+      "  list.insert(i, x)  - Insert at position",
+      "  list.pop()         - Remove and return last",
+      "  list.sort()        - Sort in-place",
+      "  sorted(list)       - Return new sorted list",
+      "",
+      "Strings:",
+      "  str.split(sep)     - Split into list",
+      "  str.join(list)     - Join list into string",
+      "  str.strip()        - Remove whitespace",
+      "",
+      "Dict:",
+      "  dict.get(key, default) - Safe lookup",
+      "  dict.setdefault(k, v)  - Set if not exists",
+      "",
+      "Comprehensions:",
+      "  [x*2 for x in list]           - List comp",
+      "  {x: x*2 for x in list}        - Dict comp",
+      "  {x for x in list if x > 0}    - Set comp"
+    ]
+  }
+}

@@ -129,6 +129,12 @@ def draw_game(
     if game.active_terminal:
         draw_terminal_overlay(term, game, colors)
 
+    if game.active_inventory:
+        draw_inventory_overlay(term, game, colors)
+
+    if game.active_snippet:
+        draw_snippet_overlay(term, game, colors)
+
     sys.stdout.flush()
 
 
@@ -286,6 +292,11 @@ def _draw_entities(term: Terminal, game: Game, chars: CharacterSet, colors: Colo
         stair_char = chars.stairs_up if stair.direction == "up" else chars.stairs_down
         stair_color = getattr(term, f"bold_{colors.stairs}", term.bold_yellow)
         print(term.move_xy(stair.x, stair.y) + stair_color(stair_char), end="")
+
+    # Draw item pickups
+    for pickup in game.item_pickups:
+        pickup_color = getattr(term, f"bold_{pickup.color}", term.bold_yellow)
+        print(term.move_xy(pickup.x, pickup.y) + pickup_color(pickup.char), end="")
 
     # Draw player
     player_color = getattr(term, f"bold_{colors.player}", term.bold_green)
@@ -609,6 +620,131 @@ def draw_terminal_overlay(term: Terminal, game: Game, colors: ColorScheme):
     print(
         term.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
         + error_color("[Press ESC or any key to close]"),
+        end="",
+    )
+
+
+def draw_inventory_overlay(term: Terminal, game: Game, colors: ColorScheme):
+    """Draw inventory overlay showing player's items."""
+    from neural_dive.items import ItemType
+
+    # Setup overlay with OverlayRenderer
+    overlay = OverlayRenderer(
+        term=term,
+        max_width=OVERLAY_MAX_WIDTH,
+        max_height=25,
+        border_color=colors.ui_primary,
+    )
+    overlay.setup()
+
+    # Inventory title header
+    header = " INVENTORY "
+    success_color = getattr(term, f"bold_{colors.ui_success}", term.bold_green)
+    print(term.move_xy(overlay.start_x + 2, overlay.start_y) + success_color(header), end="")
+
+    current_y = overlay.start_y + 2
+
+    # Show inventory count
+    inventory_count = game.player_manager.get_inventory_count()
+    max_size = game.player_manager.max_inventory_size
+    count_text = f"Items: {inventory_count}/{max_size}"
+    print(
+        term.move_xy(overlay.start_x + 2, current_y) + term.black(count_text),
+        end="",
+    )
+    current_y += 2
+
+    # Show items
+    if inventory_count == 0:
+        print(
+            term.move_xy(overlay.start_x + 2, current_y) + term.black("(Empty)"),
+            end="",
+        )
+    else:
+        # Group items by type
+        hint_tokens = game.player_manager.get_items_by_type(ItemType.HINT_TOKEN)
+        code_snippets = game.player_manager.get_items_by_type(ItemType.CODE_SNIPPET)
+
+        if hint_tokens:
+            print(
+                term.move_xy(overlay.start_x + 2, current_y)
+                + term.black(f"Hint Tokens: {len(hint_tokens)}"),
+                end="",
+            )
+            current_y += 1
+            for token in hint_tokens[:3]:  # Show first 3
+                if current_y < overlay.start_y + overlay.height - 3:
+                    print(
+                        term.move_xy(overlay.start_x + 4, current_y)
+                        + term.black(f"• {token.description}"),
+                        end="",
+                    )
+                    current_y += 1
+            current_y += 1
+
+        if code_snippets:
+            print(
+                term.move_xy(overlay.start_x + 2, current_y)
+                + term.black(f"Code Snippets: {len(code_snippets)}"),
+                end="",
+            )
+            current_y += 1
+            for snippet in code_snippets[:3]:  # Show first 3
+                if current_y < overlay.start_y + overlay.height - 3:
+                    print(
+                        term.move_xy(overlay.start_x + 4, current_y)
+                        + term.black(f"• {snippet.name}"),
+                        end="",
+                    )
+                    current_y += 1
+
+    # Instructions at bottom
+    error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
+    print(
+        term.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
+        + error_color("[Press ESC or V to close]"),
+        end="",
+    )
+
+
+def draw_snippet_overlay(term: Terminal, game: Game, colors: ColorScheme):
+    """Draw code snippet overlay showing reference material."""
+    snippet = game.active_snippet
+    if not snippet:
+        return
+
+    # Setup overlay with OverlayRenderer
+    overlay = OverlayRenderer(
+        term=term,
+        max_width=OVERLAY_MAX_WIDTH,
+        max_height=OVERLAY_MAX_HEIGHT,
+        border_color=colors.ui_accent,
+    )
+    overlay.setup()
+
+    # Snippet title header
+    header = f" {snippet['name']} "
+    success_color = getattr(term, f"bold_{colors.ui_success}", term.bold_green)
+    print(term.move_xy(overlay.start_x + 2, overlay.start_y) + success_color(header), end="")
+
+    current_y = overlay.start_y + 2
+
+    # Show content
+    for line in snippet["content"]:
+        if current_y < overlay.start_y + overlay.height - 2:
+            # No text wrapping for code snippets - preserve formatting
+            display_line = line[: overlay.width - 4] if len(line) > overlay.width - 4 else line
+            print(
+                term.move_xy(overlay.start_x + 2, current_y) + term.black(display_line),
+                end="",
+            )
+            current_y += 1
+
+    # Instructions at bottom
+    error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
+    print(
+        term.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
+        + error_color("[Press ESC or S to close]"),
         end="",
     )
 
