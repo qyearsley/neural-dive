@@ -127,9 +127,8 @@ def draw_game(
     """
     if redraw_all:
         # Clear screen on first draw or floor change
-        # Use clear() to completely clear the display buffer
-        print(term.clear(), end="")
-        print(term.home, end="")
+        # Use home + clear to completely clear the display buffer
+        print(term.home + term.clear, end="")
         sys.stdout.flush()  # Ensure screen is cleared before drawing
 
         # Draw map

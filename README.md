@@ -1,4 +1,4 @@
-# Neural Dive 🎮
+# Neural Dive
 
 **A cyberpunk terminal roguelike learning game.**
 
@@ -12,17 +12,16 @@
 
 ## Features
 
-- 📚 **Multiple learning content sets** - Computer Science, Chinese HSK 6, World Geography, and more!
-- 🎓 **227 unique questions** across algorithms, systems, web, ML, languages, and geography
-- 🎮 **Roguelike gameplay** with wandering NPCs and procedural maps
-- 🎨 **Cyberpunk theme** with Unicode graphics (light/dark mode support)
-- 🏆 **Boss battles** to win, score tracking, and unique question sets per NPC
-- 💾 **Save/Load system** - save your progress and continue later
-- ⚙️ **Highly configurable** themes, difficulty, and content
+- **Multiple learning content sets** - Computer Science, Chinese HSK 6, World Geography, and more
+- **227+ unique questions** across algorithms, systems, web, ML, languages, and geography
+- **Roguelike gameplay** with wandering NPCs and procedural maps
+- **Cyberpunk theme** with Unicode graphics (light/dark mode support)
+- **Save/Load system** - save your progress and continue later
+- **Highly configurable** themes, difficulty, and content
 
 ---
 
-## 🎮 Install & Play
+## Install & Play
 
 ### For Players (Easiest)
 
@@ -144,124 +143,18 @@ Edit `neural_dive/config.py` for game parameters (NPC speed, rewards, map size, 
 
 ## Adding Content
 
-### Creating a New Content Set
+Want to create your own learning content? See **[Content Guide](docs/content-guide.md)** for complete instructions on:
 
-Want to create your own learning content? Here's how:
+- Creating new content sets
+- Adding questions to existing content
+- Configuring NPCs and terminals
+- Testing and registering your content
 
-**1. Create content directory:**
-```bash
-mkdir -p neural_dive/data/content/my-topic
-```
+**Quick start for adding questions to existing content:**
 
-**2. Create metadata file** (`content.json`):
-```json
-{
-  "id": "my-topic",
-  "name": "My Learning Topic",
-  "description": "Learn about...",
-  "version": "1.0.0",
-  "topics": ["topic1", "topic2"],
-  "difficulty_range": "beginner to advanced",
-  "question_count": 10,
-  "floors": 5
-}
-```
-
-**3. Create questions** (`questions.json`) - see [docs/question-guide.md](docs/question-guide.md):
-```json
-{
-  "question_id": {
-    "topic": "topic1",
-    "question_text": "What is...?",
-    "answers": [
-      {
-        "text": "Correct answer",
-        "correct": true,
-        "response": "Great job!",
-        "reward_knowledge": "Knowledge Module Name"
-      },
-      {
-        "text": "Wrong answer",
-        "correct": false,
-        "response": "Not quite..."
-      }
-    ]
-  }
-}
-```
-
-**4. Create NPCs** (`npcs.json`):
-```json
-{
-  "NPC_NAME": {
-    "char": "N",
-    "color": "cyan",
-    "floor": 1,
-    "npc_type": "specialist",
-    "greeting": "Hello! I'm an NPC.",
-    "questions": ["question_id"]
-  }
-}
-```
-
-**5. Create terminals** (`terminals.json`):
-```json
-{
-  "terminal_id": {
-    "title": "Help Topic",
-    "content": ["Line 1", "Line 2", "..."]
-  }
-}
-```
-
-**6. Copy levels template:**
-```bash
-cp neural_dive/data/content/algorithms/levels.py neural_dive/data/content/my-topic/
-```
-
-**7. Register your content set** in `neural_dive/data/content_registry.json`:
-```json
-{
-  "content_sets": [
-    {
-      "id": "my-topic",
-      "path": "content/my-topic",
-      "enabled": true,
-      "default": false
-    }
-  ]
-}
-```
-
-**8. Test your content:**
-```bash
-./ndive --content my-topic
-```
-
-### Adding Questions to Existing Content
-
-**For algorithms content (default):**
-
-1. Edit `neural_dive/data/content/algorithms/questions.json` following [docs/question-guide.md](docs/question-guide.md):
-   ```json
-   "my_question": {
-     "question_text": "What is...?",
-     "topic": "algorithms",
-     "answers": [...]
-   }
-   ```
-
-2. Run redistribution to assign to NPCs:
-   ```bash
-   python3 scripts/redistribute_questions.py
-   ```
-   This ensures each NPC gets unique questions (no duplicates).
-
-3. Test: `./ndive --fixed --seed 42`
-
-### Adding NPCs to Existing Content
-
-Edit the appropriate `npcs.json` file in your content directory, then run `redistribute_questions.py` if needed.
+1. Edit `neural_dive/data/content/algorithms/questions.json` (see [Question Guide](docs/question-guide.md))
+2. Run `python3 scripts/redistribute_questions.py` to assign questions to NPCs
+3. Test with `./ndive --fixed --seed 42`
 
 ---
 
@@ -320,11 +213,14 @@ ndive                         # Launcher
 
 ## Topics Covered
 
-**Computer Science (algorithms):** 227 questions across: Algorithms • Data Structures • Systems • Networking • Databases • Security • Web Dev • Distributed Systems • Machine Learning • Design Patterns • Testing • DevOps • Programming Fundamentals • Software Engineering • Theory • Architecture • Compilers • Version Control • AI/ML
+### Computer Science (algorithms content)
+227 questions covering algorithms, data structures, systems programming, networking, databases, security, web development, distributed systems, machine learning, design patterns, testing, DevOps, compilers, version control, and software architecture.
 
-**Chinese HSK 6 (chinese-hsk6):** Advanced vocabulary, grammar structures, idiomatic expressions (sample set - 5 questions)
+### Chinese HSK 6 (chinese-hsk6 content)
+Advanced vocabulary, grammar structures, and idiomatic expressions for HSK 6 learners. Sample set with 5 questions.
 
-**World Geography (geography):** Capitals, physical features, countries, oceans, mountains, deserts (sample set - 6 questions)
+### World Geography (geography content)
+Capitals, physical features, countries, oceans, mountains, and deserts. Sample set with 6 questions.
 
 ---
 
@@ -338,5 +234,4 @@ MIT License - Free to use, modify, and distribute. See [LICENSE](LICENSE).
 
 Contributions welcome! Add questions, fix bugs, improve docs. See [docs/question-guide.md](docs/question-guide.md) for question guidelines.
 
-**Made with ❤️ for CS learners everywhere**
-# neural-dive
+**Made with love for learners everywhere**
