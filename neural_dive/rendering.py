@@ -11,8 +11,10 @@ from typing import TYPE_CHECKING, cast
 
 from neural_dive.config import (
     COMPLETION_OVERLAY_MAX_HEIGHT,
+    INVENTORY_OVERLAY_MAX_HEIGHT,
     OVERLAY_MAX_HEIGHT,
     OVERLAY_MAX_WIDTH,
+    TERMINAL_OVERLAY_MAX_HEIGHT,
     UI_BOTTOM_OFFSET,
 )
 from neural_dive.conversation import wrap_text
@@ -79,6 +81,31 @@ class OverlayRenderer:
         """Draw background and border (common setup for all overlays)."""
         self.draw_background()
         self.draw_border()
+
+
+def create_overlay(
+    term: Terminal,
+    max_height: int,
+    border_color: str,
+) -> OverlayRenderer:
+    """Factory function for creating and setting up overlays.
+
+    Args:
+        term: Blessed Terminal instance
+        max_height: Maximum overlay height
+        border_color: Color name for border
+
+    Returns:
+        Configured OverlayRenderer with background and border already drawn
+    """
+    overlay = OverlayRenderer(
+        term=term,
+        max_width=OVERLAY_MAX_WIDTH,
+        max_height=max_height,
+        border_color=border_color,
+    )
+    overlay.setup()
+    return overlay
 
 
 def draw_game(
@@ -339,9 +366,8 @@ def _draw_ui(term: Terminal, game: Game, colors: ColorScheme) -> None:
         f"{knowledge_label}: {knowledge_count} | "
         f"{score_label}: {score}"
     )
-    # Use bold for better visibility on light backgrounds
-    status_color = getattr(term, f"bold_{colors.ui_primary}", term.bold)
-    print(term.move_xy(2, ui_y + 1) + status_color(status_line), end="")
+    # Use term.normal like the instruction line for consistent visibility
+    print(term.move_xy(2, ui_y + 1) + term.normal + status_line, end="")
 
     # Message line
     print(term.move_xy(2, ui_y + 2) + " " * (term.width - 4), end="")
@@ -377,13 +403,7 @@ def draw_conversation_overlay(term: Terminal, game: Game, colors: ColorScheme):
         return
 
     # Setup overlay with OverlayRenderer
-    overlay = OverlayRenderer(
-        term=term,
-        max_width=OVERLAY_MAX_WIDTH,
-        max_height=OVERLAY_MAX_HEIGHT,
-        border_color=colors.ui_secondary,
-    )
-    overlay.setup()
+    overlay = create_overlay(term, OVERLAY_MAX_HEIGHT, colors.ui_secondary)
 
     # NPC name header
     header = f" {conv.npc_name} "
@@ -551,13 +571,7 @@ def draw_completion_overlay(term: Terminal, game: Game, colors: ColorScheme):
     response_text = game.last_answer_response
 
     # Setup overlay with OverlayRenderer
-    overlay = OverlayRenderer(
-        term=term,
-        max_width=OVERLAY_MAX_WIDTH,
-        max_height=COMPLETION_OVERLAY_MAX_HEIGHT,
-        border_color=colors.ui_success,
-    )
-    overlay.setup()
+    overlay = create_overlay(term, COMPLETION_OVERLAY_MAX_HEIGHT, colors.ui_success)
 
     current_y = overlay.start_y + 2
 
@@ -589,13 +603,7 @@ def draw_terminal_overlay(term: Terminal, game: Game, colors: ColorScheme):
         return
 
     # Setup overlay with OverlayRenderer
-    overlay = OverlayRenderer(
-        term=term,
-        max_width=OVERLAY_MAX_WIDTH,
-        max_height=20,
-        border_color=colors.terminal,
-    )
-    overlay.setup()
+    overlay = create_overlay(term, TERMINAL_OVERLAY_MAX_HEIGHT, colors.terminal)
 
     # Terminal title header
     header = f" {terminal.title} "
@@ -629,13 +637,7 @@ def draw_inventory_overlay(term: Terminal, game: Game, colors: ColorScheme):
     from neural_dive.items import ItemType
 
     # Setup overlay with OverlayRenderer
-    overlay = OverlayRenderer(
-        term=term,
-        max_width=OVERLAY_MAX_WIDTH,
-        max_height=25,
-        border_color=colors.ui_primary,
-    )
-    overlay.setup()
+    overlay = create_overlay(term, INVENTORY_OVERLAY_MAX_HEIGHT, colors.ui_primary)
 
     # Inventory title header
     header = " INVENTORY "
@@ -714,13 +716,7 @@ def draw_snippet_overlay(term: Terminal, game: Game, colors: ColorScheme):
         return
 
     # Setup overlay with OverlayRenderer
-    overlay = OverlayRenderer(
-        term=term,
-        max_width=OVERLAY_MAX_WIDTH,
-        max_height=OVERLAY_MAX_HEIGHT,
-        border_color=colors.ui_accent,
-    )
-    overlay.setup()
+    overlay = create_overlay(term, OVERLAY_MAX_HEIGHT, colors.ui_accent)
 
     # Snippet title header
     header = f" {snippet['name']} "

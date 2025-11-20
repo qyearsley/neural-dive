@@ -52,20 +52,21 @@ class GameInitializer:
         return random.Random() if seed is None else random.Random(seed), seed
 
     @staticmethod
-    def load_content(content_set: str | None) -> tuple[str, dict, dict, dict, dict, dict]:
+    def load_content(content_set: str | None) -> tuple[str, dict, dict, dict, dict]:
         """Load game content data.
 
         Args:
             content_set: Content set identifier (None for default)
 
         Returns:
-            Tuple of (content_set, questions, npc_data, terminal_data, level_data, snippets)
+            Tuple of (content_set, questions, npc_data, level_data, snippets)
         """
         if content_set is None:
             content_set = get_default_content_set()
 
-        questions, npc_data, terminal_data, level_data, snippets = load_all_game_data(content_set)
-        return content_set, questions, npc_data, terminal_data, level_data, snippets
+        questions, npc_data, _terminal_data, level_data, snippets = load_all_game_data(content_set)
+        # terminal_data is deprecated and no longer used (all content uses ZONE_TERMINALS in levels.py)
+        return content_set, questions, npc_data, level_data, snippets
 
     @staticmethod
     def create_floor_manager(

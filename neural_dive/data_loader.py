@@ -145,6 +145,7 @@ def load_npcs(questions: dict[str, Question], content_set: str = "algorithms") -
             "char": npc_data["char"],
             "color": npc_data["color"],
             "floor": npc_data["floor"],
+            "npc_type": npc_data["npc_type"],
             "conversation": conversation,
         }
 

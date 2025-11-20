@@ -227,9 +227,10 @@ class TestSaveLoad(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "test_save.json"
 
-            result = game.save_game(str(save_path))
+            success, actual_path = game.save_game(str(save_path))
 
-            self.assertTrue(result)
+            self.assertTrue(success)
+            self.assertEqual(actual_path, save_path)
             self.assertTrue(save_path.exists())
 
     def test_save_game_contains_correct_data(self):
@@ -240,7 +241,8 @@ class TestSaveLoad(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "test_save.json"
-            game.save_game(str(save_path))
+            success, actual_path = game.save_game(str(save_path))
+            self.assertTrue(success)
 
             with open(save_path) as f:
                 save_data = json.load(f)
@@ -261,7 +263,8 @@ class TestSaveLoad(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "test_save.json"
-            game1.save_game(str(save_path))
+            success, actual_path = game1.save_game(str(save_path))
+            self.assertTrue(success)
 
             # Load the game
             game2 = Game.load_game(str(save_path))
@@ -289,8 +292,9 @@ class TestSaveLoad(unittest.TestCase):
             save_path = Path(tmpdir) / "round_trip.json"
 
             # Save
-            success = game1.save_game(str(save_path))
+            success, actual_path = game1.save_game(str(save_path))
             self.assertTrue(success)
+            self.assertEqual(actual_path, save_path)
 
             # Load
             game2 = Game.load_game(str(save_path))
