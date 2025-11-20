@@ -33,7 +33,7 @@ class GameSerializer:
         return cls.DEFAULT_SAVE_DIR / cls.DEFAULT_SAVE_FILE
 
     @classmethod
-    def save(cls, game: Game, filepath: str | Path | None = None) -> bool:
+    def save(cls, game: Game, filepath: str | Path | None = None) -> tuple[bool, Path | None]:
         """Save game state to a file.
 
         Args:
@@ -41,7 +41,8 @@ class GameSerializer:
             filepath: Path to save file (None for default location)
 
         Returns:
-            True if save successful, False otherwise
+            Tuple of (success, filepath) where success is True if save successful,
+            and filepath is the Path where the game was saved (or None on failure)
         """
         # Resolve filepath
         if filepath is None:
@@ -58,10 +59,10 @@ class GameSerializer:
             with open(filepath, "w") as f:
                 json.dump(save_data, f, indent=2)
 
-            return True
+            return True, filepath
         except Exception as e:
             print(f"Error saving game: {e}")
-            return False
+            return False, None
 
     @classmethod
     def load(cls, filepath: str | Path | None = None) -> Game | None:

@@ -7,6 +7,14 @@
     "greeting": "你好！我是文学士，专门研究汉语词汇。让我考考你的词汇水平吧！",
     "questions": ["vocab_arduous", "vocab_emerge", "vocab_profound"]
   },
+  "PRONUNCIATION_EXPERT": {
+    "char": "音",
+    "color": "yellow",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "拼音是学习中文的基础！我是发音专家，让我测试你的发音知识。",
+    "questions": ["pinyin_jianju", "pinyin_yongxian", "pinyin_shenke", "pinyin_fanrong"]
+  },
   "VOCAB_MASTER": {
     "char": "词",
     "color": "blue",
@@ -30,6 +38,22 @@
     "npc_type": "specialist",
     "greeting": "成语是中华文化的精髓！我是成语大师，来挑战这些古老的智慧吧！",
     "questions": ["idiom_dragons", "idiom_add_flower", "idiom_drop_in_ocean"]
+  },
+  "SYNONYM_SCHOLAR": {
+    "char": "近",
+    "color": "cyan",
+    "floor": 2,
+    "npc_type": "specialist",
+    "greeting": "理解同义词是掌握中文的关键。我是近义词学者，让我看看你能否区分相似的词汇。",
+    "questions": ["synonym_difficult", "synonym_emerge", "synonym_profound", "synonym_flourish"]
+  },
+  "TONE_MASTER": {
+    "char": "声",
+    "color": "magenta",
+    "floor": 2,
+    "npc_type": "helper",
+    "greeting": "声调是中文的灵魂。掌握了声调，你才真正掌握了发音。",
+    "questions": ["pinyin_jianchi", "pinyin_weimiao", "pinyin_gaige"]
   },
   "CULTURE_SAGE": {
     "char": "化",
@@ -71,13 +95,29 @@
     "greeting": "助词虽小，作用巨大。让我看看你对细节的把握。",
     "questions": ["grammar_progressive", "grammar_completion"]
   },
+  "NUANCE_EXPERT": {
+    "char": "微",
+    "color": "white",
+    "floor": 3,
+    "npc_type": "helper",
+    "greeting": "真正的高手能够辨别词义的细微差别。让我看看你的理解深度。",
+    "questions": ["synonym_persevere", "synonym_subtle", "synonym_reform", "synonym_contemplate"]
+  },
+  "PHONETIC_GUARDIAN": {
+    "char": "拼",
+    "color": "yellow",
+    "floor": 3,
+    "npc_type": "helper",
+    "greeting": "发音的精确性体现了你对中文的掌握程度。这是最后的发音考验。",
+    "questions": ["pinyin_chensi", "pinyin_benzhi", "pinyin_zhuangguan"]
+  },
   "LANGUAGE_GUARDIAN": {
     "char": "汉",
     "color": "red",
     "floor": 3,
     "npc_type": "enemy",
     "greeting": "你已经走了很远，但真正的考验现在才开始。我是汉语守护者，只有精通者才能通过！",
-    "questions": ["vocab_magnificent", "vocab_diligent", "vocab_harmony", "idiom_melon_ripe", "measure_word_animals"]
+    "questions": ["vocab_magnificent", "vocab_diligent", "vocab_harmony", "idiom_melon_ripe", "measure_word_animals", "synonym_essence"]
   },
   "WISDOM_ELDER": {
     "char": "智",
@@ -93,7 +133,7 @@
     "floor": 3,
     "npc_type": "boss",
     "greeting": "恭喜你到达最后一关！我是HSK6级考官，这是最终测试。证明你的汉语水平吧！",
-    "questions": ["vocab_prosperity", "idiom_kill_two_birds", "measure_word_paper", "grammar_progressive", "culture_zodiac"]
+    "questions": ["vocab_prosperity", "idiom_kill_two_birds", "measure_word_paper", "synonym_magnificent", "pinyin_fanrong"]
   },
   "CALLIGRAPHY_MASTER": {
     "char": "书",

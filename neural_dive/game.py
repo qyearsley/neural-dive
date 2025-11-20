@@ -28,15 +28,12 @@ from neural_dive.config import (
     STAIRS_DOWN_DEFAULT_Y,
     STAIRS_UP_DEFAULT_X,
     STAIRS_UP_DEFAULT_Y,
-    TERMINAL_PLACEMENT_ATTEMPTS,
-    TERMINAL_X_OFFSET,
-    TERMINAL_Y_OFFSET,
 )
 from neural_dive.data.levels import ZONE_TERMINALS
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings
 from neural_dive.entities import Entity, InfoTerminal, Stairs
 from neural_dive.enums import NPCType
-from neural_dive.models import Answer, Conversation
+from neural_dive.models import Answer, Conversation, Question
 from neural_dive.question_types import QuestionType
 
 if TYPE_CHECKING:
@@ -95,7 +92,6 @@ class Game:
             self.content_set,
             self.questions,
             self.npc_data,
-            self.terminal_data,
             self.level_data,
             self.snippets,
         ) = GameInitializer.load_content(content_set)
@@ -379,68 +375,22 @@ class Game:
 
     def _generate_terminals(self):
         """Generate and place info terminals for the current floor."""
-        # Get level data for terminal positions
         level_data = self.level_data.get(self.current_floor)
 
-        if level_data and "terminal_positions" in level_data:
-            # Use positions from level layout
-            terminal_positions = level_data["terminal_positions"]
-            zone_terminals = ZONE_TERMINALS.get(self.current_floor, {})
+        if not level_data or "terminal_positions" not in level_data:
+            # No terminals defined for this floor
+            return
 
-            # Create zone terminals based on labels in the level
-            for _zone_name, zone_data in zone_terminals.items():
-                if terminal_positions:
-                    # Use next available terminal position
-                    x, y = terminal_positions.pop(0)
-                    terminal = InfoTerminal(x, y, zone_data["title"], zone_data["content"])  # type: ignore[arg-type]
-                    self.terminals.append(terminal)
-        else:
-            # Fallback: Use old terminal system from terminal_data
-            terminal_defs = {
-                1: [("big_o_hint", 8, 8), ("lore_layer1", 12, 10)],
-                2: [
-                    ("data_structures", 8, 8),
-                    ("tcp_hint", 12, 10),
-                    ("devops_guide", 15, 8),
-                    ("lore_layer2", 8, 12),
-                ],
-                3: [("concurrency_hint", 8, 8), ("database_basics", 12, 8)],
-            }
+        terminal_positions = level_data["terminal_positions"]
+        zone_terminals = ZONE_TERMINALS.get(self.current_floor, {})
 
-            if self.current_floor not in terminal_defs:
-                return
-
-            # Use EntityPlacementStrategy for random or default placement
-            from neural_dive.placement import EntityPlacementStrategy
-
-            strategy = EntityPlacementStrategy(
-                game_map=self.game_map,
-                random_mode=self.random_npcs,
-                rng=self.rand,
-                map_width=self.map_width,
-                map_height=self.map_height,
-            )
-
-            # Extract default positions from terminal_defs
-            default_positions = [(x, y) for _, x, y in terminal_defs[self.current_floor]]
-
-            # Place terminals
-            positions = strategy.place_entities(
-                level_positions=None,
-                default_positions=default_positions,
-                num_attempts=TERMINAL_PLACEMENT_ATTEMPTS,
-                x_range=(TERMINAL_X_OFFSET, self.map_width - 2),
-                y_range=(TERMINAL_Y_OFFSET, self.map_height - 2),
-            )
-
-            # Create terminals at the placed positions
-            for i, (x, y) in enumerate(positions):
-                if i < len(terminal_defs[self.current_floor]):
-                    terminal_key, _, _ = terminal_defs[self.current_floor][i]
-                    if terminal_key in self.terminal_data:
-                        data = self.terminal_data[terminal_key]
-                        terminal = InfoTerminal(x, y, data["title"], data["content"])
-                        self.terminals.append(terminal)
+        # Create zone terminals based on labels in the level
+        for _zone_name, zone_data in zone_terminals.items():
+            if terminal_positions:
+                # Use next available terminal position
+                x, y = terminal_positions.pop(0)
+                terminal = InfoTerminal(x, y, zone_data["title"], zone_data["content"])  # type: ignore[arg-type]
+                self.terminals.append(terminal)
 
     def _generate_stairs(self):
         """Generate stairs up and/or down based on current floor."""
@@ -830,12 +780,10 @@ class Game:
             self.message = f"Cannot descend! Complete conversations with: {', '.join(incomplete)}"
             return False
 
-        # Descend using floor manager
+        # Descend using floor manager (generates new floor map and updates position)
         self.floor_manager.move_to_next_floor(self.player)
-        self.game_map = self.floor_manager.game_map
-        self.map_width = self.floor_manager.map_width
-        self.map_height = self.floor_manager.map_height
 
+        # Regenerate entities for the new floor (also updates map references)
         self._generate_floor()
         self.message = f"Descended to Neural Layer {self.current_floor}"
         return True
@@ -851,12 +799,10 @@ class Game:
             self.message = "This is the top layer."
             return False
 
-        # Ascend using floor manager
+        # Ascend using floor manager (generates new floor map and updates position)
         self.floor_manager.move_to_previous_floor(self.player)
-        self.game_map = self.floor_manager.game_map
-        self.map_width = self.floor_manager.map_width
-        self.map_height = self.floor_manager.map_height
 
+        # Regenerate entities for the new floor (also updates map references)
         self._generate_floor()
         self.message = f"Ascended to Neural Layer {self.current_floor}"
         return True
@@ -921,18 +867,17 @@ class Game:
 
         return False, "Snippet not found"
 
-    def answer_question(self, answer_index: int) -> tuple[bool, str]:
-        """
-        Answer the current conversation question.
-
-        Args:
-            answer_index: Index of the selected answer (0-based)
+    def _validate_conversation_state(
+        self,
+    ) -> tuple[bool, str, Conversation | None, Question | None, bool]:
+        """Validate conversation state and return common data needed for answering.
 
         Returns:
-            Tuple of (correct, response_message)
+            Tuple of (valid, error_message, conversation, question, is_enemy)
+            If valid is False, error_message contains the reason.
         """
         if not self.active_conversation:
-            return False, "Not in a conversation."
+            return False, "Not in a conversation.", None, None, False
 
         conv = self.active_conversation
 
@@ -940,10 +885,31 @@ class Game:
         if conv.current_question_idx >= len(conv.questions):
             conv.completed = True
             self.active_conversation = None
-            return True, "Conversation completed!"
+            return False, "Conversation completed!", None, None, False
 
         # Get current question
         question = conv.questions[conv.current_question_idx]
+
+        # Check if this is an enemy (harsher penalties)
+        is_enemy = conv.npc_type == NPCType.ENEMY
+
+        return True, "", conv, question, is_enemy
+
+    def answer_question(self, answer_index: int) -> tuple[bool, str]:
+        """Answer the current conversation question.
+
+        Args:
+            answer_index: Index of the selected answer (0-based)
+
+        Returns:
+            Tuple of (correct, response_message)
+        """
+        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
+        if not valid:
+            # Return True for "Conversation completed!" as it's not an error
+            return "completed" in error_msg, error_msg
+
+        assert conv is not None and question is not None  # Type narrowing
 
         # Validate answer index
         if answer_index < 0 or answer_index >= len(question.answers):
@@ -956,17 +922,13 @@ class Game:
         if npc_name not in self.npc_opinions:
             self.npc_opinions[npc_name] = 0
 
-        # Check if this is an enemy (harsher penalties)
-        is_enemy = conv.npc_type == NPCType.ENEMY
-
         if answer.correct:
             return self._handle_correct_answer(conv, answer, npc_name, is_enemy)
         else:
             return self._handle_wrong_answer(conv, answer, npc_name, is_enemy)
 
     def answer_text_question(self, user_answer: str) -> tuple[bool, str]:
-        """
-        Answer the current conversation question with typed text.
+        """Answer the current conversation question with typed text.
 
         For SHORT_ANSWER and YES_NO question types.
 
@@ -976,19 +938,12 @@ class Game:
         Returns:
             Tuple of (correct, response_message)
         """
-        if not self.active_conversation:
-            return False, "Not in a conversation."
+        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
+        if not valid:
+            # Return True for "Conversation completed!" as it's not an error
+            return "completed" in error_msg, error_msg
 
-        conv = self.active_conversation
-
-        # Check if conversation is already complete
-        if conv.current_question_idx >= len(conv.questions):
-            conv.completed = True
-            self.active_conversation = None
-            return True, "Conversation completed!"
-
-        # Get current question
-        question = conv.questions[conv.current_question_idx]
+        assert conv is not None and question is not None  # Type narrowing
 
         # Verify this is a text-based question type
         if question.question_type == QuestionType.MULTIPLE_CHOICE:
@@ -1006,9 +961,6 @@ class Game:
         npc_name = conv.npc_name
         if npc_name not in self.npc_opinions:
             self.npc_opinions[npc_name] = 0
-
-        # Check if this is an enemy (harsher penalties)
-        is_enemy = conv.npc_type == NPCType.ENEMY
 
         if is_correct:
             # Create a temporary Answer object for correct response
@@ -1298,14 +1250,15 @@ class Game:
             "quest_completed_npcs": list(self.quest_completed_npcs),
         }
 
-    def save_game(self, filepath: str | Path | None = None) -> bool:
+    def save_game(self, filepath: str | Path | None = None) -> tuple[bool, Path | None]:
         """Save the current game state to a file.
 
         Args:
             filepath: Path to save file. If None, uses default location.
 
         Returns:
-            True if save successful, False otherwise
+            Tuple of (success, filepath) where success is True if save successful,
+            and filepath is the Path where the game was saved (or None on failure)
         """
         from neural_dive.game_serializer import GameSerializer
 

@@ -1051,5 +1051,545 @@
         "response": "不对。龙排第五。鼠排第一。"
       }
     ]
+  },
+  "pinyin_jianju": {
+    "topic": "pronunciation",
+    "question_text": "\"艰巨\"的正确读音是：",
+    "answers": [
+      {
+        "text": "jiān jù",
+        "correct": true,
+        "response": "正确！艰巨读作 jiān jù（第一声+第四声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "jiǎn jù",
+        "correct": false,
+        "response": "不对。第一个字是第一声，不是第三声。应该读 jiān jù。"
+      },
+      {
+        "text": "jiān jǔ",
+        "correct": false,
+        "response": "不对。第二个字是第四声，不是第三声。应该读 jiān jù。"
+      },
+      {
+        "text": "gān jù",
+        "correct": false,
+        "response": "不对。第一个字的声母是 j，不是 g。应该读 jiān jù。"
+      }
+    ]
+  },
+  "pinyin_yongxian": {
+    "topic": "pronunciation",
+    "question_text": "\"涌现\"的拼音是：",
+    "answers": [
+      {
+        "text": "yǒng xiàn",
+        "correct": true,
+        "response": "对！涌现读作 yǒng xiàn（第三声+第四声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "yōng xiàn",
+        "correct": false,
+        "response": "不对。第一个字是第三声，不是第一声。应该读 yǒng xiàn。"
+      },
+      {
+        "text": "yǒng xián",
+        "correct": false,
+        "response": "不对。第二个字是第四声，不是第二声。应该读 yǒng xiàn。"
+      },
+      {
+        "text": "róng xiàn",
+        "correct": false,
+        "response": "不对。第一个字的韵母是 ong，不是声母 r。应该读 yǒng xiàn。"
+      }
+    ]
+  },
+  "pinyin_shenke": {
+    "topic": "pronunciation",
+    "question_text": "\"深刻\"怎么读？",
+    "answers": [
+      {
+        "text": "shēn kè",
+        "correct": true,
+        "response": "很好！深刻读作 shēn kè（第一声+第四声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "shēn kē",
+        "correct": false,
+        "response": "不对。第二个字是第四声，不是第一声。应该读 shēn kè。"
+      },
+      {
+        "text": "shěn kè",
+        "correct": false,
+        "response": "不对。第一个字是第一声，不是第三声。应该读 shēn kè。"
+      },
+      {
+        "text": "chēn kè",
+        "correct": false,
+        "response": "不对。第一个字的声母是 sh，不是 ch。应该读 shēn kè。"
+      }
+    ]
+  },
+  "pinyin_fanrong": {
+    "topic": "pronunciation",
+    "question_text": "\"繁荣\"的拼音是：",
+    "answers": [
+      {
+        "text": "fán róng",
+        "correct": true,
+        "response": "非常对！繁荣读作 fán róng（第二声+第二声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "fān róng",
+        "correct": false,
+        "response": "不对。第一个字是第二声，不是第一声。应该读 fán róng。"
+      },
+      {
+        "text": "fán rōng",
+        "correct": false,
+        "response": "不对。第二个字是第二声，不是第一声。应该读 fán róng。"
+      },
+      {
+        "text": "pán róng",
+        "correct": false,
+        "response": "不对。第一个字的声母是 f，不是 p。应该读 fán róng。"
+      }
+    ]
+  },
+  "pinyin_jianchi": {
+    "topic": "pronunciation",
+    "question_text": "\"坚持\"的正确读音是：",
+    "answers": [
+      {
+        "text": "jiān chí",
+        "correct": true,
+        "response": "正确！坚持读作 jiān chí（第一声+第二声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "jiǎn chí",
+        "correct": false,
+        "response": "不对。第一个字是第一声，不是第三声。应该读 jiān chí。"
+      },
+      {
+        "text": "jiān chǐ",
+        "correct": false,
+        "response": "不对。第二个字是第二声，不是第三声。应该读 jiān chí。"
+      },
+      {
+        "text": "gān chí",
+        "correct": false,
+        "response": "不对。第一个字的声母是 j，不是 g。应该读 jiān chí。"
+      }
+    ]
+  },
+  "pinyin_weimiao": {
+    "topic": "pronunciation",
+    "question_text": "\"微妙\"怎么读？",
+    "answers": [
+      {
+        "text": "wēi miào",
+        "correct": true,
+        "response": "太好了！微妙读作 wēi miào（第一声+第四声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "wéi miào",
+        "correct": false,
+        "response": "不对。第一个字是第一声，不是第二声。应该读 wēi miào。"
+      },
+      {
+        "text": "wēi miáo",
+        "correct": false,
+        "response": "不对。第二个字是第四声，不是第二声。应该读 wēi miào。"
+      },
+      {
+        "text": "wēi máo",
+        "correct": false,
+        "response": "不对。第二个字是 miào，不是 máo。应该读 wēi miào。"
+      }
+    ]
+  },
+  "pinyin_gaige": {
+    "topic": "pronunciation",
+    "question_text": "\"改革\"的拼音是：",
+    "answers": [
+      {
+        "text": "gǎi gé",
+        "correct": true,
+        "response": "对！改革读作 gǎi gé（第三声+第二声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "gài gé",
+        "correct": false,
+        "response": "不对。第一个字是第三声，不是第四声。应该读 gǎi gé。"
+      },
+      {
+        "text": "gǎi gě",
+        "correct": false,
+        "response": "不对。第二个字是第二声，不是第三声。应该读 gǎi gé。"
+      },
+      {
+        "text": "kǎi gé",
+        "correct": false,
+        "response": "不对。第一个字的声母是 g，不是 k。应该读 gǎi gé。"
+      }
+    ]
+  },
+  "pinyin_chensi": {
+    "topic": "pronunciation",
+    "question_text": "\"沉思\"的正确读音是：",
+    "answers": [
+      {
+        "text": "chén sī",
+        "correct": true,
+        "response": "很好！沉思读作 chén sī（第二声+第一声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "chēn sī",
+        "correct": false,
+        "response": "不对。第一个字是第二声，不是第一声。应该读 chén sī。"
+      },
+      {
+        "text": "chén sí",
+        "correct": false,
+        "response": "不对。第二个字是第一声，不是第二声。应该读 chén sī。"
+      },
+      {
+        "text": "shén sī",
+        "correct": false,
+        "response": "不对。第一个字的声母是 ch，不是 sh。应该读 chén sī。"
+      }
+    ]
+  },
+  "pinyin_benzhi": {
+    "topic": "pronunciation",
+    "question_text": "\"本质\"怎么读？",
+    "answers": [
+      {
+        "text": "běn zhì",
+        "correct": true,
+        "response": "对极了！本质读作 běn zhì（第三声+第四声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "bēn zhì",
+        "correct": false,
+        "response": "不对。第一个字是第三声，不是第一声。应该读 běn zhì。"
+      },
+      {
+        "text": "běn zhí",
+        "correct": false,
+        "response": "不对。第二个字是第四声，不是第二声。应该读 běn zhì。"
+      },
+      {
+        "text": "pěn zhì",
+        "correct": false,
+        "response": "不对。第一个字的声母是 b，不是 p。应该读 běn zhì。"
+      }
+    ]
+  },
+  "pinyin_zhuangguan": {
+    "topic": "pronunciation",
+    "question_text": "\"壮观\"的拼音是：",
+    "answers": [
+      {
+        "text": "zhuàng guān",
+        "correct": true,
+        "response": "太棒了！壮观读作 zhuàng guān（第四声+第一声）。",
+        "reward_knowledge": "HSK6 拼音"
+      },
+      {
+        "text": "zhuǎng guān",
+        "correct": false,
+        "response": "不对。第一个字是第四声，不是第三声。应该读 zhuàng guān。"
+      },
+      {
+        "text": "zhuàng guǎn",
+        "correct": false,
+        "response": "不对。第二个字是第一声，不是第三声。应该读 zhuàng guān。"
+      },
+      {
+        "text": "chuàng guān",
+        "correct": false,
+        "response": "不对。第一个字的声母是 zh，不是 ch。应该读 zhuàng guān。"
+      }
+    ]
+  },
+  "synonym_difficult": {
+    "topic": "synonyms",
+    "question_text": "下列哪个词与\"艰巨\"意思最相近？",
+    "answers": [
+      {
+        "text": "困难",
+        "correct": true,
+        "response": "对！困难和艰巨都表示很难完成的意思，是同义词。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "容易",
+        "correct": false,
+        "response": "不对。容易是反义词，艰巨的意思是困难的。"
+      },
+      {
+        "text": "迅速",
+        "correct": false,
+        "response": "不对。迅速是关于速度的，艰巨是关于难度的。"
+      },
+      {
+        "text": "轻松",
+        "correct": false,
+        "response": "不对。轻松是相反的意思。艰巨表示很困难。"
+      }
+    ]
+  },
+  "synonym_emerge": {
+    "topic": "synonyms",
+    "question_text": "哪个词与\"涌现\"含义相近？",
+    "answers": [
+      {
+        "text": "出来",
+        "correct": true,
+        "response": "很好！出来和涌现都表示显现、出现的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "消散",
+        "correct": false,
+        "response": "不对。消散是消失的意思，涌现是出现。"
+      },
+      {
+        "text": "隐藏",
+        "correct": false,
+        "response": "不对。隐藏是相反的意思，涌现是显现出来。"
+      },
+      {
+        "text": "静止",
+        "correct": false,
+        "response": "不对。静止是不动的意思，涌现是出现的意思。"
+      }
+    ]
+  },
+  "synonym_profound": {
+    "topic": "synonyms",
+    "question_text": "选出与\"深刻\"意思最接近的词：",
+    "answers": [
+      {
+        "text": "透彻",
+        "correct": true,
+        "response": "正确！透彻和深刻都表示理解得很深入、彻底。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "肤浅",
+        "correct": false,
+        "response": "不对。肤浅是反义词，深刻是深入的意思。"
+      },
+      {
+        "text": "迅速",
+        "correct": false,
+        "response": "不对。迅速是关于速度，深刻是关于程度。"
+      },
+      {
+        "text": "宽广",
+        "correct": false,
+        "response": "不对。宽广是指范围大，深刻是指程度深。"
+      }
+    ]
+  },
+  "synonym_flourish": {
+    "topic": "synonyms",
+    "question_text": "哪个词与\"繁荣\"的意思相似？",
+    "answers": [
+      {
+        "text": "兴旺",
+        "correct": true,
+        "response": "太好了！兴旺和繁荣都表示蓬勃发展的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "衰退",
+        "correct": false,
+        "response": "不对。衰退是相反的意思，繁荣是兴盛的意思。"
+      },
+      {
+        "text": "普通",
+        "correct": false,
+        "response": "不对。普通是平常的意思，繁荣是兴盛发达的意思。"
+      },
+      {
+        "text": "古老",
+        "correct": false,
+        "response": "不对。古老是指时间久远，繁荣是指兴盛发达。"
+      }
+    ]
+  },
+  "synonym_persevere": {
+    "topic": "synonyms",
+    "question_text": "选出与\"坚持\"意思相近的词：",
+    "answers": [
+      {
+        "text": "继续",
+        "correct": true,
+        "response": "对！继续和坚持都表示不停止、持续做某事的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "放弃",
+        "correct": false,
+        "response": "不对。放弃是反义词，坚持是不放弃的意思。"
+      },
+      {
+        "text": "犹豫",
+        "correct": false,
+        "response": "不对。犹豫是不确定，坚持是确定并继续做。"
+      },
+      {
+        "text": "停止",
+        "correct": false,
+        "response": "不对。停止是相反的意思，坚持是继续做下去。"
+      }
+    ]
+  },
+  "synonym_subtle": {
+    "topic": "synonyms",
+    "question_text": "哪个词与\"微妙\"含义相近？",
+    "answers": [
+      {
+        "text": "精细",
+        "correct": true,
+        "response": "很好！精细和微妙都表示细致、难以察觉的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "明显",
+        "correct": false,
+        "response": "不对。明显是相反的意思，微妙是不容易发觉的。"
+      },
+      {
+        "text": "粗糙",
+        "correct": false,
+        "response": "不对。粗糙是相反的意思，微妙是精致细腻的。"
+      },
+      {
+        "text": "普通",
+        "correct": false,
+        "response": "不对。普通是平常的，微妙是特殊而细腻的。"
+      }
+    ]
+  },
+  "synonym_reform": {
+    "topic": "synonyms",
+    "question_text": "选出与\"改革\"意思最接近的词：",
+    "answers": [
+      {
+        "text": "变化",
+        "correct": true,
+        "response": "对！变化和改革都表示改变、革新的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "传统",
+        "correct": false,
+        "response": "不对。传统是相反的概念，改革是改变传统。"
+      },
+      {
+        "text": "稳定",
+        "correct": false,
+        "response": "不对。稳定是不变，改革是改变。"
+      },
+      {
+        "text": "保守",
+        "correct": false,
+        "response": "不对。保守是守旧，改革是创新改变。"
+      }
+    ]
+  },
+  "synonym_contemplate": {
+    "topic": "synonyms",
+    "question_text": "哪个词与\"沉思\"的意思相似？",
+    "answers": [
+      {
+        "text": "考虑",
+        "correct": true,
+        "response": "正确！考虑和沉思都表示认真思考的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "说话",
+        "correct": false,
+        "response": "不对。说话是表达，沉思是思考。"
+      },
+      {
+        "text": "行动",
+        "correct": false,
+        "response": "不对。行动是做事，沉思是思考。"
+      },
+      {
+        "text": "忘记",
+        "correct": false,
+        "response": "不对。忘记是不记得，沉思是深入思考。"
+      }
+    ]
+  },
+  "synonym_essence": {
+    "topic": "synonyms",
+    "question_text": "选出与\"本质\"意思相近的词：",
+    "answers": [
+      {
+        "text": "根源",
+        "correct": true,
+        "response": "很好！根源和本质都表示事物最根本的东西。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "外表",
+        "correct": false,
+        "response": "不对。外表是表面，本质是内在根本。"
+      },
+      {
+        "text": "数量",
+        "correct": false,
+        "response": "不对。数量是多少，本质是根本性质。"
+      },
+      {
+        "text": "形式",
+        "correct": false,
+        "response": "不对。形式是表现方式，本质是根本内容。"
+      }
+    ]
+  },
+  "synonym_magnificent": {
+    "topic": "synonyms",
+    "question_text": "哪个词与\"壮观\"含义相近？",
+    "answers": [
+      {
+        "text": "雄伟",
+        "correct": true,
+        "response": "太棒了！雄伟和壮观都表示宏大、令人惊叹的意思。",
+        "reward_knowledge": "HSK6 同义词"
+      },
+      {
+        "text": "微小",
+        "correct": false,
+        "response": "不对。微小是相反的意思，壮观是宏大的。"
+      },
+      {
+        "text": "普通",
+        "correct": false,
+        "response": "不对。普通是平常的，壮观是非凡的。"
+      },
+      {
+        "text": "丑陋",
+        "correct": false,
+        "response": "不对。丑陋是难看的，壮观是美丽宏伟的。"
+      }
+    ]
   }
 }

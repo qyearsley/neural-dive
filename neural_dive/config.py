@@ -42,7 +42,10 @@ TERMINAL_Y_OFFSET = 3
 OVERLAY_MAX_WIDTH = 80  # Increased from 60 for better readability
 OVERLAY_MAX_HEIGHT = 30  # Increased from 25
 COMPLETION_OVERLAY_MAX_HEIGHT = 35  # Increased from 30
+TERMINAL_OVERLAY_MAX_HEIGHT = 20  # Height for info terminal overlays
+INVENTORY_OVERLAY_MAX_HEIGHT = 25  # Height for inventory overlays
 UI_BOTTOM_OFFSET = 4
+TERMINAL_UI_RESERVED_LINES = 6  # Lines reserved for UI at terminal bottom
 
 # Floor completion requirements
 FLOOR_REQUIRED_NPCS = {
