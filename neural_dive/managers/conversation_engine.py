@@ -88,9 +88,12 @@ class ConversationEngine:
         # Get the answer
         answer = question.answers[answer_idx]
 
+        # Clear eliminated answers BEFORE advancing to next question
+        # to prevent eliminated indices from wrong question appearing on next question
+        self.eliminated_answers = set()
+
         # Advance to next question
         conv.current_question_idx += 1
-        self.eliminated_answers = set()  # Clear eliminated answers for next question
 
         # Check if conversation is now complete
         if conv.current_question_idx >= len(conv.questions):
