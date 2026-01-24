@@ -154,21 +154,6 @@ class Game:
         # Generate the first floor entities
         self._generate_floor()
 
-    def _localize(self, en_text: str, zh_text: str | None = None) -> str:
-        """
-        Return localized text based on content set.
-
-        Args:
-            en_text: English text (default)
-            zh_text: Chinese text (optional)
-
-        Returns:
-            Localized text based on current content set
-        """
-        if self.content_set == "chinese-hsk6" and zh_text:
-            return zh_text
-        return en_text
-
     # Backward compatibility properties for FloorManager
     @property
     def current_floor(self) -> int:
@@ -604,7 +589,7 @@ class Game:
             self.message = ""
             return True
         else:
-            self.message = self._localize("Blocked by firewall!", "被防火墙阻挡！")
+            self.message = "Blocked by firewall!"
             return False
 
     def interact(self) -> bool:
@@ -698,7 +683,7 @@ class Game:
             self.message = conversation.greeting
             return True
         else:
-            self.message = f"{npc_name}: {self._localize('You have proven yourself. We have nothing more to discuss.', '你已经证明了自己。我们没有更多可讨论的了。')}"
+            self.message = f"{npc_name}: You have proven yourself. We have nothing more to discuss."
             return True
 
     def _handle_quest_npc(self, npc_name: str, conversation: Conversation) -> bool:

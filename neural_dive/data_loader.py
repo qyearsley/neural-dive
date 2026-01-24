@@ -20,36 +20,20 @@ def get_data_dir() -> Path:
 
 
 def get_content_dir(content_set: str = "algorithms") -> Path:
-    """Get the directory path for a specific content set."""
-    return get_data_dir() / "content" / content_set
+    """Get the directory path for the algorithms content set."""
+    return get_data_dir() / "content" / "algorithms"
 
 
 def list_content_sets() -> list[dict]:
-    """List all available content sets."""
-    registry_file = get_data_dir() / "content_registry.json"
-
-    if not registry_file.exists():
-        # Fallback: return algorithms as default.
-        return [
-            {"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}
-        ]
-
-    with open(registry_file) as f:
-        registry = json.load(f)
-
-    return [cs for cs in registry.get("content_sets", []) if cs.get("enabled", True)]
+    """List available content sets (hardcoded to algorithms only)."""
+    return [
+        {"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}
+    ]
 
 
 def get_default_content_set() -> str:
-    """Get the default content set ID."""
-    content_sets = list_content_sets()
-
-    for cs in content_sets:
-        if cs.get("default", False):
-            return str(cs["id"])
-
-    # Fallback to first available or algorithms.
-    return str(content_sets[0]["id"]) if content_sets else "algorithms"
+    """Get the default content set ID (always algorithms)."""
+    return "algorithms"
 
 
 def load_content_metadata(content_set: str) -> dict:
@@ -152,14 +136,6 @@ def load_npcs(questions: dict[str, Question], content_set: str = "algorithms") -
     return npcs
 
 
-def load_terminals(content_set: str = "algorithms") -> dict[str, dict]:
-    """Load all terminals from terminals.json for a specific content set."""
-    data_file = get_content_dir(content_set) / "terminals.json"
-    with open(data_file) as f:
-        data = json.load(f)
-    return dict(data)
-
-
 def load_levels(content_set: str = "algorithms") -> dict:
     """Load level layouts for a specific content set.
 
@@ -213,13 +189,12 @@ def load_snippets() -> dict[str, dict]:
 
 
 def load_all_game_data(content_set: str | None = None):
-    """Load all game data (questions, NPCs, terminals, levels, snippets)."""
-    if content_set is None:
-        content_set = get_default_content_set()
+    """Load all game data (questions, NPCs, levels, snippets) for algorithms content."""
+    # Always use algorithms content set
+    content_set = "algorithms"
 
     questions = load_questions(content_set)
     npcs = load_npcs(questions, content_set)
-    terminals = load_terminals(content_set)
     levels = load_levels(content_set)
     snippets = load_snippets()
 
@@ -227,19 +202,16 @@ def load_all_game_data(content_set: str | None = None):
     try:
         from neural_dive.data.content.algorithms.levels import validate_npc_layout_consistency
 
-        # Only validate for algorithms content set (where the validation function exists)
-        if content_set == "algorithms":
-            warnings = validate_npc_layout_consistency(npcs, levels)
-            if warnings:
-                print("\n⚠️  NPC/Layout Validation Warnings:")
-                for warning in warnings:
-                    print(f"  - {warning}")
-                print()
+        warnings = validate_npc_layout_consistency(npcs, levels)
+        if warnings:
+            print("\n⚠️  NPC/Layout Validation Warnings:")
+            for warning in warnings:
+                print(f"  - {warning}")
+            print()
     except (ImportError, AttributeError):
-        # Validation function not available for this content set
         pass
 
-    return questions, npcs, terminals, levels, snippets
+    return questions, npcs, levels, snippets
 
 
 def compute_floor_requirements(npc_data: dict) -> dict[int, set[str]]:

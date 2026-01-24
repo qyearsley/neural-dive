@@ -79,7 +79,3 @@ NPC_MOVEMENT_SPEEDS = {
     "quest": 999,  # Stationary - important quest givers stay put
     "boss": 999,  # Stationary - bosses wait in their chambers
 }
-
-# Theme and visual settings
-DEFAULT_THEME = "cyberpunk"  # Available: "cyberpunk", "classic"
-DEFAULT_BACKGROUND = "dark"  # "dark" or "light" terminal background
