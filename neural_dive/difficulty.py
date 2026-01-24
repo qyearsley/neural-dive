@@ -14,10 +14,7 @@ from enum import Enum
 class DifficultyLevel(Enum):
     """Available difficulty levels."""
 
-    BEGINNER = "beginner"
     NORMAL = "normal"
-    ADVANCED = "advanced"
-    EXPERT = "expert"
 
 
 @dataclass
@@ -56,20 +53,6 @@ class DifficultySettings:
 
 # Predefined difficulty configurations
 DIFFICULTY_CONFIGS: dict[DifficultyLevel, DifficultySettings] = {
-    DifficultyLevel.BEGINNER: DifficultySettings(
-        name="Beginner",
-        description="Learning mode - generous coherence, fewer questions, no time pressure",
-        starting_coherence=120,
-        max_coherence=150,
-        correct_answer_gain=15,
-        wrong_answer_penalty=10,
-        enemy_wrong_answer_penalty=20,
-        helper_restore_amount=35,
-        questions_per_npc=(2, 2),
-        boss_questions=3,
-        time_pressure=False,
-        answer_time_limit=90,
-    ),
     DifficultyLevel.NORMAL: DifficultySettings(
         name="Normal",
         description="Balanced experience - standard settings for most players",
@@ -83,34 +66,6 @@ DIFFICULTY_CONFIGS: dict[DifficultyLevel, DifficultySettings] = {
         boss_questions=4,
         time_pressure=False,
         answer_time_limit=60,
-    ),
-    DifficultyLevel.ADVANCED: DifficultySettings(
-        name="Advanced",
-        description="Interview prep - tougher penalties, more questions per NPC",
-        starting_coherence=60,
-        max_coherence=80,
-        correct_answer_gain=8,
-        wrong_answer_penalty=35,
-        enemy_wrong_answer_penalty=55,
-        helper_restore_amount=15,
-        questions_per_npc=(3, 4),
-        boss_questions=5,
-        time_pressure=False,
-        answer_time_limit=45,
-    ),
-    DifficultyLevel.EXPERT: DifficultySettings(
-        name="Expert",
-        description="Maximum challenge - time pressure, harsh penalties, many questions",
-        starting_coherence=50,
-        max_coherence=70,
-        correct_answer_gain=5,
-        wrong_answer_penalty=45,
-        enemy_wrong_answer_penalty=70,
-        helper_restore_amount=12,
-        questions_per_npc=(4, 5),
-        boss_questions=6,
-        time_pressure=True,
-        answer_time_limit=30,
     ),
 }
 
@@ -162,19 +117,9 @@ def get_difficulty_from_string(difficulty_str: str) -> DifficultyLevel:
 
 
 def get_all_difficulties() -> list[tuple[DifficultyLevel, DifficultySettings]]:
-    """
-    Get all available difficulties with their settings.
+    """Get all available difficulties (only NORMAL).
 
     Returns:
-        List of (DifficultyLevel, DifficultySettings) tuples in order
-
-    Example:
-        >>> for level, settings in get_all_difficulties():
-        ...     print(f"{settings.name}: {settings.description}")
+        List with single entry: [(DifficultyLevel.NORMAL, settings)]
     """
-    return [
-        (DifficultyLevel.BEGINNER, DIFFICULTY_CONFIGS[DifficultyLevel.BEGINNER]),
-        (DifficultyLevel.NORMAL, DIFFICULTY_CONFIGS[DifficultyLevel.NORMAL]),
-        (DifficultyLevel.ADVANCED, DIFFICULTY_CONFIGS[DifficultyLevel.ADVANCED]),
-        (DifficultyLevel.EXPERT, DIFFICULTY_CONFIGS[DifficultyLevel.EXPERT]),
-    ]
+    return [(DifficultyLevel.NORMAL, DIFFICULTY_CONFIGS[DifficultyLevel.NORMAL])]

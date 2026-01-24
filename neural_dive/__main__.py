@@ -6,14 +6,13 @@ Allows running as: python -m neural_dive
 from __future__ import annotations
 
 import argparse
-import os
 import sys
+import time
 
 from blessed import Terminal
 
 from neural_dive.difficulty import DifficultyLevel
 from neural_dive.game import Game
-from neural_dive.menu import show_content_menu
 from neural_dive.question_types import QuestionType
 from neural_dive.rendering import draw_game, draw_victory_screen
 from neural_dive.themes import CharacterSet, ColorScheme, get_theme
@@ -516,18 +515,10 @@ Descend through neural layers, answer questions, master new knowledge.
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s                  # Play with default settings
-  %(prog)s --content chinese-hsk6  # Play with Chinese HSK6 content
-  %(prog)s --list-content   # Show available content sets
+  %(prog)s                  # Play game
   %(prog)s --load            # Load saved game from ~/.neural_dive/save.json
   %(prog)s --load /path/to/save.json  # Load from specific file
-  %(prog)s --light          # Light terminal background
-  %(prog)s --classic        # ASCII graphics (compatibility mode)
   %(prog)s --fixed --seed 42  # Reproducible game for testing
-
-Environment Variables:
-  NEURAL_DIVE_THEME=cyberpunk|classic
-  NEURAL_DIVE_BACKGROUND=dark|light
 
 Controls:
   Arrow keys: Move  |  Space/Enter: Interact  |  >/< : Stairs
@@ -540,53 +531,8 @@ Save Location:
         """,
     )
 
-    # Visual options
-    visual = parser.add_argument_group("Visual Options")
-    visual.add_argument(
-        "--theme",
-        "-t",
-        type=str,
-        choices=["cyberpunk", "classic", "hanzi"],
-        metavar="THEME",
-        help="Visual theme: 'cyberpunk' (Unicode), 'classic' (ASCII), or 'hanzi' (Chinese)",
-    )
-    visual.add_argument(
-        "--background",
-        "-b",
-        type=str,
-        choices=["dark", "light"],
-        metavar="BG",
-        help="Terminal background: 'dark' or 'light'",
-    )
-    visual.add_argument(
-        "--light",
-        action="store_const",
-        const="light",
-        dest="background",
-        help="Shortcut for --background light",
-    )
-    visual.add_argument(
-        "--classic",
-        action="store_const",
-        const="classic",
-        dest="theme",
-        help="Shortcut for --theme classic",
-    )
-
     # Game options
     game_opts = parser.add_argument_group("Game Options")
-    game_opts.add_argument(
-        "--content",
-        "-c",
-        type=str,
-        metavar="SET",
-        help="Content set to play: 'algorithms' (default), 'chinese-hsk6', 'geography', etc.",
-    )
-    game_opts.add_argument(
-        "--list-content",
-        action="store_true",
-        help="List available content sets and exit",
-    )
     game_opts.add_argument(
         "--load",
         nargs="?",
@@ -613,71 +559,14 @@ Save Location:
 
     args = parser.parse_args()
 
-    # Handle --list-content
-    if args.list_content:
-        from neural_dive.data_loader import list_content_sets, load_content_metadata
-
-        print("\n╔══════════════════════════════════════════════════════════════╗")
-        print("║                   Available Content Sets                     ║")
-        print("╚══════════════════════════════════════════════════════════════╝\n")
-
-        content_sets = list_content_sets()
-        for cs in content_sets:
-            try:
-                metadata = load_content_metadata(cs["id"])
-                default_marker = " [DEFAULT]" if cs.get("default", False) else ""
-                print(f"  {cs['id']}{default_marker}")
-                print(f"    Name: {metadata['name']}")
-                print(f"    Description: {metadata['description']}")
-                print(f"    Questions: {metadata.get('question_count', 'Unknown')}")
-                print(f"    Difficulty: {metadata.get('difficulty_range', 'N/A')}")
-                print()
-            except Exception as e:
-                print(f"  {cs['id']} (error loading metadata: {e})")
-                print()
-
-        return
-
-    # Determine content set FIRST (needed for theme selection)
-    term = None
-    if args.content:
-        # Use specified content set
-        content_set = args.content
-    else:
-        # Show interactive content selection menu (if not in test mode)
-        if not args.test:
-            term = Terminal()
-            content_set = show_content_menu(term)
-        else:
-            from neural_dive.data_loader import get_default_content_set
-
-            content_set = get_default_content_set()
-
-    # Get theme from args, env var, content set default, or global default
-    if args.theme:
-        theme_name = args.theme
-    elif os.getenv("NEURAL_DIVE_THEME"):
-        theme_name = os.getenv("NEURAL_DIVE_THEME")
-    else:
-        # Try to get default theme from content set metadata
-        try:
-            from neural_dive.data_loader import load_content_metadata
-
-            metadata = load_content_metadata(content_set)
-            theme_name = metadata.get("default_theme", "cyberpunk")
-        except Exception:
-            theme_name = "cyberpunk"
-
-    background = args.background or os.getenv("NEURAL_DIVE_BACKGROUND", "dark")
-
-    # Get theme characters and colors
-    chars, colors = get_theme(theme_name, background)
+    # Always use algorithms content set and cyberpunk dark theme
+    content_set = "algorithms"
+    chars, colors = get_theme("cyberpunk", "dark")
 
     if args.test:
         run_test_mode()
     else:
-        if not term:  # Term may already be created for content menu
-            term = Terminal()
+        term = Terminal()
 
         # Check if user wants to load a game
         if args.load is not None:
@@ -692,16 +581,12 @@ Save Location:
                 print(term.clear)
                 print(f"Loaded game from {actual_path}")
                 print("Starting in 2 seconds...")
-                import time
-
                 time.sleep(2)
             else:
                 actual_path = load_path if load_path else GameSerializer.get_default_save_path()
                 print(term.clear)
                 print(f"Error: Could not load game from {actual_path}")
                 print("Starting new game instead...")
-                import time
-
                 time.sleep(2)
                 game = None
 

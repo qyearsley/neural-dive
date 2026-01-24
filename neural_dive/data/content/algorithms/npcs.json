@@ -6,12 +6,34 @@
     "npc_type": "specialist",
     "greeting": "Greetings, data runner. I am the Algorithm Spirit. Prove your knowledge of computational complexity.",
     "questions": [
-      "merge_sort",
-      "bfs_vs_dfs",
-      "quicksort_complexity",
+      "a_star_heuristic",
       "amortized_analysis",
+      "backtracking_use",
+      "bellman_ford",
+      "bfs_graph_traversal",
+      "bfs_vs_dfs",
+      "big_o",
+      "bit_manipulation_count",
+      "dijkstra_algorithm",
+      "dp_memoization",
+      "dynamic_programming",
+      "edit_distance",
+      "floyd_warshall",
+      "greedy_algorithm",
+      "greedy_algorithms",
+      "kadanes_algorithm",
+      "kmp_algorithm",
+      "knapsack_01",
+      "longest_common_subsequence",
+      "merge_sort",
+      "minimum_spanning_tree",
+      "quicksort",
+      "quicksort_complexity",
+      "rabin_karp",
       "recursion_vs_iteration",
-      "big_o"
+      "sliding_window",
+      "topological_sort",
+      "two_pointers"
     ]
   },
   "HEAP_MASTER": {
@@ -21,11 +43,23 @@
     "npc_type": "specialist",
     "greeting": "I manage the priority queues of this realm. Trees balanced, operations swift. Show me you understand efficient data structures.",
     "questions": [
-      "trie_usage",
       "arrays_vs_linked_lists",
-      "tree_height",
+      "avl_tree",
+      "b_tree",
+      "binary_tree_height",
+      "fenwick_tree",
+      "hash_table",
+      "heap_extract_max",
       "heap_operations",
-      "hash_table"
+      "linked_list_insertion",
+      "red_black_tree",
+      "segment_tree",
+      "skip_list",
+      "stack_lifo",
+      "tree_height",
+      "trie_search_complexity",
+      "trie_usage",
+      "union_find"
     ]
   },
   "CODE_AUDITOR": {
@@ -54,10 +88,13 @@
     "npc_type": "specialist",
     "greeting": "Testing is not just verification—it's design. I am the Test Oracle, guardian of quality. Prove your understanding of test-driven practices.",
     "questions": [
+      "contract_testing",
       "integration_testing",
-      "test_pyramid",
+      "mocking_vs_stubs",
+      "snapshot_testing",
       "tdd_cycle",
-      "mocking_vs_stubs"
+      "test_coverage",
+      "test_pyramid"
     ]
   },
   "WEB_ARCHITECT": {
@@ -67,12 +104,16 @@
     "npc_type": "specialist",
     "greeting": "The web is my domain. HTTP flows through my veins, DNS resolves at my command. Prove you understand the protocols that power the internet.",
     "questions": [
-      "cors",
-      "json_vs_xml",
+      "api_rate_limiting",
       "api_versioning",
+      "cors",
+      "graphql_vs_rest",
       "http_status_codes",
+      "json_vs_xml",
+      "jwt",
+      "rest_idempotent",
       "rest_methods",
-      "api_rate_limiting"
+      "websockets"
     ]
   },
   "NET_DAEMON": {
@@ -82,12 +123,17 @@
     "npc_type": "specialist",
     "greeting": "I am the Network Daemon. Packets flow through my domain. Show me you understand the protocols.",
     "questions": [
-      "load_balancer_algorithms",
-      "nat",
       "cdn",
+      "cdn_purpose",
+      "dns_purpose",
       "dns_resolution",
       "http_methods",
-      "tcp_handshake"
+      "http_port",
+      "load_balancer_algorithms",
+      "nat",
+      "tcp_handshake",
+      "tcp_reliable",
+      "three_way_handshake"
     ]
   },
   "CRYPTO_GUARDIAN": {
@@ -97,12 +143,16 @@
     "npc_type": "specialist",
     "greeting": "I am the keeper of secrets, the guardian of encrypted data. Only those who understand cryptography may pass.",
     "questions": [
-      "oauth2",
       "csrf",
-      "sql_injection",
-      "tls_handshake",
+      "encryption_types",
+      "hash_collision",
+      "https_encryption",
+      "oauth2",
       "password_hashing",
-      "encryption_types"
+      "sql_injection",
+      "symmetric_vs_asymmetric",
+      "tls_handshake",
+      "zero_trust"
     ]
   },
   "COMPILER_SAGE": {
@@ -259,16 +309,17 @@
     "npc_type": "specialist",
     "greeting": "I am the Database Keeper. Tables organized, transactions consistent, queries optimized. Show me you understand the persistence layer.",
     "questions": [
-      "denormalization",
-      "database_indexes",
-      "transaction_isolation",
-      "normalization_purpose",
-      "materialized_views",
-      "write_ahead_log",
-      "indexing",
+      "acid",
       "acid_properties",
+      "database_indexes",
+      "denormalization",
+      "index_speedup",
+      "indexing",
+      "materialized_views",
+      "normalization_purpose",
       "sql_joins",
-      "acid"
+      "transaction_isolation",
+      "write_ahead_log"
     ]
   },
   "ARCH_MASTER": {

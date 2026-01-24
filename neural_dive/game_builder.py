@@ -64,8 +64,7 @@ class GameInitializer:
         if content_set is None:
             content_set = get_default_content_set()
 
-        questions, npc_data, _terminal_data, level_data, snippets = load_all_game_data(content_set)
-        # terminal_data is deprecated and no longer used (all content uses ZONE_TERMINALS in levels.py)
+        questions, npc_data, level_data, snippets = load_all_game_data(content_set)
         return content_set, questions, npc_data, level_data, snippets
 
     @staticmethod
