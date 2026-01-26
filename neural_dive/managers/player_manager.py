@@ -332,18 +332,28 @@ class PlayerManager:
             >>> len(state["inventory"])
             1
         """
+        from neural_dive.items import CodeSnippet, HintToken
+
+        inventory_data: list[dict[str, str | int | list[str]]] = []
+        for item in self.inventory:
+            item_dict: dict[str, str | int | list[str]] = {
+                "name": item.name,
+                "description": item.description,
+                "item_type": item.item_type.value,
+            }
+            # Add type-specific data
+            if isinstance(item, CodeSnippet):
+                item_dict["topic"] = item.topic
+                item_dict["content"] = item.content
+            elif isinstance(item, HintToken):
+                item_dict["answers_to_eliminate"] = item.answers_to_eliminate
+            inventory_data.append(item_dict)
+
         return {
             "coherence": self.coherence,
             "max_coherence": self.max_coherence,
             "knowledge_modules": list(self.knowledge_modules),
-            "inventory": [
-                {
-                    "name": item.name,
-                    "description": item.description,
-                    "item_type": item.item_type.value,
-                }
-                for item in self.inventory
-            ],
+            "inventory": inventory_data,
             "max_inventory_size": self.max_inventory_size,
         }
 
@@ -371,15 +381,23 @@ class PlayerManager:
             >>> pm.get_knowledge_count()
             2
         """
-        from neural_dive.items import HintToken, ItemType
+        from neural_dive.items import CodeSnippet, HintToken, ItemType
 
         # Reconstruct inventory items
         inventory: list[Item] = []
         for item_data in data.get("inventory", []):
             item_type = ItemType(item_data["item_type"])
             if item_type == ItemType.HINT_TOKEN:
-                inventory.append(HintToken())
-            # TODO: Add CodeSnippet reconstruction when loading snippets
+                answers_to_eliminate = item_data.get("answers_to_eliminate", 1)
+                inventory.append(HintToken(answers_to_eliminate=answers_to_eliminate))
+            elif item_type == ItemType.CODE_SNIPPET:
+                inventory.append(
+                    CodeSnippet(
+                        name=item_data["name"],
+                        topic=item_data["topic"],
+                        content=item_data["content"],
+                    )
+                )
 
         return cls(
             coherence=data.get("coherence", STARTING_COHERENCE),

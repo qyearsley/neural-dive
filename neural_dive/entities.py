@@ -1,6 +1,33 @@
-"""Entity classes for Neural Dive game."""
+"""Game entities for Neural Dive.
+
+This module defines the entity classes that populate the game world,
+including players, NPCs, stairs, gates, and information terminals.
+
+Classes:
+    Entity: Base class for all positioned game objects (player, NPCs)
+    Stairs: Represents stairs connecting floors (up/down)
+    InfoTerminal: Interactive terminals displaying game information
+    Gate: Floor exit gates that unlock when conditions are met
+
+Entity attributes include position (x, y), visual representation (char, color),
+and optional NPC-specific properties (type, wandering behavior).
+
+Example usage:
+    from neural_dive.entities import Entity, Stairs, InfoTerminal
+
+    # Create player entity
+    player = Entity(10, 10, "@", "cyan", "Data Runner")
+
+    # Create NPC
+    npc = Entity(15, 15, "A", "green", "ALGO_SPIRIT", npc_type="specialist")
+
+    # Create stairs to next floor
+    stairs = Stairs(30, 10, "down")
+"""
 
 from __future__ import annotations
+
+from neural_dive.config import STAIRS_COLOR, STAIRS_DOWN_CHAR, STAIRS_UP_CHAR
 
 
 class Entity:
@@ -45,8 +72,8 @@ class Stairs:
         self.x = x
         self.y = y
         self.direction = direction  # "up" or "down"
-        self.char = "<" if direction == "up" else ">"
-        self.color = "yellow"
+        self.char = STAIRS_UP_CHAR if direction == "up" else STAIRS_DOWN_CHAR
+        self.color = STAIRS_COLOR
 
     def __repr__(self) -> str:
         return f"Stairs(direction={self.direction}, pos=({self.x}, {self.y}))"

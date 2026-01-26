@@ -47,6 +47,17 @@ INVENTORY_OVERLAY_MAX_HEIGHT = 25  # Height for inventory overlays
 UI_BOTTOM_OFFSET = 4
 TERMINAL_UI_RESERVED_LINES = 6  # Lines reserved for UI at terminal bottom
 
+# Entity characters
+STAIRS_UP_CHAR = "<"
+STAIRS_DOWN_CHAR = ">"
+STAIRS_COLOR = "yellow"
+
+# Item characters and colors
+ITEM_CHAR_HINT_TOKEN = "?"
+ITEM_CHAR_CODE_SNIPPET = "S"
+ITEM_COLOR_HINT_TOKEN = "magenta"
+ITEM_COLOR_CODE_SNIPPET = "cyan"
+
 # Floor completion requirements
 FLOOR_REQUIRED_NPCS = {
     1: {"ALGO_SPIRIT", "HEAP_MASTER", "TEST_ORACLE"},

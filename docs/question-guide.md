@@ -15,7 +15,7 @@ This guide will help you create high-quality educational questions for Neural Di
 
 ## Quick Start
 
-Questions are stored in `neural_dive/data/questions.json`. Neural Dive supports **three question types**:
+Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Neural Dive supports **three question types**:
 - **Multiple Choice** (4 options) - Best for teaching through wrong answers
 - **Short Answer** (type-in) - Best for interview prep, complexity questions
 - **Yes/No** (true/false) - Best for quick knowledge checks
@@ -488,7 +488,7 @@ Before submitting questions, ask yourself:
 
 To add questions:
 
-1. Edit `neural_dive/data/questions.json`
+1. Edit `neural_dive/data/content/algorithms/questions.json`
 2. Follow this guide
 3. Ensure unique question IDs
 4. Run `python3 scripts/redistribute_questions.py` to assign to NPCs
@@ -503,7 +503,7 @@ For major additions (10+ questions), consider:
 
 ## Questions About Questions?
 
-- Check existing questions in `neural_dive/data/questions.json` for examples
+- Check existing questions in `neural_dive/data/content/algorithms/questions.json` for examples
 - Open an issue on GitHub for clarification
 - Refer to this guide when in doubt
 

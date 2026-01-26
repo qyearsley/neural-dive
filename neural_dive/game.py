@@ -14,7 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 import random
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from neural_dive.answer_matching import match_answer
 from neural_dive.config import (
@@ -234,22 +234,22 @@ class Game:
 
     # Backward compatibility properties for ConversationEngine
     @property
-    def active_conversation(self):
+    def active_conversation(self) -> Conversation | None:
         """Get active conversation from ConversationEngine."""
         return self.conversation_engine.active_conversation
 
     @active_conversation.setter
-    def active_conversation(self, value):
+    def active_conversation(self, value: Conversation | None) -> None:
         """Set active conversation on ConversationEngine."""
         self.conversation_engine.active_conversation = value
 
     @property
-    def active_terminal(self):
+    def active_terminal(self) -> InfoTerminal | None:
         """Get active terminal from ConversationEngine."""
         return self.conversation_engine.active_terminal
 
     @active_terminal.setter
-    def active_terminal(self, value):
+    def active_terminal(self, value: InfoTerminal | None) -> None:
         """Set active terminal on ConversationEngine."""
         self.conversation_engine.active_terminal = value
 
@@ -259,7 +259,7 @@ class Game:
         return self.conversation_engine.active_inventory
 
     @active_inventory.setter
-    def active_inventory(self, value: bool):
+    def active_inventory(self, value: bool) -> None:
         """Set active inventory state on ConversationEngine."""
         self.conversation_engine.active_inventory = value
 
@@ -269,7 +269,7 @@ class Game:
         return self.conversation_engine.active_snippet
 
     @active_snippet.setter
-    def active_snippet(self, value: dict | None):
+    def active_snippet(self, value: dict | None) -> None:
         """Set active snippet on ConversationEngine."""
         self.conversation_engine.active_snippet = value
 
@@ -279,12 +279,12 @@ class Game:
         return self.conversation_engine.show_greeting
 
     @show_greeting.setter
-    def show_greeting(self, value: bool):
+    def show_greeting(self, value: bool) -> None:
         """Set show greeting on ConversationEngine."""
         self.conversation_engine.show_greeting = value
 
     @show_greeting.deleter
-    def show_greeting(self):
+    def show_greeting(self) -> None:
         """Delete show greeting from ConversationEngine."""
         self.conversation_engine.show_greeting = False
 
@@ -294,12 +294,12 @@ class Game:
         return self.conversation_engine.last_answer_response
 
     @last_answer_response.setter
-    def last_answer_response(self, value: str | None):
+    def last_answer_response(self, value: str | None) -> None:
         """Set last answer response on ConversationEngine."""
         self.conversation_engine.last_answer_response = value
 
     @last_answer_response.deleter
-    def last_answer_response(self):
+    def last_answer_response(self) -> None:
         """Delete last answer response from ConversationEngine."""
         self.conversation_engine.last_answer_response = None
 
@@ -309,7 +309,7 @@ class Game:
         return self.conversation_engine.text_input_buffer
 
     @text_input_buffer.setter
-    def text_input_buffer(self, value: str):
+    def text_input_buffer(self, value: str) -> None:
         """Set text input buffer on ConversationEngine."""
         self.conversation_engine.text_input_buffer = value
 
@@ -374,7 +374,12 @@ class Game:
             if terminal_positions:
                 # Use next available terminal position
                 x, y = terminal_positions.pop(0)
-                terminal = InfoTerminal(x, y, zone_data["title"], zone_data["content"])  # type: ignore[arg-type]
+                title = zone_data["title"]
+                content = zone_data["content"]
+                # Type assertions for mypy
+                assert isinstance(title, str)
+                assert isinstance(content, list)
+                terminal = InfoTerminal(x, y, title, content)
                 self.terminals.append(terminal)
 
     def _generate_stairs(self):
@@ -593,8 +598,8 @@ class Game:
             return False
 
     def interact(self) -> bool:
-        """
-        Attempt to interact with nearby entity (terminal, NPC, or stairs).
+        """Attempt to interact with nearby entity (terminal, NPC, or stairs).
+
         Prioritizes closest entity. For equal distances: NPC > Terminal > Stairs.
 
         Returns:
@@ -603,7 +608,12 @@ class Game:
         player_x, player_y = self.player.x, self.player.y
 
         # Find all interactable entities with distances
-        candidates = []
+        # Type: list of (entity_type, distance, entity_object)
+        candidates: list[
+            tuple[Literal["terminal"], int, InfoTerminal]
+            | tuple[Literal["npc"], int, Entity]
+            | tuple[Literal["stairs"], int, Stairs]
+        ] = []
 
         # Check terminals
         for terminal in self.terminals:
@@ -615,13 +625,13 @@ class Game:
         for npc in self.npcs:
             dist = max(abs(player_x - npc.x), abs(player_y - npc.y))
             if dist <= 1:
-                candidates.append(("npc", dist, npc))  # type: ignore[arg-type]
+                candidates.append(("npc", dist, npc))
 
         # Check stairs
         for stair in self.stairs:
             dist = max(abs(player_x - stair.x), abs(player_y - stair.y))
             if dist <= 1:
-                candidates.append(("stairs", dist, stair))  # type: ignore[arg-type]
+                candidates.append(("stairs", dist, stair))
 
         if not candidates:
             self.message = "No one nearby to interact with. Look for NPCs or Terminals (▣)."
@@ -635,15 +645,17 @@ class Game:
         entity_type, dist, entity = candidates[0]
 
         if entity_type == "terminal":
+            # Type narrowing with assertion
+            assert isinstance(entity, InfoTerminal)
             self.active_terminal = entity
             self.message = f"Reading: {entity.title}"
             return True
         elif entity_type == "npc":
-            return self._interact_with_npc(entity)  # type: ignore
-        elif entity_type == "stairs":
+            # Type narrowing with assertion
+            assert isinstance(entity, Entity)
+            return self._interact_with_npc(entity)
+        else:  # entity_type == "stairs"
             return self.use_stairs()
-
-        return False
 
     def _interact_with_npc(self, npc: Entity) -> bool:
         """
@@ -837,8 +849,8 @@ class Game:
         if not self.active_conversation:
             return False, "Not in a conversation"
 
-        # For now, show the first snippet
-        # TODO: Could add a menu to choose between multiple snippets
+        # Show the first available snippet
+        # Note: Menu selection for multiple snippets could be added if needed
         snippet_item = snippets[0]
 
         # Find the snippet data
@@ -883,11 +895,24 @@ class Game:
     def answer_question(self, answer_index: int) -> tuple[bool, str]:
         """Answer the current conversation question.
 
+        Validates the answer, updates game state (coherence, knowledge), and
+        progresses the conversation. Handles both correct and incorrect answers
+        with appropriate rewards/penalties.
+
         Args:
-            answer_index: Index of the selected answer (0-based)
+            answer_index: Index of the selected answer (0-based). Must be within
+                range of available answers for the current question.
 
         Returns:
-            Tuple of (correct, response_message)
+            Tuple of (success, message):
+                - success (bool): True if answer was correct, False if wrong
+                - message (str): Feedback message describing the result
+
+        Example:
+            >>> game.active_conversation = some_conversation
+            >>> correct, msg = game.answer_question(0)
+            >>> if correct:
+            ...     print(f"Correct! {msg}")
         """
         valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
         if not valid:
