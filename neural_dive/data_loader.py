@@ -26,9 +26,7 @@ def get_content_dir(content_set: str = "algorithms") -> Path:
 
 def list_content_sets() -> list[dict]:
     """List available content sets (hardcoded to algorithms only)."""
-    return [
-        {"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}
-    ]
+    return [{"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}]
 
 
 def get_default_content_set() -> str:

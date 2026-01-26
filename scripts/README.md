@@ -36,7 +36,7 @@ New questions by topic:
   ...
 ```
 
-**Note:** This script contains a hardcoded set of questions. If you want to add custom questions, edit `neural_dive/data/questions.json` directly following the [Question Guide](../QUESTION_GUIDE.md).
+**Note:** This script contains a hardcoded set of questions. If you want to add custom questions, edit `neural_dive/data/content/algorithms/questions.json` directly following the [Question Guide](../docs/question-guide.md).
 
 ---
 
@@ -45,10 +45,10 @@ New questions by topic:
 **Purpose:** Assigns questions uniquely to NPCs, ensuring no question appears multiple times.
 
 **What it does:**
-1. Reads `neural_dive/data/questions.json` and `neural_dive/data/npcs.json`
+1. Reads `neural_dive/data/content/algorithms/questions.json` and `neural_dive/data/content/algorithms/npcs.json`
 2. Organizes questions by topic
-3. Assigns 6 questions to each NPC based on their thematic area
-4. Ensures **zero overlap** - each question is used by exactly one NPC
+3. Assigns questions to each NPC based on their thematic area
+4. Ensures **zero overlap** - each question is used by at most one NPC
 5. Updates `npcs.json` with the new assignments
 6. Verifies no duplicates exist
 
@@ -81,7 +81,7 @@ Assigning questions to NPCs:
   Unused questions: 11
 ✓ Verification passed: No duplicate questions!
 
-✓ Updated neural_dive/data/npcs.json
+✓ Updated neural_dive/data/content/algorithms/npcs.json
 ```
 
 **Configuration:**
@@ -102,8 +102,8 @@ Edit this dictionary in the script to change which topics an NPC should ask abou
 ## Workflow: Adding New Questions
 
 **Step 1: Write Questions**
-1. Edit `neural_dive/data/questions.json`
-2. Follow the [Question Guide](../QUESTION_GUIDE.md)
+1. Edit `neural_dive/data/content/algorithms/questions.json`
+2. Follow the [Question Guide](../docs/question-guide.md)
 3. Add your questions with unique IDs
 
 **Step 2: Redistribute to NPCs**
@@ -118,9 +118,9 @@ This ensures:
 
 **Step 3: Test In-Game**
 ```bash
-./ndive --fixed --seed 42
+./ndive --seed 42
 ```
-Fixed positions and seed make testing reproducible.
+Fixed seed makes testing reproducible.
 
 ---
 
@@ -130,7 +130,7 @@ Fixed positions and seed make testing reproducible.
 ```bash
 python3 -c "
 import json
-with open('neural_dive/data/questions.json') as f:
+with open('neural_dive/data/content/algorithms/questions.json') as f:
     questions = json.load(f)
 print(f'Total questions: {len(questions)}')
 "
@@ -142,7 +142,7 @@ python3 -c "
 import json
 from collections import Counter
 
-with open('neural_dive/data/npcs.json') as f:
+with open('neural_dive/data/content/algorithms/npcs.json') as f:
     npcs = json.load(f)
 
 all_questions = []
@@ -167,7 +167,7 @@ python3 -c "
 import json
 from collections import defaultdict
 
-with open('neural_dive/data/questions.json') as f:
+with open('neural_dive/data/content/algorithms/questions.json') as f:
     questions = json.load(f)
 
 by_topic = defaultdict(list)
@@ -188,11 +188,11 @@ This happens when:
 - Not enough questions exist for that topic
 - Multiple NPCs share the same topic
 
-**Solution:** Add more questions for that topic in `questions.json`, then run `redistribute_questions.py`.
+**Solution:** Add more questions for that topic in `neural_dive/data/content/algorithms/questions.json`, then run `redistribute_questions.py`.
 
 ### "Questions are duplicated between NPCs"
 This shouldn't happen after running `redistribute_questions.py`, but if it does:
-1. Manually edit `neural_dive/data/npcs.json` to remove duplicates
+1. Manually edit `neural_dive/data/content/algorithms/npcs.json` to remove duplicates
 2. Run `redistribute_questions.py` to fix automatically
 
 ### "NPC has wrong questions for their theme"
@@ -225,7 +225,7 @@ NEW_QUESTIONS = {
 }
 
 # Load existing
-questions_path = Path("neural_dive/data/questions.json")
+questions_path = Path("neural_dive/data/content/algorithms/questions.json")
 with open(questions_path) as f:
     questions = json.load(f)
 
@@ -249,6 +249,6 @@ python3 scripts/redistribute_questions.py
 
 ## See Also
 
-- [Question Authoring Guide](../QUESTION_GUIDE.md) - How to write good questions
-- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute to the project
+- [Question Authoring Guide](../docs/question-guide.md) - How to write good questions
+- [Content Creation Guide](../docs/content-guide.md) - How to create content sets
 - [Main README](../README.md) - Project overview and setup

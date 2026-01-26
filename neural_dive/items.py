@@ -9,6 +9,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from neural_dive.config import (
+    ITEM_CHAR_CODE_SNIPPET,
+    ITEM_CHAR_HINT_TOKEN,
+    ITEM_COLOR_CODE_SNIPPET,
+    ITEM_COLOR_HINT_TOKEN,
+)
+
 
 class ItemType(Enum):
     """Types of items in the game."""
@@ -103,16 +110,16 @@ class ItemPickup:
     def _get_char_for_item(self, item: Item) -> str:
         """Get the map character for an item type."""
         if item.item_type == ItemType.HINT_TOKEN:
-            return "?"
+            return ITEM_CHAR_HINT_TOKEN
         # item.item_type == ItemType.CODE_SNIPPET
-        return "S"
+        return ITEM_CHAR_CODE_SNIPPET
 
     def _get_color_for_item(self, item: Item) -> str:
         """Get the color for an item type."""
         if item.item_type == ItemType.HINT_TOKEN:
-            return "yellow"
+            return ITEM_COLOR_HINT_TOKEN
         # item.item_type == ItemType.CODE_SNIPPET
-        return "cyan"
+        return ITEM_COLOR_CODE_SNIPPET
 
     def __repr__(self) -> str:
         return f"ItemPickup(item={self.item.name}, pos=({self.x}, {self.y}))"

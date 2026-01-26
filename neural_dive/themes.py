@@ -157,4 +157,3 @@ def get_theme(
         Tuple of (CYBERPUNK_CHARS, CYBERPUNK_DARK)
     """
     return CYBERPUNK_CHARS, CYBERPUNK_DARK
-

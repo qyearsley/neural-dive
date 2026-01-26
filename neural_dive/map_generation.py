@@ -1,5 +1,23 @@
-"""
-Map generation for Neural Dive game.
+"""Procedural map generation for Neural Dive.
+
+This module handles the creation of game maps with varying complexity
+based on floor level. Maps consist of walls (#) and walkable floor tiles,
+with layouts that become more challenging as floors increase.
+
+The module provides:
+- Random map generation with configurable dimensions
+- Floor-specific complexity (floors 1-3 have different wall patterns)
+- Seed-based reproducibility for testing and debugging
+
+Example usage:
+    from neural_dive.map_generation import create_map
+
+    # Create a 60x20 map for floor 2
+    game_map = create_map(60, 20, floor=2, seed=42)
+
+    # Check if a position is a wall
+    if game_map[y][x] == "#":
+        print("Wall detected")
 """
 
 from __future__ import annotations

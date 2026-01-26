@@ -381,7 +381,7 @@ Multiple authors can create complementary content sets that work together.
 ## Need Help?
 
 - Check existing content sets for examples
-- Read [QUESTION_GUIDE.md](QUESTION_GUIDE.md) for question formats
+- Read [question-guide.md](question-guide.md) for question formats
 - Review game code in `neural_dive/data_loader.py`
 - Open an issue on GitHub with questions
 
