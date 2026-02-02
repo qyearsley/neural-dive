@@ -28,11 +28,11 @@
       "amortized_analysis",
       "recursion_vs_iteration",
       "big_o",
-      "dijkstra_algorithm",
       "topological_sort",
-      "rabin_karp",
       "greedy_algorithm",
-      "dynamic_programming"
+      "dynamic_programming",
+      "bfs_graph_traversal",
+      "greedy_algorithms"
     ]
   },
   "HEAP_MASTER": {
@@ -42,16 +42,16 @@
     "npc_type": "specialist",
     "greeting": "I manage the priority queues of this realm. Trees balanced, operations swift. Show me you understand efficient data structures.",
     "questions": [
-      "trie_usage",
       "arrays_vs_linked_lists",
       "tree_height",
       "heap_operations",
       "hash_table",
-      "union_find",
-      "segment_tree",
-      "fenwick_tree",
-      "avl_tree",
-      "lru_cache"
+      "lru_cache",
+      "binary_tree_height",
+      "linked_list_insertion",
+      "heap_extract_max",
+      "stack_lifo",
+      "quicksort"
     ]
   },
   "CODE_AUDITOR": {
@@ -70,7 +70,17 @@
       "solid_isp",
       "solid_dip",
       "dry_principle",
-      "code_review"
+      "code_review",
+      "closure",
+      "null_vs_undefined",
+      "exception_handling",
+      "oop_encapsulation",
+      "memory_leak_patterns",
+      "adapter_pattern",
+      "decorator_pattern",
+      "observer_pattern",
+      "singleton_pattern",
+      "strategy_pattern"
     ]
   },
   "TEST_ORACLE": {
@@ -84,7 +94,10 @@
       "property_based_testing",
       "integration_testing",
       "test_pyramid",
-      "tdd_cycle"
+      "tdd_cycle",
+      "snapshot_testing",
+      "contract_testing",
+      "test_coverage"
     ]
   },
   "WEB_ARCHITECT": {
@@ -102,7 +115,12 @@
       "api_rate_limiting",
       "idempotent_operations",
       "graphql_vs_rest",
-      "websockets"
+      "websockets",
+      "mvc_pattern",
+      "layered_architecture",
+      "microservices_vs_monolith",
+      "jwt",
+      "rest_idempotent"
     ]
   },
   "NET_DAEMON": {
@@ -147,24 +165,6 @@
       "zero_trust"
     ]
   },
-  "COMPILER_SAGE": {
-    "char": "C",
-    "color": "yellow",
-    "floor": 2,
-    "npc_type": "specialist",
-    "greeting": "Code transforms through many phases. Do you know the journey from source to machine?",
-    "questions": [
-      "closure",
-      "null_vs_undefined",
-      "async_programming",
-      "exception_handling",
-      "oop_encapsulation",
-      "compiler_phases",
-      "monkey_patching",
-      "debouncing_throttling",
-      "memory_leak_patterns"
-    ]
-  },
   "SYSTEM_CORE": {
     "char": "S",
     "color": "green",
@@ -183,7 +183,13 @@
       "page_fault",
       "process_vs_thread",
       "context_switch",
-      "scheduler_types"
+      "scheduler_types",
+      "cqrs_pattern",
+      "event_driven_architecture",
+      "async_programming",
+      "debouncing_throttling",
+      "cache_miss_types",
+      "virtual_memory_purpose"
     ]
   },
   "RESILIENCE_BOSS": {
@@ -208,7 +214,13 @@
       "consensus",
       "eventual_consistency",
       "cap_theorem",
-      "message_queues"
+      "message_queues",
+      "chaos_engineering",
+      "container_security",
+      "ci_cd_definition",
+      "circuit_breaker_pattern",
+      "horizontal_vs_vertical_scaling",
+      "load_balancer_purpose"
     ]
   },
   "CLOUD_MIND": {
@@ -226,7 +238,12 @@
       "message_queues",
       "two_phase_commit",
       "split_brain",
-      "gossip_protocol"
+      "gossip_protocol",
+      "eventual_consistency_example",
+      "message_queue_purpose",
+      "database_sharding",
+      "load_balancer_purpose",
+      "horizontal_vs_vertical_scaling"
     ]
   },
   "ML_BOSS": {
@@ -251,7 +268,14 @@
       "gradient_vanishing",
       "batch_vs_stochastic",
       "adam_optimizer",
-      "rnn_lstm"
+      "rnn_lstm",
+      "activation_function",
+      "batch_size",
+      "classification_vs_regression",
+      "confusion_matrix",
+      "reinforcement_learning",
+      "supervised_learning",
+      "train_test_split"
     ]
   },
   "LAMBDA_SAGE": {
@@ -313,7 +337,13 @@
       "encryption_types",
       "acid",
       "tcp_handshake",
-      "big_o"
+      "big_o",
+      "compiler_phases",
+      "monkey_patching",
+      "hexagonal_architecture",
+      "microservices_benefit",
+      "retry_backoff",
+      "feature_flags"
     ]
   },
   "DB_KEEPER": {
@@ -336,23 +366,9 @@
       "database_replication",
       "database_consistency_levels",
       "optimistic_locking",
-      "database_connection_pooling"
-    ]
-  },
-  "ARCH_MASTER": {
-    "char": "X",
-    "color": "magenta",
-    "floor": 2,
-    "npc_type": "specialist",
-    "greeting": "I am the Architecture Master. System design is my craft. Layered, hexagonal, event-driven, CQRS—patterns that shape great systems. Prove your architectural knowledge.",
-    "questions": [
-      "cqrs_pattern",
-      "hexagonal_architecture",
-      "mvc_pattern",
-      "layered_architecture",
-      "event_driven_architecture",
-      "microservices_benefit",
-      "microservices_vs_monolith"
+      "database_connection_pooling",
+      "database_sharding",
+      "index_speedup"
     ]
   },
   "GIT_WIZARD": {
@@ -367,21 +383,6 @@
       "git_rebase",
       "git_merge_vs_rebase",
       "git_basics"
-    ]
-  },
-  "TEST_STRATEGIST": {
-    "char": "Y",
-    "color": "green",
-    "floor": 2,
-    "npc_type": "specialist",
-    "greeting": "I am the Test Strategist. Coverage, contracts, snapshots—modern testing goes beyond simple assertions. Demonstrate advanced testing knowledge.",
-    "questions": [
-      "snapshot_testing",
-      "contract_testing",
-      "test_coverage",
-      "property_based_testing",
-      "mutation_testing",
-      "integration_testing"
     ]
   }
 }
