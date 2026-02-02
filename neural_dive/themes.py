@@ -10,7 +10,26 @@ from dataclasses import dataclass
 
 @dataclass
 class ColorScheme:
-    """Color scheme for a specific terminal background mode."""
+    """Color scheme for a specific terminal background mode.
+
+    Attributes:
+        player: Color for player character (@)
+        npc_specialist: Color for specialist NPCs (teach knowledge modules)
+        npc_helper: Color for helper NPCs (provide hints)
+        npc_enemy: Color for enemy NPCs (reduce coherence on wrong answers)
+        npc_quest: Color for quest-giving NPCs
+        wall: Color for wall tiles (#)
+        floor: Color for walkable floor tiles (.)
+        stairs: Color for staircase tiles (< >)
+        terminal: Color for information terminals
+        gate: Color for locked gates between floors
+        ui_primary: Primary text color for UI elements
+        ui_secondary: Secondary text color for less important UI
+        ui_accent: Accent color for highlights and emphasis
+        ui_warning: Color for warning messages
+        ui_error: Color for error messages
+        ui_success: Color for success messages
+    """
 
     # Entity colors
     player: str

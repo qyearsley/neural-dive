@@ -13,303 +13,14 @@ from blessed import Terminal
 
 from neural_dive.difficulty import DifficultyLevel
 from neural_dive.game import Game
-from neural_dive.question_types import QuestionType
+from neural_dive.input_handler import (
+    ConversationHandler,
+    EndGameHandler,
+    NormalModeHandler,
+    OverlayHandler,
+)
 from neural_dive.rendering import draw_game, draw_victory_screen
-from neural_dive.themes import CharacterSet, ColorScheme, get_theme
-
-
-def _handle_victory_screen(term: Terminal, game: Game, colors: ColorScheme) -> bool:
-    """Handle victory screen display and input.
-
-    Args:
-        term: Terminal instance
-        game: Game instance
-        colors: Color scheme
-
-    Returns:
-        True if user wants to quit, False otherwise
-    """
-    draw_victory_screen(term, game, colors)
-    while True:
-        key = term.inkey(timeout=0.1)
-        if key and key.lower() == "q":
-            return True
-
-
-def _handle_game_over(
-    term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme, first_draw: bool
-) -> bool:
-    """Handle game over screen display and input.
-
-    Args:
-        term: Terminal instance
-        game: Game instance
-        chars: Character set for rendering
-        colors: Color scheme
-        first_draw: Whether this is the first draw
-
-    Returns:
-        True if user wants to quit, False otherwise
-    """
-    draw_game(term, game, chars, colors, redraw_all=first_draw)
-    print(
-        term.move_xy(0, term.height // 2)
-        + term.center(term.bold_red("SYSTEM FAILURE - COHERENCE LOST")).rstrip()
-    )
-    print(term.move_xy(0, term.height // 2 + 2) + term.center("Press Q to quit").rstrip())
-    sys.stdout.flush()
-
-    while True:
-        key = term.inkey(timeout=0.1)
-        if key and key.lower() == "q":
-            return True
-
-
-def _handle_save_game(game: Game) -> tuple[str, bool]:
-    """Handle save game operation.
-
-    Args:
-        game: Game instance
-
-    Returns:
-        Tuple of (message, redraw_needed)
-    """
-    success, save_path = game.save_game()
-    if success and save_path:
-        return (f"Game saved to {save_path}", True)
-    return ("Failed to save game.", True)
-
-
-def _handle_load_game(game: Game) -> tuple[Game, str, bool]:
-    """Handle load game operation.
-
-    Args:
-        game: Current game instance
-
-    Returns:
-        Tuple of (game_instance, message, redraw_needed)
-    """
-    from neural_dive.game_serializer import GameSerializer
-
-    save_path = GameSerializer.get_default_save_path()
-    loaded_game = Game.load_game()
-    if loaded_game:
-        return (loaded_game, f"Game loaded from {save_path}", True)
-    return (game, f"No save file found at {save_path}", True)
-
-
-def _handle_inventory_input(key, game: Game) -> bool:
-    """Handle input when inventory is active.
-
-    Args:
-        key: Input key from terminal
-        game: Game instance
-
-    Returns:
-        True if inventory should close, False otherwise
-    """
-    if key.name == "KEY_ESCAPE" or key.lower() == "v":
-        game.active_inventory = False
-        return True
-    return False
-
-
-def _handle_snippet_input(key, game: Game) -> bool:
-    """Handle input when snippet overlay is active.
-
-    Args:
-        key: Input key from terminal
-        game: Game instance
-
-    Returns:
-        True if snippet should close, False otherwise
-    """
-    if key.name == "KEY_ESCAPE" or key.lower() == "s":
-        game.active_snippet = None
-        return True
-    return False
-
-
-def _handle_terminal_input(game: Game) -> bool:
-    """Handle input when terminal overlay is active.
-
-    Args:
-        game: Game instance
-
-    Returns:
-        True to close terminal (always True - any key closes it)
-    """
-    game.active_terminal = None
-    return True
-
-
-def _handle_greeting_dismissal(game: Game) -> None:
-    """Dismiss conversation greeting.
-
-    Args:
-        game: Game instance
-    """
-    game.show_greeting = False
-    game.text_input_buffer = ""
-
-
-def _handle_response_dismissal(game: Game) -> None:
-    """Dismiss answer response.
-
-    Args:
-        game: Game instance
-    """
-    game.last_answer_response = None
-    game.text_input_buffer = ""
-
-
-def _handle_yes_no_quick_answer(key, game: Game) -> tuple[bool, str] | None:
-    """Handle quick Y/N answer for yes/no questions.
-
-    Args:
-        key: Input key
-        game: Game instance
-
-    Returns:
-        Tuple of (correct, response) if answer was given, None otherwise
-    """
-    if key.lower() == "y":
-        correct, response = game.answer_text_question("yes")
-        game.text_input_buffer = ""
-        return (correct, response)
-    elif key.lower() == "n":
-        correct, response = game.answer_text_question("no")
-        game.text_input_buffer = ""
-        return (correct, response)
-    return None
-
-
-def _handle_text_answer_submission(game: Game) -> tuple[bool, str] | None:
-    """Handle text answer submission for short answer questions.
-
-    Args:
-        game: Game instance
-
-    Returns:
-        Tuple of (correct, response) if answer was submitted, None otherwise
-    """
-    if game.text_input_buffer.strip():
-        correct, response = game.answer_text_question(game.text_input_buffer.strip())
-        game.text_input_buffer = ""
-        return (correct, response)
-    return None
-
-
-def _handle_conversation_exit(game: Game) -> None:
-    """Exit conversation and clean up state.
-
-    Args:
-        game: Game instance
-    """
-    game.exit_conversation()
-    if hasattr(game, "last_answer_response"):
-        del game.last_answer_response
-    if hasattr(game, "show_greeting"):
-        del game.show_greeting
-    game.text_input_buffer = ""
-
-
-def _handle_text_input(key, game: Game) -> bool:
-    """Handle text input for text-based questions.
-
-    Args:
-        key: Input key
-        game: Game instance
-
-    Returns:
-        True if input was handled (continue to next frame), False otherwise
-    """
-    # Backspace
-    if key.name == "KEY_BACKSPACE" or key == "\x7f":
-        if game.text_input_buffer:
-            game.text_input_buffer = game.text_input_buffer[:-1]
-        return True
-
-    # Regular character input
-    if key.is_sequence:
-        return True  # Ignore special sequences
-    if len(key) == 1 and key.isprintable():
-        game.text_input_buffer += key
-        return True
-
-    return False
-
-
-def _handle_multiple_choice_input(key, game: Game) -> tuple[bool, bool, str | None]:
-    """Handle input for multiple choice questions.
-
-    Args:
-        key: Input key
-        game: Game instance
-
-    Returns:
-        Tuple of (continue_to_next_frame, redraw_needed, response)
-    """
-    # Handle hint usage (H key)
-    if key.lower() == "h":
-        success, message = game.use_hint()
-        game.message = message
-        return (True, success, None)
-
-    # Handle snippet viewing (S key)
-    if key.lower() == "s":
-        success, message = game.view_snippet()
-        if not success:
-            game.message = message
-        return (True, success, None)
-
-    # Handle answer selection (1-4)
-    if key in ["1", "2", "3", "4"]:
-        answer_idx = int(key) - 1
-        correct, response = game.answer_question(answer_idx)
-        game.text_input_buffer = ""
-        return (True, False, response)
-
-    return (False, False, None)
-
-
-def _handle_movement_input(key, game: Game) -> bool:
-    """Handle movement and interaction input.
-
-    Args:
-        key: Input key
-        game: Game instance
-
-    Returns:
-        True if floor change occurred (needs redraw), False otherwise
-    """
-    if key.name == "KEY_UP":
-        game.move_player(0, -1)
-    elif key.name == "KEY_DOWN":
-        game.move_player(0, 1)
-    elif key.name == "KEY_LEFT":
-        game.move_player(-1, 0)
-    elif key.name == "KEY_RIGHT":
-        game.move_player(1, 0)
-    elif key in [">", "."] or key in ["<", ","]:
-        # Try stairs first, then interact
-        if not game.use_stairs():
-            game.interact()
-            return False
-        return True
-    elif key.lower() == "i" or key == " " or key.name == "KEY_ENTER":
-        # Try interaction first, then stairs
-        result = game.interact()
-        if result and game.active_conversation:
-            # Starting conversation - reset state
-            game.show_greeting = True
-            game.last_answer_response = None
-            return False
-        elif not result:
-            # No NPC nearby, try stairs
-            if game.use_stairs():
-                return True
-    return False
+from neural_dive.themes import get_theme
 
 
 def run_interactive(game: Game, chars, colors):
@@ -327,16 +38,48 @@ def run_interactive(game: Game, chars, colors):
     if not hasattr(game, "text_input_buffer"):
         game.text_input_buffer = ""
 
+    # Initialize input handlers
+    end_game_handler = EndGameHandler()
+    overlay_handler = OverlayHandler()
+    conversation_handler = ConversationHandler()
+    normal_handler = NormalModeHandler()
+
     try:
         with term.cbreak(), term.hidden_cursor():
             while True:
+                # Update NPC wandering every frame
+                game.update_npc_wandering()
+
                 # Check for victory
-                if game.game_won and _handle_victory_screen(term, game, colors):
-                    break
+                if game.game_won:
+                    draw_victory_screen(term, game, colors)
+                    key = term.inkey(timeout=0.1)
+                    if key:
+                        result = end_game_handler.handle(key, game, term)
+                        if result.should_quit:
+                            break
+                    continue
 
                 # Check for game over
-                if game.coherence <= 0 and _handle_game_over(term, game, chars, colors, first_draw):
-                    break
+                if game.coherence <= 0:
+                    draw_game(term, game, chars, colors, redraw_all=first_draw)
+                    print(
+                        term.move_xy(0, term.height // 2)
+                        + term.center(term.bold_red("SYSTEM FAILURE - COHERENCE LOST")).rstrip()
+                    )
+                    print(
+                        term.move_xy(0, term.height // 2 + 2)
+                        + term.center("Press Q to quit").rstrip()
+                    )
+                    sys.stdout.flush()
+                    first_draw = False
+
+                    key = term.inkey(timeout=0.1)
+                    if key:
+                        result = end_game_handler.handle(key, game, term)
+                        if result.should_quit:
+                            break
+                    continue
 
                 # Draw everything
                 draw_game(term, game, chars, colors, redraw_all=first_draw)
@@ -344,129 +87,34 @@ def run_interactive(game: Game, chars, colors):
 
                 # Get input
                 key = term.inkey(timeout=0.1)
-
-                # Update NPC wandering every frame
-                game.update_npc_wandering()
-
                 if not key:
                     continue
 
-                if key.lower() == "q" and not game.active_conversation and not game.active_terminal:
-                    break
+                # Try handlers in priority order
+                # 1. Check overlay mode (inventory, snippets, terminals)
+                if game.active_inventory or game.active_snippet or game.active_terminal:
+                    result = overlay_handler.handle(key, game, term)
 
-                # Save game (S key)
-                if key.lower() == "s" and not game.active_conversation and not game.active_terminal:
-                    message, redraw = _handle_save_game(game)
-                    game.message = message
-                    first_draw = redraw
-                    continue
+                # 2. Check conversation mode
+                elif game.active_conversation or (
+                    hasattr(game, "last_answer_response") and game.last_answer_response
+                ):
+                    result = conversation_handler.handle(key, game, term)
 
-                # Load game (L key)
-                if key.lower() == "l" and not game.active_conversation and not game.active_terminal:
-                    game, message, redraw = _handle_load_game(game)
-                    game.message = message
-                    first_draw = redraw
-                    continue
-
-                # View inventory (V key)
-                if key.lower() == "v" and not game.active_conversation and not game.active_terminal:
-                    game.active_inventory = not game.active_inventory
-                    first_draw = True
-                    continue
-
-                # In inventory viewing mode
-                if game.active_inventory:
-                    if _handle_inventory_input(key, game):
-                        first_draw = True
-                    continue
-
-                # In snippet viewing mode
-                if game.active_snippet:
-                    if _handle_snippet_input(key, game):
-                        first_draw = True
-                    continue
-
-                # In terminal reading mode
-                if game.active_terminal:
-                    _handle_terminal_input(game)
-                    first_draw = True
-                    continue
-
-                # In conversation mode
-                if game.active_conversation:
-                    # If showing greeting, any key continues
-                    if hasattr(game, "show_greeting") and game.show_greeting:
-                        _handle_greeting_dismissal(game)
-                        continue
-
-                    # If showing response, any key continues
-                    if hasattr(game, "last_answer_response") and game.last_answer_response:
-                        _handle_response_dismissal(game)
-                        continue
-
-                    # Check question type
-                    current_question = game.active_conversation.get_current_question()
-                    if current_question:
-                        # Handle text-based questions (short answer, yes/no)
-                        if current_question.question_type in [
-                            QuestionType.SHORT_ANSWER,
-                            QuestionType.YES_NO,
-                        ]:
-                            # Quick answer for yes/no questions
-                            if current_question.question_type == QuestionType.YES_NO:
-                                result = _handle_yes_no_quick_answer(key, game)
-                                if result:
-                                    game.last_answer_response = result[1]
-                                    first_draw = True
-                                    continue
-
-                            # Enter submits answer
-                            if key.name == "KEY_ENTER" or key == "\n" or key == "\r":
-                                result = _handle_text_answer_submission(game)
-                                if result:
-                                    game.last_answer_response = result[1]
-                                    first_draw = True
-                                continue
-
-                            # ESC/X exits conversation (only when buffer empty)
-                            if key.name == "KEY_ESCAPE" or (
-                                key.lower() == "x" and not game.text_input_buffer
-                            ):
-                                _handle_conversation_exit(game)
-                                first_draw = True
-                                continue
-
-                            # Handle text input (backspace, regular chars)
-                            if _handle_text_input(key, game):
-                                continue
-
-                        # Handle multiple choice questions
-                        elif current_question.question_type == QuestionType.MULTIPLE_CHOICE:
-                            continue_flag, redraw, response = _handle_multiple_choice_input(
-                                key, game
-                            )
-                            if continue_flag:
-                                if response:
-                                    game.last_answer_response = response
-                                if redraw:
-                                    first_draw = True
-                                continue
-
-                            # ESC/Q/X exits conversation
-                            if key.name == "KEY_ESCAPE" or key.lower() in ["x", "q"]:
-                                _handle_conversation_exit(game)
-                                first_draw = True
-                                continue
-
-                # Check if conversation just ended (response without active conversation)
-                elif hasattr(game, "last_answer_response") and game.last_answer_response:
-                    game.last_answer_response = None
-                    first_draw = True
-                    continue
-
-                # Normal movement mode
+                # 3. Normal mode (movement, interactions, save/load)
                 else:
-                    if _handle_movement_input(key, game):
+                    result = normal_handler.handle(key, game, term)
+
+                # Process result
+                if result.handled:
+                    if result.should_quit:
+                        break
+                    if result.needs_redraw:
+                        first_draw = True
+                    if result.message:
+                        game.message = result.message
+                    if result.new_game:
+                        game = result.new_game
                         first_draw = True
 
     except KeyboardInterrupt:
