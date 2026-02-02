@@ -2091,114 +2091,6 @@
       }
     ]
   },
-  "trie_usage": {
-    "question_text": "What is a trie (prefix tree) best used for?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Sorting numbers",
-        "correct": false,
-        "response": "A trie (prefix tree) isn't designed for sorting numbers. Tries are tree structures where each node represents a character, making them perfect for string operations like autocomplete."
-      },
-      {
-        "text": "String prefix matching",
-        "correct": true,
-        "response": "Perfect! Tries excel at prefix-based string operations.",
-        "reward_knowledge": "trie"
-      },
-      {
-        "text": "Graph traversal",
-        "correct": false,
-        "response": "Tries are trees, not general graphs. A trie stores strings where each path from root represents a string prefix, making prefix matching O(m) where m is string length\\!"
-      },
-      {
-        "text": "Random access",
-        "correct": false,
-        "response": "Arrays give O(1) random access by index. Tries are for string prefix operations - each character is a node, paths spell words. Perfect for autocomplete and spell checking\\!"
-      }
-    ]
-  },
-  "bloom_filter": {
-    "question_text": "What is a key characteristic of a Bloom filter?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "No false positives",
-        "correct": false,
-        "response": "Bloom filters CAN have false positives\\! A Bloom filter is a probabilistic data structure using multiple hash functions. It can wrongly say an item exists (false positive) but never wrongly say it doesn't (no false negatives)."
-      },
-      {
-        "text": "No false negatives",
-        "correct": true,
-        "response": "Correct! Bloom filters never have false negatives.",
-        "reward_knowledge": "bloom_filter"
-      },
-      {
-        "text": "Perfect accuracy",
-        "correct": false,
-        "response": "Bloom filters sacrifice perfect accuracy for space efficiency. They use a bit array and hash functions to test set membership - fast and compact but can give false positives. Never false negatives though\\!"
-      },
-      {
-        "text": "Slow lookups",
-        "correct": false,
-        "response": "Bloom filters ARE very fast - that's correct\\! But the KEY characteristic is no false negatives. Bloom filters are space-efficient probabilistic data structures that may say 'yes' when wrong, but never say 'no' when wrong."
-      }
-    ]
-  },
-  "skip_list": {
-    "question_text": "What is the expected time complexity of search in a skip list?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "O(1)",
-        "correct": false,
-        "response": "Skip lists are faster than O(1)\\! They're probabilistic data structures with multiple layers of linked lists, providing O(log n) average search time - like balanced trees but simpler."
-      },
-      {
-        "text": "O(log n)",
-        "correct": true,
-        "response": "Correct! Skip lists provide O(log n) expected search time.",
-        "reward_knowledge": "skip_list"
-      },
-      {
-        "text": "O(n)",
-        "correct": false,
-        "response": "Skip lists are faster\\! They use multiple levels of express lanes (like highways) to skip over elements, achieving O(log n) expected search in a linked list structure."
-      },
-      {
-        "text": "O(n log n)",
-        "correct": false,
-        "response": "O(n log n) is for sorting algorithms. Skip lists achieve O(log n) search by maintaining multiple layers, where higher layers skip more elements - probabilistic balanced search\\!"
-      }
-    ]
-  },
-  "b_tree": {
-    "question_text": "Why are B-trees commonly used in databases?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "They use less memory",
-        "correct": false,
-        "response": "Memory isn't the key reason. B-trees are designed for disk storage where each node holds many keys. Wide nodes mean fewer disk seeks since disk I/O is expensive (milliseconds vs nanoseconds for RAM)."
-      },
-      {
-        "text": "Minimize disk I/O",
-        "correct": true,
-        "response": "Yes! B-trees minimize expensive disk operations.",
-        "reward_knowledge": "b_tree"
-      },
-      {
-        "text": "Faster than hash tables",
-        "correct": false,
-        "response": "Hash tables are faster for exact key lookups (O(1)). B-trees excel at range queries and are optimized for disk I/O - each node is a disk block, minimizing expensive seeks."
-      },
-      {
-        "text": "Easier to implement",
-        "correct": false,
-        "response": "B-trees are actually complex\\! But they're used because they minimize disk I/O. Wide nodes (many keys per node) mean fewer disk accesses, critical for database performance."
-      }
-    ]
-  },
   "chomsky_hierarchy": {
     "question_text": "In the Chomsky hierarchy, which languages can a finite automaton recognize?",
     "topic": "theory",
@@ -5026,16 +4918,6 @@
       }
     ]
   },
-  "trie_search_complexity": {
-    "type": "short_answer",
-    "question_text": "What is the time complexity of searching for a word of length k in a trie?",
-    "topic": "data_structures",
-    "correct_answer": "O(k)|k|O(length)|linear",
-    "match_type": "complexity",
-    "correct_response": "Correct! Trie search is O(k) where k is the word length.",
-    "incorrect_response": "Think about how many characters you need to check in the word.",
-    "reward_knowledge": "trie"
-  },
   "mvc_pattern": {
     "type": "multiple_choice",
     "question_text": "In the MVC (Model-View-Controller) pattern, what is the Controller's responsibility?",
@@ -5072,7 +4954,7 @@
       {
         "text": "Each layer can only depend on layers below it",
         "correct": true,
-        "response": "Correct! Layers should only call down the stack (presentation → business → data). This creates clear separation and maintainability.",
+        "response": "Correct! Layers should only call down the stack (presentation \u2192 business \u2192 data). This creates clear separation and maintainability.",
         "reward_knowledge": "layered_architecture"
       },
       {
@@ -5428,33 +5310,6 @@
       }
     ]
   },
-  "dijkstra_algorithm": {
-    "question_text": "What does Dijkstra's algorithm find in a graph?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Shortest paths from a source to all other vertices",
-        "correct": true,
-        "response": "Correct! Dijkstra's algorithm finds the shortest path from a single source using a greedy approach with a priority queue.",
-        "reward_knowledge": "shortest_path"
-      },
-      {
-        "text": "The minimum spanning tree",
-        "correct": false,
-        "response": "That's Prim's or Kruskal's algorithm. Dijkstra finds shortest paths, not spanning trees."
-      },
-      {
-        "text": "All cycles in the graph",
-        "correct": false,
-        "response": "Dijkstra doesn't detect cycles. It finds shortest paths in weighted graphs."
-      },
-      {
-        "text": "The longest path in the graph",
-        "correct": false,
-        "response": "Dijkstra finds the shortest path, not the longest. Longest path is NP-hard!"
-      }
-    ]
-  },
   "topological_sort": {
     "question_text": "When can you perform a topological sort on a graph?",
     "topic": "algorithms",
@@ -5479,141 +5334,6 @@
         "text": "On weighted graphs only",
         "correct": false,
         "response": "Weight doesn't matter for topological sort. It's about the structure (DAG), not weights."
-      }
-    ]
-  },
-  "rabin_karp": {
-    "question_text": "What technique does the Rabin-Karp string matching algorithm use?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Rolling hash to quickly compare substrings",
-        "correct": true,
-        "response": "Correct! Rabin-Karp uses a rolling hash to efficiently check for pattern matches in O(n+m) average time.",
-        "reward_knowledge": "string_algorithms"
-      },
-      {
-        "text": "Binary search on sorted strings",
-        "correct": false,
-        "response": "That's not how Rabin-Karp works. It uses hashing, not binary search."
-      },
-      {
-        "text": "Finite state machine",
-        "correct": false,
-        "response": "That's the KMP algorithm. Rabin-Karp uses rolling hashes for pattern matching."
-      },
-      {
-        "text": "Suffix trees",
-        "correct": false,
-        "response": "Suffix trees are a different approach. Rabin-Karp uses rolling hashes for efficiency."
-      }
-    ]
-  },
-  "union_find": {
-    "question_text": "What problem does the Union-Find (Disjoint Set) data structure efficiently solve?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Determining if two elements are in the same connected component",
-        "correct": true,
-        "response": "Correct! Union-Find tracks connected components with near-constant time operations using path compression and union by rank.",
-        "reward_knowledge": "union_find"
-      },
-      {
-        "text": "Finding the shortest path between nodes",
-        "correct": false,
-        "response": "That's for pathfinding algorithms. Union-Find tracks connectivity, not distances."
-      },
-      {
-        "text": "Sorting elements in a set",
-        "correct": false,
-        "response": "Union-Find doesn't sort. It maintains disjoint sets for connectivity queries."
-      },
-      {
-        "text": "Balancing binary trees",
-        "correct": false,
-        "response": "That's AVL or Red-Black trees. Union-Find manages set membership."
-      }
-    ]
-  },
-  "segment_tree": {
-    "question_text": "What is a segment tree primarily used for?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Efficient range queries and updates on arrays",
-        "correct": true,
-        "response": "Correct! Segment trees answer range queries (sum, min, max) in O(log n) and handle updates efficiently.",
-        "reward_knowledge": "advanced_trees"
-      },
-      {
-        "text": "String pattern matching",
-        "correct": false,
-        "response": "Tries or suffix trees are for strings. Segment trees handle range queries on arrays."
-      },
-      {
-        "text": "Graph traversal",
-        "correct": false,
-        "response": "Segment trees work on arrays, not graphs. Use BFS/DFS for graph traversal."
-      },
-      {
-        "text": "Priority queue operations",
-        "correct": false,
-        "response": "That's a heap. Segment trees are for range queries on arrays."
-      }
-    ]
-  },
-  "fenwick_tree": {
-    "question_text": "What advantage does a Fenwick Tree (Binary Indexed Tree) have over a segment tree?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Simpler implementation with less memory",
-        "correct": true,
-        "response": "Correct! Fenwick trees use half the memory and simpler code, though they're less flexible than segment trees.",
-        "reward_knowledge": "fenwick_tree"
-      },
-      {
-        "text": "Faster query time",
-        "correct": false,
-        "response": "Both are O(log n) for queries. Fenwick's advantage is simplicity and memory, not speed."
-      },
-      {
-        "text": "Works on 2D arrays natively",
-        "correct": false,
-        "response": "Both can be extended to 2D. Fenwick's advantage is simpler implementation."
-      },
-      {
-        "text": "Supports more types of operations",
-        "correct": false,
-        "response": "Segment trees are actually more flexible! Fenwick trees are limited to invertible operations."
-      }
-    ]
-  },
-  "avl_tree": {
-    "question_text": "What does an AVL tree guarantee?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Height difference between left and right subtrees is at most 1",
-        "correct": true,
-        "response": "Correct! AVL trees maintain strict balance: |height(left) - height(right)| ≤ 1 for all nodes.",
-        "reward_knowledge": "balanced_trees"
-      },
-      {
-        "text": "All leaves are at the same level",
-        "correct": false,
-        "response": "That's a complete binary tree. AVL allows ±1 height difference between subtrees."
-      },
-      {
-        "text": "Insertion is always O(1)",
-        "correct": false,
-        "response": "AVL insertion is O(log n) due to rebalancing. The guarantee is about height balance."
-      },
-      {
-        "text": "No duplicate values allowed",
-        "correct": false,
-        "response": "That's a BST property, not specific to AVL. AVL's guarantee is about balance."
       }
     ]
   },
@@ -6164,7 +5884,7 @@
       {
         "text": "Proxy serves clients, reverse proxy serves servers",
         "correct": true,
-        "response": "Correct! Forward proxy: client → proxy → internet. Reverse proxy: internet → proxy → backend servers. Nginx is often a reverse proxy.",
+        "response": "Correct! Forward proxy: client \u2192 proxy \u2192 internet. Reverse proxy: internet \u2192 proxy \u2192 backend servers. Nginx is often a reverse proxy.",
         "reward_knowledge": "proxy_patterns"
       },
       {
@@ -6222,7 +5942,7 @@
         "reward_knowledge": "computation_models"
       },
       {
-        "text": "A way to calculate Lambda (λ) symbol usage",
+        "text": "A way to calculate Lambda (\u03bb) symbol usage",
         "correct": false,
         "response": "Not about the symbol! Lambda calculus is a model of computation based on functions."
       },
