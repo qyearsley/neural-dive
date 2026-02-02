@@ -6,12 +6,16 @@ Supports multiple content sets for different learning topics.
 
 from __future__ import annotations
 
+import importlib
 import json
+import logging
 from pathlib import Path
 
 from neural_dive.enums import NPCType
 from neural_dive.models import Answer, Conversation, Question
 from neural_dive.question_types import QuestionType
+
+logger = logging.getLogger(__name__)
 
 
 def get_data_dir() -> Path:
@@ -20,8 +24,15 @@ def get_data_dir() -> Path:
 
 
 def get_content_dir(content_set: str = "algorithms") -> Path:
-    """Get the directory path for the algorithms content set."""
-    return get_data_dir() / "content" / "algorithms"
+    """Get the directory path for a specific content set.
+
+    Args:
+        content_set: ID of the content set (default: "algorithms")
+
+    Returns:
+        Path to the content set directory
+    """
+    return get_data_dir() / "content" / content_set
 
 
 def list_content_sets() -> list[dict]:
@@ -35,7 +46,17 @@ def get_default_content_set() -> str:
 
 
 def load_content_metadata(content_set: str) -> dict:
-    """Load metadata for a specific content set."""
+    """Load metadata for a specific content set.
+
+    Args:
+        content_set: ID of the content set to load metadata for
+
+    Returns:
+        Dictionary containing content set metadata from content.json
+
+    Raises:
+        FileNotFoundError: If content set directory or content.json not found
+    """
     metadata_file = get_content_dir(content_set) / "content.json"
     if not metadata_file.exists():
         raise FileNotFoundError(f"Content set '{content_set}' not found")
@@ -97,7 +118,17 @@ def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
 
 
 def load_npcs(questions: dict[str, Question], content_set: str = "algorithms") -> dict[str, dict]:
-    """Load all NPCs from npcs.json for a specific content set."""
+    """Load all NPCs from npcs.json for a specific content set.
+
+    Args:
+        questions: Dictionary of available questions
+        content_set: Content set identifier
+
+    Returns:
+        Dictionary mapping NPC names to NPC data
+
+    Logs warnings if NPCs reference non-existent questions.
+    """
     data_file = get_content_dir(content_set) / "npcs.json"
 
     with open(data_file) as f:
@@ -110,9 +141,29 @@ def load_npcs(questions: dict[str, Question], content_set: str = "algorithms") -
 
         # Get questions for this NPC
         npc_questions = []
+        missing_questions = []
         for question_id in npc_data.get("questions", []):
             if question_id in questions:
                 npc_questions.append(questions[question_id])
+            else:
+                # Track missing questions for validation warning
+                missing_questions.append(question_id)
+
+        # Warn about missing questions
+        if missing_questions:
+            logger.warning(
+                "NPC '%s' references non-existent questions: %s",
+                npc_name,
+                ", ".join(missing_questions),
+            )
+
+        # Warn if NPC has no valid questions
+        if not npc_questions and npc_data.get("questions"):
+            logger.warning(
+                "NPC '%s' has no valid questions (all %d referenced questions are missing)",
+                npc_name,
+                len(npc_data.get("questions", [])),
+            )
 
         # Create conversation
         conversation = Conversation(
@@ -182,14 +233,22 @@ def load_snippets() -> dict[str, dict]:
             data: dict[str, dict] = json.load(f)
             return data
     except (json.JSONDecodeError, OSError) as e:
-        print(f"Error loading snippets: {e}")
+        logger.error("Error loading snippets: %s", e)
         return {}
 
 
 def load_all_game_data(content_set: str | None = None):
-    """Load all game data (questions, NPCs, levels, snippets) for algorithms content."""
-    # Always use algorithms content set
-    content_set = "algorithms"
+    """Load all game data (questions, NPCs, levels, snippets) for a content set.
+
+    Args:
+        content_set: Content set ID (None to use default)
+
+    Returns:
+        Tuple of (questions, npcs, levels, snippets)
+    """
+    # Use default content set if not specified
+    if content_set is None:
+        content_set = get_default_content_set()
 
     questions = load_questions(content_set)
     npcs = load_npcs(questions, content_set)
@@ -197,16 +256,21 @@ def load_all_game_data(content_set: str | None = None):
     snippets = load_snippets()
 
     # Validate NPC/layout consistency and warn about issues
+    # Try to import validation function dynamically for this content set
     try:
-        from neural_dive.data.content.algorithms.levels import validate_npc_layout_consistency
+        # Import validation function from content set's levels module
+        module_path = f"neural_dive.data.content.{content_set}.levels"
+        levels_module = importlib.import_module(module_path)
+        validate_func = getattr(levels_module, "validate_npc_layout_consistency", None)
 
-        warnings = validate_npc_layout_consistency(npcs, levels)
-        if warnings:
-            print("\n⚠️  NPC/Layout Validation Warnings:")
-            for warning in warnings:
-                print(f"  - {warning}")
-            print()
+        if validate_func:
+            warnings = validate_func(npcs, levels)
+            if warnings:
+                logger.warning("NPC/Layout Validation Warnings:")
+                for warning in warnings:
+                    logger.warning("  - %s", warning)
     except (ImportError, AttributeError):
+        # Content set doesn't have validation - that's okay
         pass
 
     return questions, npcs, levels, snippets

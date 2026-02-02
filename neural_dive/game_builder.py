@@ -46,10 +46,7 @@ class GameInitializer:
         Returns:
             Tuple of (rng, seed)
         """
-        if seed is not None:
-            random.seed(seed)
-        # The random module itself acts as a Random instance
-        return random.Random() if seed is None else random.Random(seed), seed
+        return random.Random(seed), seed
 
     @staticmethod
     def load_content(content_set: str | None) -> tuple[str, dict, dict, dict, dict]:

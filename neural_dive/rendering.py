@@ -205,6 +205,29 @@ def _clear_old_player_position(
             print(term.move_xy(old_x, old_y) + color_func(chars.floor), end="")
 
 
+def _is_position_occupied(game: Game, x: int, y: int) -> bool:
+    """Check if a position is occupied by any entity.
+
+    Args:
+        game: Game instance containing entity data
+        x: X coordinate to check
+        y: Y coordinate to check
+
+    Returns:
+        True if position is occupied by player, NPC, terminal, or stairs
+    """
+    # Check player
+    if game.player.x == x and game.player.y == y:
+        return True
+
+    # Check NPCs, terminals, and stairs
+    return (
+        any(npc.x == x and npc.y == y for npc in game.npcs)
+        or any(terminal.x == x and terminal.y == y for terminal in game.terminals)
+        or any(stair.x == x and stair.y == y for stair in game.stairs)
+    )
+
+
 def _clear_old_npc_positions(
     term: Terminal, game: Game, chars: CharacterSet, colors: ColorScheme
 ) -> None:
@@ -218,36 +241,8 @@ def _clear_old_npc_positions(
         colors: Color scheme for tile colors
     """
     for _npc_name, (old_x, old_y) in game.old_npc_positions.items():
-        # Check if position is still occupied by any entity
-        occupied = False
-
-        # Check if player is there
-        if game.player.x == old_x and game.player.y == old_y:
-            occupied = True
-
-        # Check if any NPC is there
-        if not occupied:
-            for npc in game.npcs:
-                if npc.x == old_x and npc.y == old_y:
-                    occupied = True
-                    break
-
-        # Check if any terminal is there
-        if not occupied:
-            for terminal in game.terminals:
-                if terminal.x == old_x and terminal.y == old_y:
-                    occupied = True
-                    break
-
-        # Check if any stairs are there
-        if not occupied:
-            for stair in game.stairs:
-                if stair.x == old_x and stair.y == old_y:
-                    occupied = True
-                    break
-
         # If not occupied, redraw the floor tile
-        if not occupied:
+        if not _is_position_occupied(game, old_x, old_y):
             char = game.game_map[old_y][old_x]
             if char == ".":
                 color_func = getattr(term, colors.floor, term.cyan)
@@ -353,17 +348,11 @@ def _draw_ui(term: Terminal, game: Game, colors: ColorScheme) -> None:
     score = game.get_current_score()
     knowledge_count = len(game.knowledge_modules)
 
-    # Use localized term for coherence based on content set
-    coherence_label = "分" if game.content_set == "chinese-hsk6" else "Coherence"
-    knowledge_label = "知识" if game.content_set == "chinese-hsk6" else "Knowledge"
-    score_label = "分数" if game.content_set == "chinese-hsk6" else "Score"
-    layer_label = "层" if game.content_set == "chinese-hsk6" else "Layer"
-
     status_line = (
-        f"{layer_label} {game.current_floor}/{game.max_floors} | "
-        f"{coherence_label}: {game.coherence}/{game.max_coherence} | "
-        f"{knowledge_label}: {knowledge_count} | "
-        f"{score_label}: {score}"
+        f"Layer {game.current_floor}/{game.max_floors} | "
+        f"Coherence: {game.coherence}/{game.max_coherence} | "
+        f"Knowledge: {knowledge_count} | "
+        f"Score: {score}"
     )
     # Use term.normal like the instruction line for consistent visibility
     print(term.move_xy(2, ui_y + 1) + term.normal + status_line, end="")

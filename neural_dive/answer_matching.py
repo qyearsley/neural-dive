@@ -112,7 +112,7 @@ def matches_complexity(user_answer: str, correct_answer: str) -> bool:
             return True
 
         # Check complexity synonyms
-        for _complexity_name, synonyms in COMPLEXITY_SYNONYMS.items():
+        for _, synonyms in COMPLEXITY_SYNONYMS.items():
             if acceptable_normalized in synonyms:
                 # Check if user answer is also a synonym
                 if user_normalized in synonyms:

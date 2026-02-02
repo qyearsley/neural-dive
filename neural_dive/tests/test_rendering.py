@@ -12,7 +12,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from neural_dive.rendering import OverlayRenderer
+from neural_dive.rendering import OverlayRenderer, _is_position_occupied
 from neural_dive.themes import ColorScheme
 
 
@@ -289,6 +289,73 @@ class TestColorScheme(unittest.TestCase):
         self.assertTrue(hasattr(colors, "ui_warning"))
         self.assertTrue(hasattr(colors, "ui_error"))
         self.assertTrue(hasattr(colors, "ui_success"))
+
+
+class TestPositionOccupancy(unittest.TestCase):
+    """Test _is_position_occupied helper function."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        # Create mock game with entities
+        self.game = MagicMock()
+
+        # Mock player
+        self.game.player = MagicMock()
+        self.game.player.x = 5
+        self.game.player.y = 5
+
+        # Mock NPCs
+        npc1 = MagicMock()
+        npc1.x = 10
+        npc1.y = 10
+        npc2 = MagicMock()
+        npc2.x = 15
+        npc2.y = 15
+        self.game.npcs = [npc1, npc2]
+
+        # Mock terminals
+        terminal = MagicMock()
+        terminal.x = 20
+        terminal.y = 20
+        self.game.terminals = [terminal]
+
+        # Mock stairs
+        stair = MagicMock()
+        stair.x = 25
+        stair.y = 25
+        self.game.stairs = [stair]
+
+    def test_position_occupied_by_player(self):
+        """Test position occupied by player returns True."""
+        self.assertTrue(_is_position_occupied(self.game, 5, 5))
+
+    def test_position_occupied_by_npc(self):
+        """Test position occupied by NPC returns True."""
+        self.assertTrue(_is_position_occupied(self.game, 10, 10))
+        self.assertTrue(_is_position_occupied(self.game, 15, 15))
+
+    def test_position_occupied_by_terminal(self):
+        """Test position occupied by terminal returns True."""
+        self.assertTrue(_is_position_occupied(self.game, 20, 20))
+
+    def test_position_occupied_by_stairs(self):
+        """Test position occupied by stairs returns True."""
+        self.assertTrue(_is_position_occupied(self.game, 25, 25))
+
+    def test_empty_position_not_occupied(self):
+        """Test empty position returns False."""
+        self.assertFalse(_is_position_occupied(self.game, 0, 0))
+        self.assertFalse(_is_position_occupied(self.game, 100, 100))
+
+    def test_adjacent_position_not_occupied(self):
+        """Test position adjacent to entity returns False."""
+        # Adjacent to player
+        self.assertFalse(_is_position_occupied(self.game, 6, 5))
+        self.assertFalse(_is_position_occupied(self.game, 5, 6))
+
+        # Adjacent to NPC
+        self.assertFalse(_is_position_occupied(self.game, 11, 10))
+        self.assertFalse(_is_position_occupied(self.game, 10, 11))
 
 
 if __name__ == "__main__":
