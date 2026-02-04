@@ -5,6 +5,7 @@ This test module covers rendering functionality including:
 - Text wrapping in overlays
 - Boundary conditions
 - OverlayRenderer class
+- Entity renderers (Strategy pattern)
 """
 
 from __future__ import annotations
@@ -12,8 +13,18 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
+from neural_dive.entities import Entity, Stairs
+from neural_dive.entity_renderers import (
+    EntityType,
+    ItemPickupRenderer,
+    NPCRenderer,
+    PlayerRenderer,
+    StairsRenderer,
+    TerminalRenderer,
+    get_entity_renderer,
+)
 from neural_dive.rendering import OverlayRenderer, _is_position_occupied
-from neural_dive.themes import ColorScheme
+from neural_dive.themes import CharacterSet, ColorScheme
 
 
 class TestOverlayRenderer(unittest.TestCase):
@@ -46,7 +57,7 @@ class TestOverlayRenderer(unittest.TestCase):
     def test_overlay_renderer_initialization(self):
         """Test OverlayRenderer initializes with correct dimensions."""
         renderer = OverlayRenderer(
-            term=self.mock_term,
+            backend=self.mock_term,
             max_width=60,
             max_height=20,
             border_color="blue",
@@ -61,7 +72,7 @@ class TestOverlayRenderer(unittest.TestCase):
     def test_overlay_renderer_respects_terminal_bounds(self):
         """Test overlay doesn't exceed terminal dimensions."""
         renderer = OverlayRenderer(
-            term=self.mock_term,
+            backend=self.mock_term,
             max_width=100,  # Larger than terminal
             max_height=30,  # Larger than terminal
             border_color="blue",
@@ -74,7 +85,7 @@ class TestOverlayRenderer(unittest.TestCase):
     def test_overlay_renderer_centers_overlay(self):
         """Test overlay is centered in terminal."""
         renderer = OverlayRenderer(
-            term=self.mock_term,
+            backend=self.mock_term,
             max_width=60,
             max_height=20,
             border_color="blue",
@@ -94,7 +105,7 @@ class TestOverlayRenderer(unittest.TestCase):
         small_term.height = 15
 
         renderer = OverlayRenderer(
-            term=small_term,
+            backend=small_term,
             max_width=60,
             max_height=20,
             border_color="blue",
@@ -104,30 +115,35 @@ class TestOverlayRenderer(unittest.TestCase):
         self.assertLessEqual(renderer.width, small_term.width - 4)
         self.assertLessEqual(renderer.height, small_term.height - 4)
 
-    @patch("neural_dive.rendering.print")
-    def test_overlay_renderer_draw_background(self, mock_print):
+    def test_overlay_renderer_draw_background(self):
         """Test drawing overlay background."""
         renderer = OverlayRenderer(
-            term=self.mock_term,
+            backend=self.mock_term,
             max_width=60,
             max_height=20,
             border_color="blue",
         )
 
-        # Mock terminal methods
-        self.mock_term.move_xy.return_value = ""
-        self.mock_term.black_on_white.return_value = ""
+        # Mock backend methods for drawing
+        draw_calls = []
+
+        def mock_draw_with_bg(x, y, text, fg, bg):
+            draw_calls.append((x, y, text, fg, bg))
+
+        self.mock_term.draw_with_bg = mock_draw_with_bg
 
         renderer.draw_background()
 
-        # Should call print for each line of background
-        self.assertGreater(mock_print.call_count, 0)
+        # Should have drawn background for each line
+        self.assertGreater(len(draw_calls), 0)
+        # Verify dimensions match overlay height
+        self.assertEqual(len(draw_calls), renderer.height)
 
     @patch("neural_dive.rendering.print")
     def test_overlay_renderer_draw_border(self, mock_print):
         """Test drawing overlay border."""
         renderer = OverlayRenderer(
-            term=self.mock_term,
+            backend=self.mock_term,
             max_width=60,
             max_height=20,
             border_color="blue",
@@ -152,7 +168,7 @@ class TestOverlayDimensions(unittest.TestCase):
         term.height = 40
 
         renderer = OverlayRenderer(
-            term=term,
+            backend=term,
             max_width=80,
             max_height=25,
             border_color="blue",
@@ -169,7 +185,7 @@ class TestOverlayDimensions(unittest.TestCase):
         term.height = 20
 
         renderer = OverlayRenderer(
-            term=term,
+            backend=term,
             max_width=80,
             max_height=25,
             border_color="blue",
@@ -186,7 +202,7 @@ class TestOverlayDimensions(unittest.TestCase):
         term.height = 10
 
         renderer = OverlayRenderer(
-            term=term,
+            backend=term,
             max_width=80,
             max_height=25,
             border_color="blue",
@@ -209,7 +225,7 @@ class TestRenderingEdgeCases(unittest.TestCase):
         # Should not crash
         try:
             renderer = OverlayRenderer(
-                term=term,
+                backend=term,
                 max_width=60,
                 max_height=20,
                 border_color="blue",
@@ -356,6 +372,197 @@ class TestPositionOccupancy(unittest.TestCase):
         # Adjacent to NPC
         self.assertFalse(_is_position_occupied(self.game, 11, 10))
         self.assertFalse(_is_position_occupied(self.game, 10, 11))
+
+
+class TestEntityRenderers(unittest.TestCase):
+    """Test entity renderer strategies."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.mock_term = MagicMock()
+        self.mock_term.width = 80
+        self.mock_term.height = 24
+
+        # Mock terminal color methods
+        self.mock_term.move_xy.return_value = ""
+        self.mock_term.bold_magenta = MagicMock(return_value="")
+        self.mock_term.bold_green = MagicMock(return_value="")
+        self.mock_term.bold_red = MagicMock(return_value="")
+        self.mock_term.bold_yellow = MagicMock(return_value="")
+        self.mock_term.bold_cyan = MagicMock(return_value="")
+
+        self.colors = ColorScheme(
+            wall="blue",
+            floor="cyan",
+            player="green",
+            npc_specialist="magenta",
+            npc_helper="green",
+            npc_enemy="red",
+            npc_quest="yellow",
+            terminal="cyan",
+            stairs="yellow",
+            gate="yellow",
+            ui_primary="white",
+            ui_secondary="blue",
+            ui_accent="magenta",
+            ui_warning="yellow",
+            ui_error="red",
+            ui_success="green",
+        )
+
+        self.chars = CharacterSet(
+            player="@",
+            npc_default="N",
+            stairs_up="<",
+            stairs_down=">",
+            terminal="T",
+            gate_locked="G",
+            gate_unlocked="g",
+            wall="█",
+            floor=".",
+            wall_alt="▓",
+            separator="─",
+        )
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_npc_renderer_specialist(self, mock_print):
+        """Test NPCRenderer renders specialist NPC correctly."""
+        npc = Entity(10, 15, "S", "magenta", "Specialist")
+        npc.npc_type = "specialist"
+
+        renderer = NPCRenderer()
+        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+
+        # Should call print once for the NPC
+        self.assertEqual(mock_print.call_count, 1)
+        # Should move to correct position
+        self.mock_term.move_xy.assert_called_with(10, 15)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_npc_renderer_helper(self, mock_print):
+        """Test NPCRenderer renders helper NPC correctly."""
+        npc = Entity(5, 8, "H", "green", "Helper")
+        npc.npc_type = "helper"
+
+        renderer = NPCRenderer()
+        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(5, 8)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_npc_renderer_enemy(self, mock_print):
+        """Test NPCRenderer renders enemy NPC correctly."""
+        npc = Entity(20, 12, "E", "red", "Enemy")
+        npc.npc_type = "enemy"
+
+        renderer = NPCRenderer()
+        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(20, 12)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_npc_renderer_required_npc(self, mock_print):
+        """Test NPCRenderer highlights required NPCs."""
+        npc = Entity(10, 10, "S", "magenta", "RequiredNPC")
+        npc.npc_type = "specialist"
+
+        renderer = NPCRenderer()
+        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=True)
+
+        # Should still call print once
+        self.assertEqual(mock_print.call_count, 1)
+        # Should use bright/bold variant for required NPCs
+        # (Implementation detail - just verify it was called)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_terminal_renderer(self, mock_print):
+        """Test TerminalRenderer renders terminal correctly."""
+        terminal = Entity(12, 18, "T", "cyan", "Terminal")
+
+        renderer = TerminalRenderer()
+        renderer.render(self.mock_term, terminal, self.chars, self.colors)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(12, 18)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_stairs_renderer_up(self, mock_print):
+        """Test StairsRenderer renders up stairs correctly."""
+        stairs = Stairs(8, 6, "up")
+
+        renderer = StairsRenderer()
+        renderer.render(self.mock_term, stairs, self.chars, self.colors)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(8, 6)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_stairs_renderer_down(self, mock_print):
+        """Test StairsRenderer renders down stairs correctly."""
+        stairs = Stairs(15, 20, "down")
+
+        renderer = StairsRenderer()
+        renderer.render(self.mock_term, stairs, self.chars, self.colors)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(15, 20)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_item_pickup_renderer(self, mock_print):
+        """Test ItemPickupRenderer renders item correctly."""
+        item = Entity(25, 14, "i", "yellow", "Item")
+        item.color = "yellow"
+
+        renderer = ItemPickupRenderer()
+        renderer.render(self.mock_term, item, self.chars, self.colors)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(25, 14)
+
+    @patch("neural_dive.entity_renderers.print")
+    def test_player_renderer(self, mock_print):
+        """Test PlayerRenderer renders player correctly."""
+        player = Entity(40, 30, "@", "green", "Player")
+
+        renderer = PlayerRenderer()
+        renderer.render(self.mock_term, player, self.chars, self.colors)
+
+        self.assertEqual(mock_print.call_count, 1)
+        self.mock_term.move_xy.assert_called_with(40, 30)
+
+    def test_get_entity_renderer_npc(self):
+        """Test get_entity_renderer returns NPCRenderer for NPC type."""
+        renderer = get_entity_renderer(EntityType.NPC)
+        self.assertIsInstance(renderer, NPCRenderer)
+
+    def test_get_entity_renderer_terminal(self):
+        """Test get_entity_renderer returns TerminalRenderer for terminal type."""
+        renderer = get_entity_renderer(EntityType.TERMINAL)
+        self.assertIsInstance(renderer, TerminalRenderer)
+
+    def test_get_entity_renderer_stairs(self):
+        """Test get_entity_renderer returns StairsRenderer for stairs type."""
+        renderer = get_entity_renderer(EntityType.STAIRS)
+        self.assertIsInstance(renderer, StairsRenderer)
+
+    def test_get_entity_renderer_item_pickup(self):
+        """Test get_entity_renderer returns ItemPickupRenderer for item type."""
+        renderer = get_entity_renderer(EntityType.ITEM_PICKUP)
+        self.assertIsInstance(renderer, ItemPickupRenderer)
+
+    def test_get_entity_renderer_player(self):
+        """Test get_entity_renderer returns PlayerRenderer for player type."""
+        renderer = get_entity_renderer(EntityType.PLAYER)
+        self.assertIsInstance(renderer, PlayerRenderer)
+
+    def test_get_entity_renderer_invalid_type(self):
+        """Test get_entity_renderer raises error for invalid type."""
+        with self.assertRaises(ValueError) as context:
+            get_entity_renderer("invalid_type")
+
+        self.assertIn("Unsupported entity type", str(context.exception))
 
 
 if __name__ == "__main__":

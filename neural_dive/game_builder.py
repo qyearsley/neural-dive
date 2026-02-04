@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import random
 import time
+from typing import Any
 
 from neural_dive.config import PLAYER_START_X, PLAYER_START_Y
 from neural_dive.data_loader import get_default_content_set, load_all_game_data
@@ -179,6 +180,128 @@ class GameInitializer:
         )
 
     @staticmethod
+    def create_stats_tracker() -> Any:
+        """Create a StatsTracker for game statistics.
+
+        Returns:
+            Initialized StatsTracker instance
+        """
+        from neural_dive.managers.stats_tracker import StatsTracker
+
+        return StatsTracker()
+
+    @staticmethod
+    def create_quest_manager() -> Any:
+        """Create a QuestManager for quest tracking.
+
+        Returns:
+            Initialized QuestManager instance
+        """
+        from neural_dive.managers.quest_manager import QuestManager
+
+        return QuestManager()
+
+    @staticmethod
+    def create_answer_processor(
+        player_manager: Any,
+        npc_manager: Any,
+        conversation_engine: Any,
+        stats_tracker: Any,
+        quest_manager: Any,
+        difficulty_settings: DifficultySettings,
+        snippets: dict,
+        rand: Any,
+    ) -> Any:
+        """Create an AnswerProcessor for handling question answers.
+
+        Args:
+            player_manager: PlayerManager instance
+            npc_manager: NPCManager instance
+            conversation_engine: ConversationEngine instance
+            stats_tracker: StatsTracker instance
+            quest_manager: QuestManager instance
+            difficulty_settings: Difficulty settings
+            snippets: Code snippets dictionary
+            rand: Random number generator
+
+        Returns:
+            Initialized AnswerProcessor instance
+        """
+        from neural_dive.managers.answer_processor import AnswerProcessor
+
+        return AnswerProcessor(
+            player_manager=player_manager,
+            npc_manager=npc_manager,
+            conversation_engine=conversation_engine,
+            stats_tracker=stats_tracker,
+            quest_manager=quest_manager,
+            difficulty_settings=difficulty_settings,
+            snippets=snippets,
+            rand=rand,
+        )
+
+    @staticmethod
+    def create_floor_entity_generator(level_data: dict, snippets: dict, rand: random.Random) -> Any:
+        """Create a FloorEntityGenerator for entity generation.
+
+        Args:
+            level_data: Level layouts and entity positions
+            snippets: Available code snippets
+            rand: Random number generator
+
+        Returns:
+            Initialized FloorEntityGenerator instance
+        """
+        from neural_dive.managers.floor_entity_generator import FloorEntityGenerator
+
+        return FloorEntityGenerator(
+            level_data=level_data,
+            snippets=snippets,
+            rand=rand,
+        )
+
+    @staticmethod
+    def create_movement_controller() -> Any:
+        """Create a MovementController for player movement.
+
+        Returns:
+            Initialized MovementController instance
+        """
+        from neural_dive.managers.movement_controller import MovementController
+
+        return MovementController()
+
+    @staticmethod
+    def create_interaction_handler(
+        player_manager: Any,
+        conversation_engine: Any,
+        floor_manager: Any,
+        quest_manager: Any,
+        difficulty_settings: DifficultySettings,
+    ) -> Any:
+        """Create an InteractionHandler for entity interactions.
+
+        Args:
+            player_manager: PlayerManager instance
+            conversation_engine: ConversationEngine instance
+            floor_manager: FloorManager instance
+            quest_manager: QuestManager instance
+            difficulty_settings: Difficulty settings
+
+        Returns:
+            Initialized InteractionHandler instance
+        """
+        from neural_dive.managers.interaction_handler import InteractionHandler
+
+        return InteractionHandler(
+            player_manager=player_manager,
+            conversation_engine=conversation_engine,
+            floor_manager=floor_manager,
+            quest_manager=quest_manager,
+            difficulty_settings=difficulty_settings,
+        )
+
+    @staticmethod
     def initialize_stats() -> tuple[float, int, int, int, set[str], bool]:
         """Initialize game statistics.
 
@@ -217,4 +340,158 @@ class GameInitializer:
         return (
             f"Welcome to Neural Dive! Descend through {max_floors} neural layers. "
             "Answer questions to gain knowledge and progress."
+        )
+
+    @staticmethod
+    def create_event_bus() -> Any:
+        """Create an EventBus for event-driven architecture.
+
+        Returns:
+            Initialized EventBus instance
+        """
+        from neural_dive.events import EventBus
+
+        return EventBus()
+
+    @staticmethod
+    def create_state_manager(game: Any, event_bus: Any) -> Any:
+        """Create a StateManager for centralized state mutations.
+
+        Args:
+            game: Game instance
+            event_bus: EventBus instance
+
+        Returns:
+            Initialized StateManager instance
+        """
+        from neural_dive.managers.state_manager import StateManager
+
+        return StateManager(game, event_bus)
+
+
+class GameBuilder:
+    """Builder for Game instances with fluent interface.
+
+    Provides a clean, chainable API for configuring and constructing Game objects.
+    Useful for testing different configurations and making initialization explicit.
+
+    Example:
+        >>> game = (GameBuilder()
+        ...     .with_difficulty(DifficultyLevel.HARD)
+        ...     .with_seed(42)
+        ...     .with_floors(10)
+        ...     .with_fixed_positions()
+        ...     .build())
+    """
+
+    def __init__(self):
+        """Initialize builder with default configuration."""
+        from neural_dive.config import DEFAULT_MAP_HEIGHT, DEFAULT_MAP_WIDTH, MAX_FLOORS
+
+        # Defaults
+        self._map_width = DEFAULT_MAP_WIDTH
+        self._map_height = DEFAULT_MAP_HEIGHT
+        self._max_floors = MAX_FLOORS
+        self._difficulty = DifficultyLevel.NORMAL
+        self._seed: int | None = None
+        self._content_set: str | None = None
+        self._random_npcs = True
+
+    def with_map_size(self, width: int, height: int) -> GameBuilder:
+        """Set map dimensions.
+
+        Args:
+            width: Map width in tiles
+            height: Map height in tiles
+
+        Returns:
+            Self for method chaining
+        """
+        self._map_width = width
+        self._map_height = height
+        return self
+
+    def with_floors(self, max_floors: int) -> GameBuilder:
+        """Set maximum number of floors.
+
+        Args:
+            max_floors: Maximum floors in the game
+
+        Returns:
+            Self for method chaining
+        """
+        self._max_floors = max_floors
+        return self
+
+    def with_difficulty(self, difficulty: DifficultyLevel) -> GameBuilder:
+        """Set difficulty level.
+
+        Args:
+            difficulty: Difficulty level
+
+        Returns:
+            Self for method chaining
+        """
+        self._difficulty = difficulty
+        return self
+
+    def with_seed(self, seed: int) -> GameBuilder:
+        """Set random seed for reproducibility.
+
+        Args:
+            seed: Random seed
+
+        Returns:
+            Self for method chaining
+        """
+        self._seed = seed
+        return self
+
+    def with_content_set(self, content_set: str) -> GameBuilder:
+        """Set content set (question topics).
+
+        Args:
+            content_set: Content set name
+
+        Returns:
+            Self for method chaining
+        """
+        self._content_set = content_set
+        return self
+
+    def with_fixed_positions(self) -> GameBuilder:
+        """Disable random NPC/entity placement (use fixed positions from level data).
+
+        Returns:
+            Self for method chaining
+        """
+        self._random_npcs = False
+        return self
+
+    def with_random_positions(self) -> GameBuilder:
+        """Enable random NPC/entity placement.
+
+        Returns:
+            Self for method chaining
+        """
+        self._random_npcs = True
+        return self
+
+    def build(self) -> Any:
+        """Build Game instance with configured settings.
+
+        Returns:
+            Configured Game instance
+        """
+        # Import here to avoid circular dependency
+        from neural_dive.game import Game
+
+        return Game(
+            map_width=self._map_width,
+            map_height=self._map_height,
+            random_npcs=self._random_npcs,
+            seed=self._seed,
+            max_floors=self._max_floors,
+            difficulty=self._difficulty,
+            content_set=self._content_set,
         )

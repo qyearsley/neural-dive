@@ -13,8 +13,7 @@ from neural_dive.conversation import wrap_text
 from neural_dive.question_types import QuestionType
 
 if TYPE_CHECKING:
-    from blessed import Terminal
-
+    from neural_dive.backends import RenderBackend
     from neural_dive.game import Game
     from neural_dive.models import Question
     from neural_dive.themes import ColorScheme
@@ -51,7 +50,7 @@ class QuestionRenderer(Protocol):
 
     def render(
         self,
-        term: Terminal,
+        term: RenderBackend,
         question: Question,
         question_number: int,
         total_questions: int,
@@ -66,7 +65,7 @@ class QuestionRenderer(Protocol):
         """Render the question in the overlay.
 
         Args:
-            term: Blessed Terminal instance for output
+            term: Render backend instance for output
             question: Question to render
             question_number: Current question number (1-indexed)
             total_questions: Total number of questions in conversation
@@ -86,7 +85,7 @@ class MultipleChoiceRenderer:
 
     def render(
         self,
-        term: Terminal,
+        term: RenderBackend,
         question: Question,
         question_number: int,
         total_questions: int,
@@ -148,7 +147,7 @@ class TextInputRenderer:
 
     def _render_question_text(
         self,
-        term: Terminal,
+        term: RenderBackend,
         question: Question,
         question_number: int,
         total_questions: int,
@@ -169,7 +168,7 @@ class TextInputRenderer:
 
     def _render_text_input_box(
         self,
-        term: Terminal,
+        term: RenderBackend,
         prompt_text: str,
         text_buffer: str,
         start_x: int,
@@ -221,7 +220,7 @@ class ShortAnswerRenderer(TextInputRenderer):
 
     def render(
         self,
-        term: Terminal,
+        term: RenderBackend,
         question: Question,
         question_number: int,
         total_questions: int,
@@ -267,7 +266,7 @@ class YesNoRenderer(TextInputRenderer):
 
     def render(
         self,
-        term: Terminal,
+        term: RenderBackend,
         question: Question,
         question_number: int,
         total_questions: int,

@@ -47,7 +47,6 @@ class NPCManager:
         all_npcs: List of all NPCs across all floors (for persistence)
         conversations: Dictionary mapping NPC names to conversations
         npc_opinions: Dictionary tracking player relationships with NPCs
-        quest_completed_npcs: Set of NPCs that have completed quest objectives
         old_positions: Dictionary tracking previous NPC positions for rendering
         rng: Random number generator for consistent seeding
     """
@@ -90,9 +89,6 @@ class NPCManager:
 
         # NPC relationship tracking
         self.npc_opinions: dict[str, int] = {}
-
-        # Quest tracking
-        self.quest_completed_npcs: set[str] = set()
 
         # Track old NPC positions for rendering cleanup
         self.old_positions: dict[str, tuple[int, int]] = {}
@@ -478,7 +474,6 @@ class NPCManager:
                 for npc in self.all_npcs
             ],
             "npc_opinions": self.npc_opinions,
-            "quest_completed_npcs": list(self.quest_completed_npcs),
             "conversations": {
                 name: {
                     "completed": conv.completed,
@@ -535,9 +530,6 @@ class NPCManager:
 
         # Restore opinions
         manager.npc_opinions = data.get("npc_opinions", {})
-
-        # Restore quest tracking
-        manager.quest_completed_npcs = set(data.get("quest_completed_npcs", []))
 
         # Restore conversation state
         conv_states = data.get("conversations", {})
