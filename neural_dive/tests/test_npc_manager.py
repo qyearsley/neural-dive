@@ -506,7 +506,6 @@ class TestNPCManagerSerialization(unittest.TestCase):
         self.assertIsInstance(data, dict)
         self.assertIn("npcs", data)
         self.assertIn("npc_opinions", data)
-        self.assertIn("quest_completed_npcs", data)
         self.assertIn("conversations", data)
 
     def test_to_dict_with_npcs(self):
@@ -548,7 +547,6 @@ class TestNPCManagerSerialization(unittest.TestCase):
         npc = Entity(5, 5, "T", "cyan", "TEST_NPC", npc_type="specialist")
         manager1.all_npcs.append(npc)
         manager1.update_opinion("TEST_NPC", 15)
-        manager1.quest_completed_npcs.add("TEST_NPC")
 
         # Serialize
         data = manager1.to_dict()
@@ -562,7 +560,6 @@ class TestNPCManagerSerialization(unittest.TestCase):
         self.assertEqual(len(manager2.all_npcs), 1)
         self.assertEqual(manager2.all_npcs[0].name, "TEST_NPC")
         self.assertEqual(manager2.get_opinion("TEST_NPC"), 15)
-        self.assertIn("TEST_NPC", manager2.quest_completed_npcs)
 
 
 if __name__ == "__main__":

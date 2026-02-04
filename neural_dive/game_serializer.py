@@ -113,6 +113,8 @@ class GameSerializer:
             "random_npcs": game.random_npcs,
             # Player state (delegated to PlayerManager)
             "player_manager": game.player_manager.to_dict(),
+            # Stats tracking (delegated to StatsTracker)
+            "stats_tracker": game.stats_tracker.to_dict(),
             # Player position
             "player_x": game.player.x,
             "player_y": game.player.y,
@@ -120,15 +122,16 @@ class GameSerializer:
             "npc_manager": game.npc_manager.to_dict(),
             # Conversation state (delegated to ConversationEngine)
             "conversation_engine": game.conversation_engine.to_dict(),
-            # Statistics
+            # Quest state (delegated to QuestManager)
+            "quest_manager": game.quest_manager.to_dict(),
+            # Legacy statistics (kept for backward compatibility with old saves)
             "start_time": game.start_time,
             "questions_answered": game.questions_answered,
             "questions_correct": game.questions_correct,
             "questions_wrong": game.questions_wrong,
+            # Other game state
             "npcs_completed": list(game.npcs_completed),
             "game_won": game.game_won,
-            # Quest state
-            "quest_active": game.quest_active,
             # Message
             "message": game.message,
         }
@@ -143,11 +146,15 @@ class GameSerializer:
         Returns:
             Restored Game instance
         """
+        import time
+
         from neural_dive.difficulty import DifficultyLevel
         from neural_dive.game import Game
         from neural_dive.managers.conversation_engine import ConversationEngine
         from neural_dive.managers.npc_manager import NPCManager
         from neural_dive.managers.player_manager import PlayerManager
+        from neural_dive.managers.quest_manager import QuestManager
+        from neural_dive.managers.stats_tracker import StatsTracker
 
         # Create new game with saved settings
         difficulty = DifficultyLevel(save_data["difficulty"])
@@ -166,6 +173,18 @@ class GameSerializer:
 
         # Restore player state from PlayerManager
         game.player_manager = PlayerManager.from_dict(save_data["player_manager"])
+
+        # Restore stats from StatsTracker (with backward compatibility for old saves)
+        if "stats_tracker" in save_data:
+            game.stats_tracker = StatsTracker.from_dict(save_data["stats_tracker"])
+        else:
+            # Backward compatibility: load from legacy fields
+            game.stats_tracker = StatsTracker(
+                questions_answered=save_data.get("questions_answered", 0),
+                questions_correct=save_data.get("questions_correct", 0),
+                questions_wrong=save_data.get("questions_wrong", 0),
+                start_time=save_data.get("start_time", time.time()),
+            )
 
         # Restore player position
         game.player.x = save_data["player_x"]
@@ -187,19 +206,31 @@ class GameSerializer:
             save_data["conversation_engine"], npc_conversations=game.npc_conversations
         )
 
-        # Restore statistics
-        game.start_time = save_data["start_time"]
-        game.questions_answered = save_data["questions_answered"]
-        game.questions_correct = save_data["questions_correct"]
-        game.questions_wrong = save_data["questions_wrong"]
+        # Restore quest state from QuestManager (with backward compatibility)
+        if "quest_manager" in save_data:
+            game.quest_manager = QuestManager.from_dict(save_data["quest_manager"])
+        else:
+            # Backward compatibility: load from legacy fields or NPCManager
+            game.quest_manager = QuestManager()
+            game.quest_manager.quest_active = save_data.get("quest_active", False)
+            # Try to get quest_completed_npcs from npc_manager if available
+            if "npc_manager" in save_data:
+                npc_data = save_data["npc_manager"]
+                if "quest_completed_npcs" in npc_data:
+                    game.quest_manager.completed_npcs = set(npc_data["quest_completed_npcs"])
+
+        # Restore other game state
         game.npcs_completed = set(save_data["npcs_completed"])
         game.game_won = save_data["game_won"]
 
-        # Restore quest state
-        game.quest_active = save_data["quest_active"]
-
         # Restore message
         game.message = save_data["message"]
+
+        # Recreate EventBus and StateManager (not serialized)
+        from neural_dive.game_builder import GameInitializer
+
+        game.event_bus = GameInitializer.create_event_bus()
+        game.state_manager = GameInitializer.create_state_manager(game, game.event_bus)
 
         # Regenerate the current floor (map and entities)
         game._generate_floor()

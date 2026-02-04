@@ -13,28 +13,16 @@ from __future__ import annotations
 
 from pathlib import Path
 import random
-import time
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
-from neural_dive.answer_matching import match_answer
 from neural_dive.config import (
     DEFAULT_MAP_HEIGHT,
     DEFAULT_MAP_WIDTH,
     MAX_FLOORS,
-    NPC_PLACEMENT_ATTEMPTS,
-    QUEST_COMPLETION_COHERENCE_BONUS,
-    QUEST_TARGET_NPCS,
-    STAIRS_DOWN_DEFAULT_X,
-    STAIRS_DOWN_DEFAULT_Y,
-    STAIRS_UP_DEFAULT_X,
-    STAIRS_UP_DEFAULT_Y,
 )
-from neural_dive.data.levels import ZONE_TERMINALS
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings
-from neural_dive.entities import Entity, InfoTerminal, Stairs
-from neural_dive.enums import NPCType
-from neural_dive.models import Answer, Conversation, Question
-from neural_dive.question_types import QuestionType
+from neural_dive.entities import Entity, InfoTerminal
+from neural_dive.models import Conversation
 
 if TYPE_CHECKING:
     from neural_dive.managers.conversation_engine import ConversationEngine
@@ -135,7 +123,50 @@ class Game:
             self.difficulty_settings
         )
 
-        # Initialize statistics
+        # Initialize Stats Tracker
+        self.stats_tracker = GameInitializer.create_stats_tracker()
+
+        # Initialize Quest Manager
+        self.quest_manager = GameInitializer.create_quest_manager()
+
+        # Initialize Answer Processor (coordinates answer handling across managers)
+        self.answer_processor = GameInitializer.create_answer_processor(
+            player_manager=self.player_manager,
+            npc_manager=self.npc_manager,
+            conversation_engine=self.conversation_engine,
+            stats_tracker=self.stats_tracker,
+            quest_manager=self.quest_manager,
+            difficulty_settings=self.difficulty_settings,
+            snippets=self.snippets,
+            rand=self.rand,
+        )
+
+        # Initialize Floor Entity Generator (handles non-NPC entity generation)
+        self.floor_entity_generator = GameInitializer.create_floor_entity_generator(
+            level_data=self.level_data,
+            snippets=self.snippets,
+            rand=self.rand,
+        )
+
+        # Initialize Movement Controller (handles player movement and collision)
+        self.movement_controller = GameInitializer.create_movement_controller()
+
+        # Initialize Interaction Handler (handles entity interactions and floor transitions)
+        self.interaction_handler = GameInitializer.create_interaction_handler(
+            player_manager=self.player_manager,
+            conversation_engine=self.conversation_engine,
+            floor_manager=self.floor_manager,
+            quest_manager=self.quest_manager,
+            difficulty_settings=self.difficulty_settings,
+        )
+
+        # Initialize EventBus (for event-driven architecture)
+        self.event_bus = GameInitializer.create_event_bus()
+
+        # Initialize StateManager (for centralized state mutations)
+        self.state_manager = GameInitializer.create_state_manager(self, self.event_bus)
+
+        # Initialize legacy statistics (kept for save/load compatibility)
         (
             self.start_time,
             self.questions_answered,
@@ -144,9 +175,6 @@ class Game:
             self.npcs_completed,
             self.game_won,
         ) = GameInitializer.initialize_stats()
-
-        # Quest system
-        self.quest_active = False
 
         # UI message
         self.message = GameInitializer.create_welcome_message(max_floors)
@@ -201,6 +229,51 @@ class Game:
         """Set knowledge modules on PlayerManager."""
         self.player_manager.knowledge_modules = value
 
+    # Backward compatibility properties for StatsTracker
+    @property
+    def questions_answered(self) -> int:
+        """Get questions answered from StatsTracker."""
+        val: int = self.stats_tracker.questions_answered
+        return val
+
+    @questions_answered.setter
+    def questions_answered(self, value: int) -> None:
+        """Set questions answered on StatsTracker."""
+        self.stats_tracker.questions_answered = value
+
+    @property
+    def questions_correct(self) -> int:
+        """Get questions correct from StatsTracker."""
+        val: int = self.stats_tracker.questions_correct
+        return val
+
+    @questions_correct.setter
+    def questions_correct(self, value: int) -> None:
+        """Set questions correct on StatsTracker."""
+        self.stats_tracker.questions_correct = value
+
+    @property
+    def questions_wrong(self) -> int:
+        """Get questions wrong from StatsTracker."""
+        val: int = self.stats_tracker.questions_wrong
+        return val
+
+    @questions_wrong.setter
+    def questions_wrong(self, value: int) -> None:
+        """Set questions wrong on StatsTracker."""
+        self.stats_tracker.questions_wrong = value
+
+    @property
+    def start_time(self) -> float:
+        """Get start time from StatsTracker."""
+        val: float = self.stats_tracker.start_time
+        return val
+
+    @start_time.setter
+    def start_time(self, value: float) -> None:
+        """Set start time on StatsTracker."""
+        self.stats_tracker.start_time = value
+
     # Backward compatibility properties for NPCManager
     @property
     def npcs(self) -> list[Entity]:
@@ -224,13 +297,26 @@ class Game:
 
     @property
     def quest_completed_npcs(self) -> set[str]:
-        """Get quest completed NPCs from NPCManager."""
-        return self.npc_manager.quest_completed_npcs
+        """Get quest completed NPCs from QuestManager."""
+        val: set[str] = self.quest_manager.completed_npcs
+        return val
 
     @property
     def old_npc_positions(self) -> dict[str, tuple[int, int]]:
         """Get old NPC positions from NPCManager."""
         return self.npc_manager.old_positions
+
+    # Backward compatibility properties for QuestManager
+    @property
+    def quest_active(self) -> bool:
+        """Get quest active state from QuestManager."""
+        val: bool = self.quest_manager.quest_active
+        return val
+
+    @quest_active.setter
+    def quest_active(self, value: bool) -> None:
+        """Set quest active state on QuestManager."""
+        self.quest_manager.quest_active = value
 
     # Backward compatibility properties for ConversationEngine
     @property
@@ -349,171 +435,18 @@ class Game:
             map_height=self.map_height,
         )
 
-        # Generate terminals for this floor
-        self._generate_terminals()
-
-        # Generate stairs
-        self._generate_stairs()
-
-        # Generate items
-        self._generate_items()
-
-    def _generate_terminals(self):
-        """Generate and place info terminals for the current floor."""
-        level_data = self.level_data.get(self.current_floor)
-
-        if not level_data or "terminal_positions" not in level_data:
-            # No terminals defined for this floor
-            return
-
-        terminal_positions = level_data["terminal_positions"]
-        zone_terminals = ZONE_TERMINALS.get(self.current_floor, {})
-
-        # Create zone terminals based on labels in the level
-        for _zone_name, zone_data in zone_terminals.items():
-            if terminal_positions:
-                # Use next available terminal position
-                x, y = terminal_positions.pop(0)
-                title = zone_data["title"]
-                content = zone_data["content"]
-                # Type assertions for mypy
-                assert isinstance(title, str)
-                assert isinstance(content, list)
-                terminal = InfoTerminal(x, y, title, content)
-                self.terminals.append(terminal)
-
-    def _generate_stairs(self):
-        """Generate stairs up and/or down based on current floor."""
-        # Get level data for stair positions
-        level_data = self.level_data.get(self.current_floor)
-
-        if level_data:
-            # Use stairs from level layout
-            stairs_down_position = level_data.get("stairs_down")
-            stairs_up_position = level_data.get("stairs_up")
-
-            # Add stairs down
-            if self.current_floor < self.max_floors and stairs_down_position:
-                self._add_stairs_from_positions(stairs_down_position, "down")
-
-            # Add stairs up
-            if self.current_floor > 1 and stairs_up_position:
-                self._add_stairs_from_positions(stairs_up_position, "up")
-        else:
-            # Fallback to placement strategy
-            from neural_dive.placement import EntityPlacementStrategy
-
-            strategy = EntityPlacementStrategy(
+        # Generate all non-NPC entities using FloorEntityGenerator
+        self.stairs, self.terminals, self.item_pickups = (
+            self.floor_entity_generator.generate_all_entities(
+                floor=self.current_floor,
+                max_floors=self.max_floors,
                 game_map=self.game_map,
-                random_mode=self.random_npcs,
-                rng=self.rand,
                 map_width=self.map_width,
                 map_height=self.map_height,
+                player_pos=(self.player.x, self.player.y),
+                random_placement=self.random_npcs,
             )
-
-            # Stairs down (if not on bottom floor)
-            if self.current_floor < self.max_floors:
-                down_positions = strategy.place_entities(
-                    level_positions=None,
-                    default_positions=[(STAIRS_DOWN_DEFAULT_X, STAIRS_DOWN_DEFAULT_Y)],
-                    num_attempts=NPC_PLACEMENT_ATTEMPTS,
-                    x_range=(self.map_width // 2, self.map_width - 2),
-                    y_range=(self.map_height // 2, self.map_height - 2),
-                    count=1,
-                    validation_fn=lambda x, y: abs(x - self.player.x) > 10,
-                )
-                if down_positions:
-                    x, y = down_positions[0]
-                    self.stairs.append(Stairs(x, y, "down"))
-
-            # Stairs up (if not on top floor)
-            if self.current_floor > 1:
-                up_positions = strategy.place_entities(
-                    level_positions=None,
-                    default_positions=[(STAIRS_UP_DEFAULT_X, STAIRS_UP_DEFAULT_Y)],
-                    num_attempts=NPC_PLACEMENT_ATTEMPTS,
-                    x_range=(2, self.map_width // 3),
-                    y_range=(2, self.map_height // 3),
-                    count=1,
-                )
-                if up_positions:
-                    x, y = up_positions[0]
-                    self.stairs.append(Stairs(x, y, "up"))
-
-    def _add_stairs_from_positions(self, position_data, direction: str):
-        """Add stairs from position data (may be tuple or list of tuples).
-
-        Args:
-            position_data: Either a single (x, y) tuple or list of (x, y) tuples
-            direction: "up" or "down"
-        """
-        if isinstance(position_data, tuple):
-            # Single position
-            x, y = position_data
-            self.stairs.append(Stairs(x, y, direction))
-        else:
-            # List of positions
-            for x, y in position_data:
-                self.stairs.append(Stairs(x, y, direction))
-
-    def _generate_items(self):
-        """Generate and place item pickups for the current floor."""
-        from neural_dive.items import CodeSnippet, HintToken, ItemPickup
-        from neural_dive.placement import EntityPlacementStrategy
-
-        strategy = EntityPlacementStrategy(
-            game_map=self.game_map,
-            random_mode=self.random_npcs,
-            rng=self.rand,
-            map_width=self.map_width,
-            map_height=self.map_height,
         )
-
-        # Number of items per floor (increases with floor difficulty)
-        num_hint_tokens = 1 + (self.current_floor // 2)  # 1 on floor 1, 2 on floors 2-3
-        num_snippets = 1 if self.current_floor >= 2 else 0  # 1 snippet starting on floor 2
-
-        # Place hint tokens
-        hint_positions = strategy.place_entities(
-            level_positions=None,
-            default_positions=[],
-            num_attempts=50,
-            x_range=(3, self.map_width - 3),
-            y_range=(3, self.map_height - 3),
-            count=num_hint_tokens,
-            validation_fn=lambda x, y: abs(x - self.player.x) + abs(y - self.player.y) > 8,
-        )
-
-        for x, y in hint_positions:
-            hint_item = HintToken()
-            pickup = ItemPickup(x, y, hint_item)
-            self.item_pickups.append(pickup)
-
-        # Place code snippets
-        if num_snippets > 0 and self.snippets:
-            snippet_positions = strategy.place_entities(
-                level_positions=None,
-                default_positions=[],
-                num_attempts=50,
-                x_range=(3, self.map_width - 3),
-                y_range=(3, self.map_height - 3),
-                count=num_snippets,
-                validation_fn=lambda x, y: abs(x - self.player.x) + abs(y - self.player.y) > 8,
-            )
-
-            # Pick random snippets from available ones
-            available_snippet_ids = list(self.snippets.keys())
-            for x, y in snippet_positions:
-                if available_snippet_ids:
-                    snippet_id = self.rand.choice(available_snippet_ids)
-                    snippet_data = self.snippets[snippet_id]
-                    snippet_item = CodeSnippet(
-                        name=snippet_data["name"],
-                        topic=snippet_data["topic"],
-                        content=snippet_data["content"],
-                    )
-                    pickup = ItemPickup(x, y, snippet_item)
-                    self.item_pickups.append(pickup)
 
     def update_npc_wandering(self):
         """
@@ -528,8 +461,7 @@ class Game:
         )
 
     def is_walkable(self, x: int, y: int) -> bool:
-        """
-        Check if a position is walkable.
+        """Check if a position is walkable.
 
         Args:
             x: X coordinate
@@ -538,18 +470,10 @@ class Game:
         Returns:
             True if the position can be walked on, False otherwise
         """
-        # Check bounds
-        if y < 0 or y >= len(self.game_map):
-            return False
-        if x < 0 or x >= len(self.game_map[0]):
-            return False
-
-        # Check for walls
-        return bool(self.game_map[y][x] != "#")
+        return self.movement_controller.is_walkable(x, y, self.game_map)
 
     def move_player(self, dx: int, dy: int) -> bool:
-        """
-        Attempt to move the player by a delta.
+        """Attempt to move the player by a delta.
 
         Args:
             dx: Change in x position
@@ -558,44 +482,23 @@ class Game:
         Returns:
             True if movement was successful, False otherwise
         """
-        # Can't move during conversation
-        if self.active_conversation:
-            self.message = "You're in a conversation. Answer or press ESC to exit."
-            return False
+        result = self.movement_controller.move_player(
+            player=self.player,
+            dx=dx,
+            dy=dy,
+            game_map=self.game_map,
+            item_pickups=self.item_pickups,
+            stairs=self.stairs,
+            player_manager=self.player_manager,
+            is_in_conversation=self.active_conversation is not None,
+        )
 
-        new_x = self.player.x + dx
-        new_y = self.player.y + dy
+        # Update game message and old position
+        self.message = result.message
+        if result.old_position is not None:
+            self.old_player_pos = result.old_position
 
-        # Try to move
-        if self.is_walkable(new_x, new_y):
-            self.old_player_pos = (self.player.x, self.player.y)
-            self.player.x = new_x
-            self.player.y = new_y
-
-            # Check for item pickups
-            for pickup in self.item_pickups[:]:  # Use slice to allow removal during iteration
-                if self.player.x == pickup.x and self.player.y == pickup.y:
-                    # Try to add to inventory
-                    if self.player_manager.add_item(pickup.item):
-                        self.item_pickups.remove(pickup)
-                        self.message = f"Picked up {pickup.item.name}!"
-                        return True
-                    else:
-                        self.message = "Inventory full!"
-                        return True
-
-            # Check if standing on stairs and show hint
-            for stair in self.stairs:
-                if self.player.x == stair.x and self.player.y == stair.y:
-                    direction = "up" if stair.direction == "up" else "down"
-                    self.message = f"Standing on stairs {direction}. Press Space or >/< to use."
-                    return True
-
-            self.message = ""
-            return True
-        else:
-            self.message = "Blocked by firewall!"
-            return False
+        return result.success
 
     def interact(self) -> bool:
         """Attempt to interact with nearby entity (terminal, NPC, or stairs).
@@ -605,204 +508,55 @@ class Game:
         Returns:
             True if interaction was successful, False otherwise
         """
-        player_x, player_y = self.player.x, self.player.y
+        result = self.interaction_handler.interact(
+            player_pos=(self.player.x, self.player.y),
+            terminals=self.terminals,
+            npcs=self.npcs,
+            stairs=self.stairs,
+            npc_conversations=self.npc_conversations,
+        )
 
-        # Find all interactable entities with distances
-        # Type: list of (entity_type, distance, entity_object)
-        candidates: list[
-            tuple[Literal["terminal"], int, InfoTerminal]
-            | tuple[Literal["npc"], int, Entity]
-            | tuple[Literal["stairs"], int, Stairs]
-        ] = []
+        self.message = result.message
 
-        # Check terminals
-        for terminal in self.terminals:
-            dist = max(abs(player_x - terminal.x), abs(player_y - terminal.y))
-            if dist <= 1:
-                candidates.append(("terminal", dist, terminal))
+        # Process the interaction result
+        if result.action == "terminal" and result.terminal:
+            self.active_terminal = result.terminal
+        elif result.action == "conversation" and result.conversation:
+            self.active_conversation = result.conversation
 
-        # Check NPCs
-        for npc in self.npcs:
-            dist = max(abs(player_x - npc.x), abs(player_y - npc.y))
-            if dist <= 1:
-                candidates.append(("npc", dist, npc))
-
-        # Check stairs
-        for stair in self.stairs:
-            dist = max(abs(player_x - stair.x), abs(player_y - stair.y))
-            if dist <= 1:
-                candidates.append(("stairs", dist, stair))
-
-        if not candidates:
-            self.message = "No one nearby to interact with. Look for NPCs or Terminals (▣)."
-            return False
-
-        # Sort by: distance first, then priority (npc=0, terminal=1, stairs=2)
-        priority_map = {"npc": 0, "terminal": 1, "stairs": 2}
-        candidates.sort(key=lambda x: (x[1], priority_map[x[0]]))
-
-        # Interact with closest/highest priority entity
-        entity_type, dist, entity = candidates[0]
-
-        if entity_type == "terminal":
-            # Type narrowing with assertion
-            assert isinstance(entity, InfoTerminal)
-            self.active_terminal = entity
-            self.message = f"Reading: {entity.title}"
-            return True
-        elif entity_type == "npc":
-            # Type narrowing with assertion
-            assert isinstance(entity, Entity)
-            return self._interact_with_npc(entity)
-        else:  # entity_type == "stairs"
-            return self.use_stairs()
-
-    def _interact_with_npc(self, npc: Entity) -> bool:
-        """
-        Handle interaction with a specific NPC.
-
-        Args:
-            npc: The NPC entity to interact with
-
-        Returns:
-            True if interaction occurred, False otherwise
-        """
-        npc_name = npc.name
-        conversation = self.npc_conversations.get(npc_name)
-
-        if not conversation:
-            self.message = f"{npc_name}: I have nothing to say."
-            return False
-
-        # Handle helper NPCs (restore coherence)
-        if conversation.npc_type == NPCType.HELPER and not conversation.completed:
-            restore_amount = self.difficulty_settings.helper_restore_amount
-            gained = self.player_manager.gain_coherence(restore_amount)
-            conversation.completed = True
-            self.message = (
-                f"{npc_name}: Your coherence has been restored by {gained}. "
-                f"[+{restore_amount} Coherence]"
-            )
-            return True
-
-        # Handle quest NPCs
-        if conversation.npc_type == NPCType.QUEST:
-            return self._handle_quest_npc(npc_name, conversation)
-
-        # Standard interaction for specialists and enemies
-        if not conversation.completed:
-            self.active_conversation = conversation
-            self.message = conversation.greeting
-            return True
-        else:
-            self.message = f"{npc_name}: You have proven yourself. We have nothing more to discuss."
-            return True
-
-    def _handle_quest_npc(self, npc_name: str, conversation: Conversation) -> bool:
-        """
-        Handle interaction with a quest-giving NPC.
-
-        Args:
-            npc_name: Name of the quest NPC
-            conversation: The NPC's conversation
-
-        Returns:
-            True if interaction occurred
-        """
-        if not conversation.completed:
-            # Quest NPCs just give info, don't have conversations
-            self.quest_active = True
-            self.message = conversation.greeting
-            # Mark as "completed" since quest NPCs don't have actual questions
-            conversation.completed = True
-            return True
-        else:
-            # Check quest completion
-            if QUEST_TARGET_NPCS.issubset(self.quest_completed_npcs):
-                self.message = (
-                    f"{npc_name}: You have completed my quest! "
-                    f"The knowledge is yours. [Quest Complete! "
-                    f"+{QUEST_COMPLETION_COHERENCE_BONUS} Coherence]"
-                )
-                self.player_manager.gain_coherence(QUEST_COMPLETION_COHERENCE_BONUS)
-            else:
-                remaining = QUEST_TARGET_NPCS - self.quest_completed_npcs
-                self.message = f"{npc_name}: Seek these guardians still: {', '.join(remaining)}"
-            return True
+        return result.success
 
     def is_floor_complete(self) -> bool:
-        """
-        Check if the current floor's objectives are complete.
+        """Check if the current floor's objectives are complete.
 
-        Delegates to FloorManager for floor completion logic.
+        Delegates to InteractionHandler for floor completion logic.
 
         Returns:
             True if all required NPCs have been talked to, False otherwise
         """
-        return self.floor_manager.is_floor_complete(self.npcs_completed, self.npc_data)
+        return self.interaction_handler.is_floor_complete(self.npcs_completed, self.npc_data)
 
     def use_stairs(self) -> bool:
-        """
-        Attempt to use stairs at the player's current position.
+        """Attempt to use stairs at the player's current position.
 
         Returns:
             True if stairs were used successfully, False otherwise
         """
-        # Check if player is standing on stairs
-        for stair in self.stairs:
-            if self.player.x == stair.x and self.player.y == stair.y:
-                if stair.direction == "down":
-                    return self._descend_stairs()
-                elif stair.direction == "up":
-                    return self._ascend_stairs()
+        result = self.interaction_handler.use_stairs(
+            player=self.player,
+            player_pos=(self.player.x, self.player.y),
+            stairs=self.stairs,
+            npcs_completed=self.npcs_completed,
+            npc_data=self.npc_data,
+        )
 
-        self.message = "No stairs here. Stand on stairs (> or <) and press Enter."
-        return False
+        self.message = result.message
 
-    def _descend_stairs(self) -> bool:
-        """
-        Descend to the next floor.
+        # If floor changed, regenerate entities
+        if result.floor_changed:
+            self._generate_floor()
 
-        Returns:
-            True if descent was successful, False otherwise
-        """
-        if not self.floor_manager.can_use_stairs_down():
-            self.message = "No deeper layers exist."
-            return False
-
-        # Check if floor objectives are complete
-        if not self.is_floor_complete():
-            required = self.floor_manager.floor_requirements.get(self.current_floor, set())
-            incomplete = [npc for npc in required if npc not in self.npcs_completed]
-            self.message = f"Cannot descend! Complete conversations with: {', '.join(incomplete)}"
-            return False
-
-        # Descend using floor manager (generates new floor map and updates position)
-        self.floor_manager.move_to_next_floor(self.player)
-
-        # Regenerate entities for the new floor (also updates map references)
-        self._generate_floor()
-        self.message = f"Descended to Neural Layer {self.current_floor}"
-        return True
-
-    def _ascend_stairs(self) -> bool:
-        """
-        Ascend to the previous floor.
-
-        Returns:
-            True if ascent was successful, False otherwise
-        """
-        if not self.floor_manager.can_use_stairs_up():
-            self.message = "This is the top layer."
-            return False
-
-        # Ascend using floor manager (generates new floor map and updates position)
-        self.floor_manager.move_to_previous_floor(self.player)
-
-        # Regenerate entities for the new floor (also updates map references)
-        self._generate_floor()
-        self.message = f"Ascended to Neural Layer {self.current_floor}"
-        return True
+        return result.success
 
     def use_hint(self) -> tuple[bool, str]:
         """Use a hint token to eliminate wrong answers in the current question.
@@ -864,34 +618,6 @@ class Game:
 
         return False, "Snippet not found"
 
-    def _validate_conversation_state(
-        self,
-    ) -> tuple[bool, str, Conversation | None, Question | None, bool]:
-        """Validate conversation state and return common data needed for answering.
-
-        Returns:
-            Tuple of (valid, error_message, conversation, question, is_enemy)
-            If valid is False, error_message contains the reason.
-        """
-        if not self.active_conversation:
-            return False, "Not in a conversation.", None, None, False
-
-        conv = self.active_conversation
-
-        # Check if conversation is already complete
-        if conv.current_question_idx >= len(conv.questions):
-            conv.completed = True
-            self.active_conversation = None
-            return False, "Conversation completed!", None, None, False
-
-        # Get current question
-        question = conv.questions[conv.current_question_idx]
-
-        # Check if this is an enemy (harsher penalties)
-        is_enemy = conv.npc_type == NPCType.ENEMY
-
-        return True, "", conv, question, is_enemy
-
     def answer_question(self, answer_index: int) -> tuple[bool, str]:
         """Answer the current conversation question.
 
@@ -914,28 +640,16 @@ class Game:
             >>> if correct:
             ...     print(f"Correct! {msg}")
         """
-        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
-        if not valid:
-            # Return True for "Conversation completed!" as it's not an error
-            return "completed" in error_msg, error_msg
+        # Delegate to AnswerProcessor
+        success, message, game_was_won = self.answer_processor.answer_multiple_choice(
+            answer_index, self.npcs_completed, self.floor_manager.is_final_floor()
+        )
 
-        assert conv is not None and question is not None  # Type narrowing
+        # Update game state
+        if game_was_won:
+            self.game_won = True
 
-        # Validate answer index
-        if answer_index < 0 or answer_index >= len(question.answers):
-            return False, "Invalid answer choice."
-
-        answer = question.answers[answer_index]
-
-        # Track NPC opinion
-        npc_name = conv.npc_name
-        if npc_name not in self.npc_opinions:
-            self.npc_opinions[npc_name] = 0
-
-        if answer.correct:
-            return self._handle_correct_answer(conv, answer, npc_name, is_enemy)
-        else:
-            return self._handle_wrong_answer(conv, answer, npc_name, is_enemy)
+        return success, message
 
     def answer_text_question(self, user_answer: str) -> tuple[bool, str]:
         """Answer the current conversation question with typed text.
@@ -948,240 +662,43 @@ class Game:
         Returns:
             Tuple of (correct, response_message)
         """
-        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
-        if not valid:
-            # Return True for "Conversation completed!" as it's not an error
-            return "completed" in error_msg, error_msg
-
-        assert conv is not None and question is not None  # Type narrowing
-
-        # Verify this is a text-based question type
-        if question.question_type == QuestionType.MULTIPLE_CHOICE:
-            return False, "This is a multiple choice question. Use number keys 1-4."
-
-        # Check if answer is correct using answer matching
-        is_correct = match_answer(
-            user_answer,
-            question.correct_answer or "",
-            match_type=question.match_type,
-            case_sensitive=question.case_sensitive,
+        # Delegate to AnswerProcessor
+        success, message, game_was_won = self.answer_processor.answer_text_question(
+            user_answer, self.npcs_completed, self.floor_manager.is_final_floor()
         )
 
-        # Track NPC opinion
-        npc_name = conv.npc_name
-        if npc_name not in self.npc_opinions:
-            self.npc_opinions[npc_name] = 0
+        # Update game state
+        if game_was_won:
+            self.game_won = True
 
-        if is_correct:
-            # Create a temporary Answer object for correct response
-            temp_answer = Answer(
-                text=user_answer,
-                correct=True,
-                response=question.correct_response or "Correct!",
-                reward_knowledge=question.reward_knowledge,
-            )
-            return self._handle_correct_answer(conv, temp_answer, npc_name, is_enemy)
-        else:
-            # Create a temporary Answer object for wrong response
-            temp_answer = Answer(
-                text=user_answer,
-                correct=False,
-                response=question.incorrect_response or "Not quite.",
-                enemy_penalty=self.difficulty_settings.enemy_wrong_answer_penalty,
-            )
-            return self._handle_wrong_answer(conv, temp_answer, npc_name, is_enemy)
-
-    def _handle_correct_answer(
-        self, conv: Conversation, answer: Answer, npc_name: str, is_enemy: bool
-    ) -> tuple[bool, str]:
-        """
-        Handle a correct answer.
-
-        Args:
-            conv: The conversation
-            answer: The correct answer
-            npc_name: Name of the NPC
-            is_enemy: Whether the NPC is an enemy
-
-        Returns:
-            Tuple of (True, response_message)
-        """
-        # Update stats
-        coherence_gain = self.difficulty_settings.correct_answer_gain
-        self.player_manager.gain_coherence(coherence_gain)
-        self.npc_opinions[npc_name] += 1
-
-        # Track score
-        self.questions_answered += 1
-        self.questions_correct += 1
-
-        # Build response
-        response = answer.response
-
-        # Award knowledge module
-        if answer.reward_knowledge:
-            was_new = self.player_manager.add_knowledge(answer.reward_knowledge)
-            if was_new:
-                response += (
-                    f"\n\n[+{coherence_gain} Coherence]\n[Gained: {answer.reward_knowledge}]"
-                )
-            else:
-                response += f"\n\n[+{coherence_gain} Coherence]"
-        else:
-            response += f"\n\n[+{coherence_gain} Coherence]"
-
-        # Move to next question
-        conv.current_question_idx += 1
-
-        # Check if conversation is complete
-        if conv.current_question_idx >= len(conv.questions):
-            conv.completed = True
-
-            # Track completion
-            self.npcs_completed.add(npc_name)
-
-            # Give item rewards based on NPC type
-            response = self._give_npc_rewards(conv.npc_type, response)
-
-            # Check for victory condition on final floor
-            if self.floor_manager.is_final_floor():
-                # Victory bosses - defeating any of these wins the game
-                victory_bosses = {"FINAL_BOSS", "RESILIENCE_BOSS", "ML_BOSS", "THEORY_BOSS"}
-                if npc_name in victory_bosses:
-                    self.game_won = True
-
-            # Track quest completion for specialists
-            if conv.npc_type == NPCType.SPECIALIST:
-                self.quest_completed_npcs.add(npc_name)
-
-            self.active_conversation = None
-
-            # Add completion message
-            response += f"\n\n{npc_name}: You have proven your worth. I grant you passage."
-
-        return True, response
-
-    def _give_npc_rewards(self, npc_type: NPCType, response: str) -> str:
-        """Give item rewards when completing NPC conversations.
-
-        Args:
-            npc_type: Type of NPC being completed
-            response: Current response message
-
-        Returns:
-            Updated response message with reward information
-        """
-        from neural_dive.items import HintToken
-
-        # Helper NPCs give hint tokens
-        if npc_type == NPCType.HELPER:
-            hint = HintToken()
-            if self.player_manager.add_item(hint):
-                response += "\n\n[Received: Hint Token]"
-        # Specialists give snippets (if available and inventory not full)
-        elif npc_type == NPCType.SPECIALIST and self.snippets:
-            from neural_dive.items import CodeSnippet
-
-            # Pick a random snippet
-            snippet_id = self.rand.choice(list(self.snippets.keys()))
-            snippet_data = self.snippets[snippet_id]
-            snippet = CodeSnippet(
-                name=snippet_data["name"],
-                topic=snippet_data["topic"],
-                content=snippet_data["content"],
-            )
-            if self.player_manager.add_item(snippet):
-                response += f"\n\n[Received: {snippet.name}]"
-
-        return response
+        return success, message
 
     def get_current_score(self) -> int:
-        """
-        Calculate the current score based on player progress.
+        """Calculate the current score based on player progress.
 
         Returns:
             Current score value
         """
-        return (
-            (self.questions_correct * 100)  # Points per correct answer
-            + (len(self.knowledge_modules) * 50)  # Points per knowledge module
-            + (len(self.npcs_completed) * 200)  # Points per NPC completed
-            + (self.coherence * 10)  # Bonus for remaining coherence
+        score: int = self.stats_tracker.get_current_score(
+            knowledge_count=len(self.knowledge_modules),
+            npcs_completed_count=len(self.npcs_completed),
+            coherence=self.coherence,
         )
+        return score
 
     def get_final_stats(self) -> dict:
-        """
-        Get final game statistics for victory/game over screen.
+        """Get final game statistics for victory/game over screen.
 
         Returns:
             Dictionary containing all game stats
         """
-
-        time_played = time.time() - self.start_time
-
-        # Calculate accuracy
-        accuracy = 0.0
-        if self.questions_answered > 0:
-            accuracy = (self.questions_correct / self.questions_answered) * 100
-
-        # Calculate score using current score method
-        score = self.get_current_score()
-
-        return {
-            "time_played": time_played,
-            "questions_answered": self.questions_answered,
-            "questions_correct": self.questions_correct,
-            "questions_wrong": self.questions_wrong,
-            "accuracy": accuracy,
-            "npcs_completed": len(self.npcs_completed),
-            "knowledge_modules": len(self.knowledge_modules),
-            "final_coherence": self.coherence,
-            "current_floor": self.current_floor,
-            "score": int(score),
-        }
-
-    def _handle_wrong_answer(
-        self, conv: Conversation, answer: Answer, npc_name: str, is_enemy: bool
-    ) -> tuple[bool, str]:
-        """
-        Handle a wrong answer.
-
-        Args:
-            conv: The conversation
-            answer: The wrong answer
-            npc_name: Name of the NPC
-            is_enemy: Whether the NPC is an enemy
-
-        Returns:
-            Tuple of (False, response_message)
-        """
-        # Calculate penalty based on difficulty and NPC type
-        penalty = (
-            self.difficulty_settings.enemy_wrong_answer_penalty
-            if is_enemy
-            else self.difficulty_settings.wrong_answer_penalty
+        stats: dict = self.stats_tracker.get_final_stats(
+            npcs_completed_count=len(self.npcs_completed),
+            knowledge_count=len(self.knowledge_modules),
+            final_coherence=self.coherence,
+            current_floor=self.current_floor,
         )
-
-        # Update stats
-        self.player_manager.lose_coherence(penalty)
-        self.npc_opinions[npc_name] -= 1
-
-        # Track score
-        self.questions_answered += 1
-        self.questions_wrong += 1
-
-        # Build response
-        if is_enemy:
-            response = f"{answer.response}\n\n[CRITICAL ERROR! -{penalty} Coherence]"
-        else:
-            response = f"{answer.response}\n\n[-{penalty} Coherence]"
-
-        # Check for game over
-        if self.coherence <= 0:
-            response += "\n\n[SYSTEM FAILURE - COHERENCE LOST]"
-            self.active_conversation = None
-
-        return False, response
+        return stats
 
     def exit_conversation(self) -> bool:
         """

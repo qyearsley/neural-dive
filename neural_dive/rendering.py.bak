@@ -59,7 +59,9 @@ class OverlayRenderer:
     def draw_background(self):
         """Draw white background box for overlay."""
         for y in range(self.start_y, self.start_y + self.height):
-            self.backend.draw_with_bg(self.start_x, y, " " * self.width, "black", "white")
+            self.backend.draw_with_bg(
+                self.start_x, y, " " * self.width, "black", "white"
+            )
 
     def draw_border(self):
         """Draw colored border around overlay."""
@@ -216,8 +218,7 @@ def _is_position_occupied(game: Game, x: int, y: int) -> bool:
     )
 
 
-def _clear_old_npc_positions(
-    backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme
+def _clear_old_npc_positions(backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme
 ) -> None:
     """
     Clear old NPC positions by redrawing floor tiles where NPCs have moved from.
@@ -243,9 +244,7 @@ def _clear_old_npc_positions(
     game.old_npc_positions.clear()
 
 
-def _draw_entities(
-    backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme
-) -> None:
+def _draw_entities(backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme) -> None:
     """Draw all game entities including NPCs, terminals, stairs, and player.
 
     Args:
@@ -327,9 +326,7 @@ def _draw_ui(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
     # Instructions
     if game.active_conversation:
         print(
-            backend.move_xy(0, backend.height - 1)
-            + backend.normal
-            + "In conversation - see overlay above",
+            backend.move_xy(0, backend.height - 1) + backend.normal + "In conversation - see overlay above",
             end="",
         )
     else:
@@ -382,7 +379,7 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
     # Check if we have a pending response to show
     if hasattr(game, "last_answer_response") and game.last_answer_response:
         _draw_response(
-            backend,
+            term,
             game,
             overlay.start_x,
             overlay.start_y,
@@ -396,7 +393,7 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
     # Show current question
     if conv.current_question_idx < len(conv.questions):
         _draw_question(
-            backend,
+            term,
             conv,
             overlay.start_x,
             overlay.start_y,
@@ -408,8 +405,7 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
         )
 
 
-def _draw_response(
-    backend: RenderBackend,
+def _draw_response(backend: RenderBackend,
     game: Game,
     start_x: int,
     start_y: int,
@@ -468,8 +464,7 @@ def _draw_response(
         )
 
 
-def _draw_question(
-    backend: RenderBackend,
+def _draw_question(backend: RenderBackend,
     conv: Conversation,
     start_x: int,
     start_y: int,
@@ -501,7 +496,7 @@ def _draw_question(
 
     # Delegate rendering to the strategy
     renderer.render(
-        term=backend,
+        term=term,
         question=question,
         question_number=conv.current_question_idx + 1,
         total_questions=len(conv.questions),
@@ -694,8 +689,7 @@ def draw_snippet_overlay(backend: RenderBackend, game: Game, colors: ColorScheme
     )
 
 
-def _draw_overlay_border(
-    backend: RenderBackend, start_x: int, start_y: int, width: int, height: int, color_name: str
+def _draw_overlay_border(backend: RenderBackend, start_x: int, start_y: int, width: int, height: int, color_name: str
 ) -> None:
     """
     Draw a box border around an overlay using Unicode box-drawing characters.
@@ -754,15 +748,13 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
     # Title
     title = "★ VICTORY ★"
     print(
-        backend.move_xy(start_x + (width - len(title)) // 2, current_y) + success_color(title),
-        end="",
+        backend.move_xy(start_x + (width - len(title)) // 2, current_y) + success_color(title), end=""
     )
     current_y += 1
 
     subtitle = "Neural Dive Complete"
     print(
-        backend.move_xy(start_x + (width - len(subtitle)) // 2, current_y)
-        + backend.bold_black(subtitle),
+        backend.move_xy(start_x + (width - len(subtitle)) // 2, current_y) + backend.bold_black(subtitle),
         end="",
     )
     current_y += 2

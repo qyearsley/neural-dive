@@ -11,6 +11,7 @@ import time
 
 from blessed import Terminal
 
+from neural_dive.backends import BlessedBackend
 from neural_dive.difficulty import DifficultyLevel
 from neural_dive.game import Game
 from neural_dive.input_handler import (
@@ -32,6 +33,7 @@ def run_interactive(game: Game, chars, colors):
         colors: Color scheme for rendering
     """
     term = Terminal()
+    backend = BlessedBackend(term)
     first_draw = True
 
     # Initialize text input buffer on game object
@@ -52,7 +54,7 @@ def run_interactive(game: Game, chars, colors):
 
                 # Check for victory
                 if game.game_won:
-                    draw_victory_screen(term, game, colors)
+                    draw_victory_screen(backend, game, colors)
                     key = term.inkey(timeout=0.1)
                     if key:
                         result = end_game_handler.handle(key, game, term)
@@ -62,7 +64,7 @@ def run_interactive(game: Game, chars, colors):
 
                 # Check for game over
                 if game.coherence <= 0:
-                    draw_game(term, game, chars, colors, redraw_all=first_draw)
+                    draw_game(backend, game, chars, colors, redraw_all=first_draw)
                     print(
                         term.move_xy(0, term.height // 2)
                         + term.center(term.bold_red("SYSTEM FAILURE - COHERENCE LOST")).rstrip()
@@ -82,7 +84,7 @@ def run_interactive(game: Game, chars, colors):
                     continue
 
                 # Draw everything
-                draw_game(term, game, chars, colors, redraw_all=first_draw)
+                draw_game(backend, game, chars, colors, redraw_all=first_draw)
                 first_draw = False
 
                 # Get input
