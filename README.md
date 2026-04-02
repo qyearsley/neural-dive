@@ -180,4 +180,4 @@ MIT License - Free to use, modify, and distribute. See [LICENSE](LICENSE).
 
 Contributions welcome! Add questions, fix bugs, improve docs. See [docs/question-guide.md](docs/question-guide.md) for question guidelines.
 
-**Made with love for learners everywhere**
+Personal educational project by Quinten Yearsley.

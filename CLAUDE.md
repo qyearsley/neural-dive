@@ -31,27 +31,54 @@ make run-debug         # Run with fixed seed for debugging
 
 ```
 neural_dive/
+├── __init__.py
 ├── __main__.py           # Entry point, game loop
-├── game.py              # Main Game class (⚠️ 1,015 lines - needs refactoring)
-├── rendering.py         # Terminal UI rendering
-├── conversation.py      # Dialogue and text utilities
-├── entities.py          # Entity classes (Player, NPC, etc.)
-├── models.py            # Data models (Question, Answer, Conversation)
-├── enums.py             # Enumerations (NPCType, etc.)
-├── config.py            # Configuration constants
-├── map_generation.py    # Procedural map generation
-├── data_loader.py       # JSON data loading
-├── themes.py            # Color schemes and character sets
+├── answer_matching.py    # Answer comparison logic
+├── backends/
+│   ├── __init__.py
+│   ├── backend.py        # Abstract rendering backend
+│   ├── blessed_backend.py # Blessed terminal backend
+│   └── test_backend.py   # Test/mock backend
+├── config.py             # Configuration constants
+├── conversation.py       # Dialogue and text utilities
 ├── data/
-│   ├── questions.json   # Question database
-│   ├── npcs.json        # NPC definitions
-│   ├── terminals.json   # Info terminal content
-│   └── levels.py        # Level layouts
-└── tests/
-    ├── test_game_initialization.py  # Game class tests
-    ├── test_models.py               # Data model tests
-    ├── test_conversation.py         # Conversation tests
-    └── test_map_generation.py       # Map generation tests
+│   ├── content/
+│   │   └── algorithms/
+│   │       └── levels.py
+│   ├── levels.py         # Level layouts
+│   └── ...               # JSON data files
+├── data_loader.py        # JSON data loading
+├── difficulty.py         # Difficulty settings
+├── entities.py           # Entity classes (Player, NPC, etc.)
+├── entity_renderers.py   # Entity rendering logic
+├── enums.py              # Enumerations (NPCType, etc.)
+├── events.py             # Event system
+├── game_builder.py       # Game construction/setup
+├── game_serializer.py    # Save/load game state
+├── game.py               # Main Game class
+├── input_handler.py      # Input processing
+├── items.py              # Item definitions
+├── managers/
+│   ├── __init__.py
+│   ├── answer_processor.py
+│   ├── conversation_engine.py
+│   ├── floor_entity_generator.py
+│   ├── floor_manager.py
+│   ├── interaction_handler.py
+│   ├── movement_controller.py
+│   ├── npc_manager.py
+│   ├── player_manager.py
+│   ├── quest_manager.py
+│   ├── state_manager.py
+│   └── stats_tracker.py
+├── map_generation.py     # Procedural map generation
+├── models.py             # Data models (Question, Answer, Conversation)
+├── placement.py          # Entity placement logic
+├── question_renderers.py # Question display rendering
+├── question_types.py     # Question type definitions
+├── rendering.py          # Terminal UI rendering
+├── themes.py             # Color schemes and character sets
+└── tests/                # Test suite
 ```
 
 ---
@@ -70,8 +97,8 @@ neural_dive/
 - Duplicate similar logic in multiple places
 
 **Current Issues to Fix:**
-- ~200 lines of duplicate entity placement logic in `game.py`
-- Overlay drawing code repeated 3x in `rendering.py`
+- ~200 lines of duplicate entity placement logic in `game.py` (partially addressed via `placement.py`)
+- Overlay drawing code repeated 3x in `rendering.py` (partially addressed via `entity_renderers.py`)
 
 **Example - Good:**
 ```python
@@ -691,20 +718,20 @@ Reference `REFACTORING_RECOMMENDATIONS.md` for comprehensive analysis.
 
 ### Priority 1: High Impact Issues
 
-1. **God Object: Game Class (1,015 lines)**
-   - **Problem:** Too many responsibilities
-   - **Solution:** Extract PlayerManager, NPCManager, ConversationEngine
-   - **Time:** 8-10 hours
+1. **Game Class Size (806 lines)**
+   - **Problem:** Still has many responsibilities, though managers have been extracted
+   - **Solution:** Continue extracting logic into managers/ (PlayerManager, NPCManager, etc. already exist)
+   - **Status:** Partially addressed - managers/ package extracted
 
 2. **Duplicate Entity Placement (~150 lines)**
    - **Problem:** Same placement logic in 3 places
    - **Solution:** Create EntityPlacementStrategy
-   - **Time:** 2 hours
+   - **Status:** Addressed - `placement.py` now handles entity placement
 
 3. **Duplicate Overlay Drawing (~60 lines)**
    - **Problem:** Same overlay setup in 3 functions
    - **Solution:** Create OverlayRenderer base class
-   - **Time:** 1.5 hours
+   - **Status:** Addressed - `entity_renderers.py` now handles entity rendering
 
 ### Priority 2: Medium Impact Issues
 

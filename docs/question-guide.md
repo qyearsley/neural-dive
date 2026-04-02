@@ -15,12 +15,16 @@ This guide will help you create high-quality educational questions for Neural Di
 
 ## Quick Start
 
-Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Neural Dive supports **three question types**:
+Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Neural Dive currently supports **multiple choice** questions, with two additional types planned:
 - **Multiple Choice** (4 options) - Best for teaching through wrong answers
 - **Short Answer** (type-in) - Best for interview prep, complexity questions
 - **Yes/No** (true/false) - Best for quick knowledge checks
 
+*Short Answer and Yes/No types have code scaffolding in place but are not yet fully integrated into gameplay.*
+
 ### Question Type Distribution
+
+Target distribution once all types are implemented:
 - ~60% Multiple Choice
 - ~30% Short Answer
 - ~10% Yes/No

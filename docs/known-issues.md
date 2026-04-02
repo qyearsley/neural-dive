@@ -10,7 +10,7 @@ This document tracks known bugs and issues in Neural Dive.
 
 **Severity:** High
 **Affects:** Level transitions (Floor 1 → Floor 2)
-**Status:** Fix Applied (Needs Testing)
+**Status:** Fixed
 
 **Description:**
 When transitioning to the second level, visual artifacts from the first level persist:
