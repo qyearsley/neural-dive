@@ -369,11 +369,6 @@ class Game:
         """Set show greeting on ConversationEngine."""
         self.conversation_engine.show_greeting = value
 
-    @show_greeting.deleter
-    def show_greeting(self) -> None:
-        """Delete show greeting from ConversationEngine."""
-        self.conversation_engine.show_greeting = False
-
     @property
     def last_answer_response(self) -> str | None:
         """Get last answer response from ConversationEngine."""
@@ -383,11 +378,6 @@ class Game:
     def last_answer_response(self, value: str | None) -> None:
         """Set last answer response on ConversationEngine."""
         self.conversation_engine.last_answer_response = value
-
-    @last_answer_response.deleter
-    def last_answer_response(self) -> None:
-        """Delete last answer response from ConversationEngine."""
-        self.conversation_engine.last_answer_response = None
 
     @property
     def text_input_buffer(self) -> str:

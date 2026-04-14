@@ -11,6 +11,7 @@ import json
 import logging
 from pathlib import Path
 
+from neural_dive.config import ENEMY_WRONG_ANSWER_PENALTY
 from neural_dive.enums import NPCType
 from neural_dive.models import Answer, Conversation, Question
 from neural_dive.question_types import QuestionType
@@ -87,7 +88,7 @@ def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
                     correct=ans_data["correct"],
                     response=ans_data["response"],
                     reward_knowledge=ans_data.get("reward_knowledge"),
-                    enemy_penalty=ans_data.get("enemy_penalty", 35),  # default from config
+                    enemy_penalty=ans_data.get("enemy_penalty", ENEMY_WRONG_ANSWER_PENALTY),
                 )
                 answers.append(answer)
 

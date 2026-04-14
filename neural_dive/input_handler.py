@@ -102,7 +102,8 @@ class OverlayHandler:
         Returns:
             InputResult with needs_redraw=True if overlay was closed
         """
-        # Inventory mode
+        # Each overlay type has its own dismiss key; branches are
+        # intentionally separate so close behavior stays obvious.
         if game.active_inventory:
             if key.name == "KEY_ESCAPE" or key.lower() == "v":
                 game.active_inventory = False
@@ -149,13 +150,13 @@ class ConversationHandler:
         """
         if not game.active_conversation:
             # Clean up any lingering response state
-            if hasattr(game, "last_answer_response") and game.last_answer_response:
+            if game.last_answer_response:
                 game.last_answer_response = None
                 return InputResult(handled=True, needs_redraw=True)
             return InputResult(handled=False)
 
         # Stage 1: Greeting dismissal
-        if hasattr(game, "show_greeting") and game.show_greeting:
+        if game.show_greeting:
             game.show_greeting = False
             game.text_input_buffer = ""
             return InputResult(handled=True)
@@ -302,10 +303,8 @@ class ConversationHandler:
             game: Game instance
         """
         game.exit_conversation()
-        if hasattr(game, "last_answer_response"):
-            del game.last_answer_response
-        if hasattr(game, "show_greeting"):
-            del game.show_greeting
+        game.last_answer_response = None
+        game.show_greeting = False
         game.text_input_buffer = ""
 
 
