@@ -27,6 +27,54 @@ if TYPE_CHECKING:
     from neural_dive.models import Conversation
 
 
+def _get_color_func(
+    backend: RenderBackend, color_expr: str, fallback: str
+) -> Callable[[str], str]:
+    """Resolve a color/style function on the backend by attribute name.
+
+    Args:
+        backend: Render backend instance
+        color_expr: Attribute name to look up (e.g. "bold_green")
+        fallback: Fallback attribute name if color_expr doesn't exist
+
+    Returns:
+        Callable that applies the color/style to text
+    """
+    return cast(
+        Callable[[str], str],
+        getattr(backend, color_expr, getattr(backend, fallback)),
+    )
+
+
+def _draw_wrapped_lines(
+    backend: RenderBackend,
+    lines: list[str],
+    start_x: int,
+    current_y: int,
+    max_y: int,
+    color_func: Callable[[str], str] | None = None,
+) -> int:
+    """Draw pre-wrapped text lines within a vertical bound.
+
+    Args:
+        backend: Render backend instance
+        lines: Pre-wrapped text lines to draw
+        start_x: X coordinate for each line
+        current_y: Starting Y coordinate
+        max_y: Stop drawing before this Y coordinate
+        color_func: Color function to apply (defaults to backend.black)
+
+    Returns:
+        The Y coordinate after the last drawn line
+    """
+    draw = color_func if color_func is not None else backend.black
+    for line in lines:
+        if current_y < max_y:
+            print(backend.move_xy(start_x, current_y) + draw(line), end="")
+            current_y += 1
+    return current_y
+
+
 class OverlayRenderer:
     """Base class for rendering centered overlay panels."""
 
@@ -140,9 +188,7 @@ def draw_game(
     _draw_ui(backend, game, colors)
 
     # Draw overlays if active
-    if game.active_conversation or (
-        hasattr(game, "last_answer_response") and game.last_answer_response
-    ):
+    if game.active_conversation or game.last_answer_response:
         draw_conversation_overlay(backend, game, colors)
 
     if game.active_terminal:
@@ -233,10 +279,10 @@ def _clear_old_npc_positions(
         if not _is_position_occupied(game, old_x, old_y):
             char = game.game_map[old_y][old_x]
             if char == ".":
-                color_func = getattr(backend, colors.floor, backend.cyan)
+                color_func = _get_color_func(backend, colors.floor, "cyan")
                 print(backend.move_xy(old_x, old_y) + color_func(chars.floor), end="")
             elif char == "#":
-                color_func = getattr(backend, f"bold_{colors.wall}", backend.bold_blue)
+                color_func = _get_color_func(backend, f"bold_{colors.wall}", "bold_blue")
                 print(backend.move_xy(old_x, old_y) + color_func(chars.wall), end="")
 
     # Clear the tracking dictionary after processing
@@ -300,7 +346,7 @@ def _draw_ui(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
     ui_y = backend.height - UI_BOTTOM_OFFSET
 
     # Separator line - use non-bold for light backgrounds to ensure visibility
-    ui_color = cast(Callable[[str], str], getattr(backend, colors.ui_primary, backend.normal))
+    ui_color = _get_color_func(backend, colors.ui_primary, "normal")
     print(backend.move_xy(0, ui_y) + ui_color("─" * min(backend.width, 80)), end="")
 
     # Status line
@@ -318,7 +364,7 @@ def _draw_ui(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
 
     # Message line
     print(backend.move_xy(2, ui_y + 2) + " " * (backend.width - 4), end="")
-    msg_color = getattr(backend, f"bold_{colors.ui_warning}", backend.bold_yellow)
+    msg_color = _get_color_func(backend, f"bold_{colors.ui_warning}", "bold_yellow")
     print(
         backend.move_xy(2, ui_y + 2) + msg_color(game.message[: backend.width - 4]),
         end="",
@@ -347,7 +393,7 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
 
     # If no active conversation, check if we have a completion response to show
     if not conv:
-        if hasattr(game, "last_answer_response") and game.last_answer_response:
+        if game.last_answer_response:
             draw_completion_overlay(backend, game, colors)
         return
 
@@ -356,22 +402,22 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
 
     # NPC name header
     header = f" {conv.npc_name} "
-    header_color = getattr(backend, f"bold_{colors.ui_accent}", backend.bold_magenta)
+    header_color = _get_color_func(backend, f"bold_{colors.ui_accent}", "bold_magenta")
     print(backend.move_xy(overlay.start_x + 2, overlay.start_y) + header_color(header), end="")
 
     current_y = overlay.start_y + 2
 
     # If showing greeting
-    if hasattr(game, "show_greeting") and game.show_greeting:
+    if game.show_greeting:
         lines = wrap_text(conv.greeting, overlay.width - 4)
-        for line in lines:
-            if current_y < overlay.start_y + overlay.height - 2:
-                print(backend.move_xy(overlay.start_x + 2, current_y) + backend.black(line), end="")
-                current_y += 1
+        current_y = _draw_wrapped_lines(
+            backend, lines, overlay.start_x + 2, current_y,
+            overlay.start_y + overlay.height - 2,
+        )
         current_y += 1
 
         if current_y < overlay.start_y + overlay.height - 2:
-            error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+            error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
             print(
                 backend.move_xy(overlay.start_x + 2, current_y)
                 + error_color("[Press any key to continue]"),
@@ -443,25 +489,25 @@ def _draw_response(
     if not is_completion:
         # Normal response - draw separator line
         separator = "─" * (overlay_width - 4)
-        sep_color = getattr(backend, f"bold_{colors.ui_secondary}", backend.bold_blue)
+        sep_color = _get_color_func(backend, f"bold_{colors.ui_secondary}", "bold_blue")
         print(backend.move_xy(start_x + 2, current_y) + sep_color(separator), end="")
         current_y += 1
 
         # Show "RESPONSE:" header
-        success_color = getattr(backend, f"bold_{colors.ui_success}", backend.bold_green)
+        success_color = _get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
         print(backend.move_xy(start_x + 2, current_y) + success_color("RESPONSE:"), end="")
         current_y += 2
 
     # Show response text
     lines = wrap_text(response_text, overlay_width - 4)
-    for line in lines:
-        if current_y < start_y + overlay_height - 3:
-            print(backend.move_xy(start_x + 2, current_y) + backend.black(line), end="")
-            current_y += 1
+    current_y = _draw_wrapped_lines(
+        backend, lines, start_x + 2, current_y,
+        start_y + overlay_height - 3,
+    )
     current_y += 1
 
     if current_y < start_y + overlay_height - 2:
-        error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+        error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
         print(
             backend.move_xy(start_x + 2, current_y) + error_color("[Press any key to continue]"),
             end="",
@@ -529,15 +575,15 @@ def draw_completion_overlay(backend: RenderBackend, game: Game, colors: ColorSch
 
     # Show response text directly
     lines = wrap_text(response_text, overlay.width - 4) if response_text else []
-    for line in lines:
-        if current_y < overlay.start_y + overlay.height - 3:
-            print(backend.move_xy(overlay.start_x + 2, current_y) + backend.black(line), end="")
-            current_y += 1
+    current_y = _draw_wrapped_lines(
+        backend, lines, overlay.start_x + 2, current_y,
+        overlay.start_y + overlay.height - 3,
+    )
     current_y += 1
 
     # Instructions at bottom
     if current_y < overlay.start_y + overlay.height - 2:
-        error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+        error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
         print(
             backend.move_xy(overlay.start_x + 2, current_y)
             + error_color("[Press any key to continue]"),
@@ -556,7 +602,7 @@ def draw_terminal_overlay(backend: RenderBackend, game: Game, colors: ColorSchem
 
     # Terminal title header
     header = f" {terminal.title} "
-    success_color = getattr(backend, f"bold_{colors.ui_success}", backend.bold_green)
+    success_color = _get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
     print(backend.move_xy(overlay.start_x + 2, overlay.start_y) + success_color(header), end="")
 
     current_y = overlay.start_y + 2
@@ -564,16 +610,13 @@ def draw_terminal_overlay(backend: RenderBackend, game: Game, colors: ColorSchem
     # Show content
     for line in terminal.content:
         wrapped_lines = wrap_text(line, overlay.width - 4)
-        for wrapped_line in wrapped_lines:
-            if current_y < overlay.start_y + overlay.height - 2:
-                print(
-                    backend.move_xy(overlay.start_x + 2, current_y) + backend.black(wrapped_line),
-                    end="",
-                )
-                current_y += 1
+        current_y = _draw_wrapped_lines(
+            backend, wrapped_lines, overlay.start_x + 2, current_y,
+            overlay.start_y + overlay.height - 2,
+        )
 
     # Instructions at bottom
-    error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+    error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
     print(
         backend.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
         + error_color("[Press ESC or any key to close]"),
@@ -590,7 +633,7 @@ def draw_inventory_overlay(backend: RenderBackend, game: Game, colors: ColorSche
 
     # Inventory title header
     header = " INVENTORY "
-    success_color = getattr(backend, f"bold_{colors.ui_success}", backend.bold_green)
+    success_color = _get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
     print(backend.move_xy(overlay.start_x + 2, overlay.start_y) + success_color(header), end="")
 
     current_y = overlay.start_y + 2
@@ -650,7 +693,7 @@ def draw_inventory_overlay(backend: RenderBackend, game: Game, colors: ColorSche
                     current_y += 1
 
     # Instructions at bottom
-    error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+    error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
     print(
         backend.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
         + error_color("[Press ESC or V to close]"),
@@ -669,7 +712,7 @@ def draw_snippet_overlay(backend: RenderBackend, game: Game, colors: ColorScheme
 
     # Snippet title header
     header = f" {snippet['name']} "
-    success_color = getattr(backend, f"bold_{colors.ui_success}", backend.bold_green)
+    success_color = _get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
     print(backend.move_xy(overlay.start_x + 2, overlay.start_y) + success_color(header), end="")
 
     current_y = overlay.start_y + 2
@@ -686,7 +729,7 @@ def draw_snippet_overlay(backend: RenderBackend, game: Game, colors: ColorScheme
             current_y += 1
 
     # Instructions at bottom
-    error_color = getattr(backend, f"bold_{colors.ui_error}", backend.bold_red)
+    error_color = _get_color_func(backend, f"bold_{colors.ui_error}", "bold_red")
     print(
         backend.move_xy(overlay.start_x + 2, overlay.start_y + overlay.height - 2)
         + error_color("[Press ESC or S to close]"),
@@ -708,7 +751,7 @@ def _draw_overlay_border(
         height: Height of overlay in lines
         color_name: Name of color for border (from color scheme)
     """
-    color_func = getattr(backend, f"bold_{color_name}", backend.bold_blue)
+    color_func = _get_color_func(backend, f"bold_{color_name}", "bold_blue")
 
     # Top border
     print(
@@ -746,7 +789,7 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
         print(backend.move_xy(start_x, y) + backend.black_on_white(" " * width), end="")
 
     # Draw border
-    success_color = getattr(backend, f"bold_{colors.ui_success}", backend.bold_green)
+    success_color = _get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
     _draw_overlay_border(backend, start_x, start_y, width, height, colors.ui_success)
 
     current_y = start_y + 1
@@ -800,7 +843,7 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
     # Footer
     print(
         backend.move_xy(start_x + 2, start_y + height - 2)
-        + getattr(backend, f"bold_{colors.ui_primary}", backend.bold)("[Press Q to quit]"),
+        + _get_color_func(backend, f"bold_{colors.ui_primary}", "bold")("[Press Q to quit]"),
         end="",
     )
 

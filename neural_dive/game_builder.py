@@ -8,13 +8,28 @@ from __future__ import annotations
 
 import random
 import time
-from typing import Any
+from typing import TYPE_CHECKING
 
 from neural_dive.config import PLAYER_START_X, PLAYER_START_Y
 from neural_dive.data_loader import get_default_content_set, load_all_game_data
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings, get_difficulty_settings
 from neural_dive.entities import Entity, InfoTerminal, Stairs
 from neural_dive.items import ItemPickup
+
+if TYPE_CHECKING:
+    from neural_dive.events import EventBus
+    from neural_dive.game import Game
+    from neural_dive.managers.answer_processor import AnswerProcessor
+    from neural_dive.managers.conversation_engine import ConversationEngine
+    from neural_dive.managers.floor_entity_generator import FloorEntityGenerator
+    from neural_dive.managers.floor_manager import FloorManager
+    from neural_dive.managers.interaction_handler import InteractionHandler
+    from neural_dive.managers.movement_controller import MovementController
+    from neural_dive.managers.npc_manager import NPCManager
+    from neural_dive.managers.player_manager import PlayerManager
+    from neural_dive.managers.quest_manager import QuestManager
+    from neural_dive.managers.state_manager import StateManager
+    from neural_dive.managers.stats_tracker import StatsTracker
 
 
 class GameInitializer:
@@ -73,7 +88,7 @@ class GameInitializer:
         seed: int | None,
         level_data: dict,
         floor_requirements: dict[int, set[str]] | None = None,
-    ):
+    ) -> FloorManager:
         """Create and initialize FloorManager.
 
         Args:
@@ -126,7 +141,7 @@ class GameInitializer:
         difficulty_settings: DifficultySettings,
         seed: int | None,
         level_data: dict,
-    ):
+    ) -> NPCManager:
         """Create and initialize NPCManager.
 
         Args:
@@ -152,7 +167,7 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_conversation_engine():
+    def create_conversation_engine() -> ConversationEngine:
         """Create and initialize ConversationEngine.
 
         Returns:
@@ -163,7 +178,7 @@ class GameInitializer:
         return ConversationEngine()
 
     @staticmethod
-    def create_player_manager(difficulty_settings: DifficultySettings):
+    def create_player_manager(difficulty_settings: DifficultySettings) -> PlayerManager:
         """Create and initialize PlayerManager.
 
         Args:
@@ -180,7 +195,7 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_stats_tracker() -> Any:
+    def create_stats_tracker() -> StatsTracker:
         """Create a StatsTracker for game statistics.
 
         Returns:
@@ -191,7 +206,7 @@ class GameInitializer:
         return StatsTracker()
 
     @staticmethod
-    def create_quest_manager() -> Any:
+    def create_quest_manager() -> QuestManager:
         """Create a QuestManager for quest tracking.
 
         Returns:
@@ -203,15 +218,15 @@ class GameInitializer:
 
     @staticmethod
     def create_answer_processor(
-        player_manager: Any,
-        npc_manager: Any,
-        conversation_engine: Any,
-        stats_tracker: Any,
-        quest_manager: Any,
+        player_manager: PlayerManager,
+        npc_manager: NPCManager,
+        conversation_engine: ConversationEngine,
+        stats_tracker: StatsTracker,
+        quest_manager: QuestManager,
         difficulty_settings: DifficultySettings,
         snippets: dict,
-        rand: Any,
-    ) -> Any:
+        rand: random.Random,
+    ) -> AnswerProcessor:
         """Create an AnswerProcessor for handling question answers.
 
         Args:
@@ -241,7 +256,7 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_floor_entity_generator(level_data: dict, snippets: dict, rand: random.Random) -> Any:
+    def create_floor_entity_generator(level_data: dict, snippets: dict, rand: random.Random) -> FloorEntityGenerator:
         """Create a FloorEntityGenerator for entity generation.
 
         Args:
@@ -261,7 +276,7 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_movement_controller() -> Any:
+    def create_movement_controller() -> MovementController:
         """Create a MovementController for player movement.
 
         Returns:
@@ -273,12 +288,12 @@ class GameInitializer:
 
     @staticmethod
     def create_interaction_handler(
-        player_manager: Any,
-        conversation_engine: Any,
-        floor_manager: Any,
-        quest_manager: Any,
+        player_manager: PlayerManager,
+        conversation_engine: ConversationEngine,
+        floor_manager: FloorManager,
+        quest_manager: QuestManager,
         difficulty_settings: DifficultySettings,
-    ) -> Any:
+    ) -> InteractionHandler:
         """Create an InteractionHandler for entity interactions.
 
         Args:
@@ -343,7 +358,7 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_event_bus() -> Any:
+    def create_event_bus() -> EventBus:
         """Create an EventBus for event-driven architecture.
 
         Returns:
@@ -354,7 +369,7 @@ class GameInitializer:
         return EventBus()
 
     @staticmethod
-    def create_state_manager(game: Any, event_bus: Any) -> Any:
+    def create_state_manager(game: Game, event_bus: EventBus) -> StateManager:
         """Create a StateManager for centralized state mutations.
 
         Args:
@@ -477,7 +492,7 @@ class GameBuilder:
         self._random_npcs = True
         return self
 
-    def build(self) -> Any:
+    def build(self) -> Game:
         """Build Game instance with configured settings.
 
         Returns:

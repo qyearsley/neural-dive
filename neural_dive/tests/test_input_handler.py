@@ -173,10 +173,7 @@ class TestConversationHandler(unittest.TestCase):
     def test_no_conversation_returns_not_handled(self):
         """Test handler returns not handled when no conversation active."""
         self.game.active_conversation = None
-
-        # Ensure no lingering response state
-        if hasattr(self.game, "last_answer_response"):
-            del self.game.last_answer_response
+        self.game.last_answer_response = None
 
         key = Mock()
 

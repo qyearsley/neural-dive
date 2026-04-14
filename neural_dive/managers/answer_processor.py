@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from neural_dive.answer_matching import match_answer
+from neural_dive.config import VICTORY_BOSS_NAMES
 from neural_dive.difficulty import DifficultySettings
 from neural_dive.enums import NPCType
 from neural_dive.models import Answer
@@ -277,9 +278,7 @@ class AnswerProcessor:
 
             # Check for victory condition on final floor
             if is_final_floor:
-                # Victory bosses - defeating any of these wins the game
-                victory_bosses = {"FINAL_BOSS", "RESILIENCE_BOSS", "ML_BOSS", "THEORY_BOSS"}
-                if npc_name in victory_bosses:
+                if npc_name in VICTORY_BOSS_NAMES:
                     game_was_won = True
 
             # Track quest completion for specialists

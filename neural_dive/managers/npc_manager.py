@@ -187,8 +187,19 @@ class NPCManager:
                 self.npcs.append(npc)
 
                 # Add to all_npcs if not already there
-                if not any(n.name == npc_name for n in self.all_npcs):
+                if not self._npc_exists(npc_name):
                     self.all_npcs.append(npc)
+
+    def _npc_exists(self, npc_name: str) -> bool:
+        """Check if an NPC with the given name is already tracked.
+
+        Args:
+            npc_name: Name to search for
+
+        Returns:
+            True if an NPC with that name exists in all_npcs
+        """
+        return any(n.name == npc_name for n in self.all_npcs)
 
     def _generate_random_placement(
         self,
@@ -235,7 +246,7 @@ class NPCManager:
                 self.npcs.append(npc)
 
                 # Add to all_npcs if not already there
-                if not any(n.name == npc_name for n in self.all_npcs):
+                if not self._npc_exists(npc_name):
                     self.all_npcs.append(npc)
 
     def update_wandering(

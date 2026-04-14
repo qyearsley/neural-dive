@@ -73,6 +73,14 @@ QUEST_TARGET_NPCS = {
     "CLOUD_MIND",
 }
 
+# Victory condition -- defeating any of these bosses on the final floor wins
+VICTORY_BOSS_NAMES: set[str] = {
+    "FINAL_BOSS",
+    "RESILIENCE_BOSS",
+    "ML_BOSS",
+    "THEORY_BOSS",
+}
+
 # NPC Wandering System
 # NPCs alternate between idle and wander states for natural movement
 NPC_WANDER_ENABLED = True  # Set to False to disable all NPC movement
