@@ -16,3 +16,8 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+# Secrets
+.env*
+*.key
+*.pem
