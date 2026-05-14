@@ -277,9 +277,8 @@ class AnswerProcessor:
             response = self._give_npc_rewards(conv.npc_type, response)
 
             # Check for victory condition on final floor
-            if is_final_floor:
-                if npc_name in VICTORY_BOSS_NAMES:
-                    game_was_won = True
+            if is_final_floor and npc_name in VICTORY_BOSS_NAMES:
+                game_was_won = True
 
             # Track quest completion for specialists
             if conv.npc_type == NPCType.SPECIALIST:
