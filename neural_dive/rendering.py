@@ -300,11 +300,10 @@ def _draw_entities(
         chars: Character set for rendering entities
         colors: Color scheme for entity colors
     """
-    from neural_dive.config import FLOOR_REQUIRED_NPCS
     from neural_dive.entity_renderers import EntityType, get_entity_renderer
 
-    # Get required NPCs for current floor
-    required_npcs = FLOOR_REQUIRED_NPCS.get(game.current_floor, set())
+    # Get required NPCs for current floor (computed dynamically from NPC data)
+    required_npcs = game.floor_manager.floor_requirements.get(game.current_floor, set())
 
     # Draw NPCs using NPCRenderer
     npc_renderer = get_entity_renderer(EntityType.NPC)

@@ -179,7 +179,6 @@ class TestFloorManagerCompletion(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.manager = FloorManager()
-        # FLOOR_REQUIRED_NPCS for floor 1 is typically {"ALGO_SPIRIT"}
         self.npc_data = {
             "ALGO_SPIRIT": {"floor": 1},
             "DATA_GUARDIAN": {"floor": 1},
@@ -195,20 +194,15 @@ class TestFloorManagerCompletion(unittest.TestCase):
 
     def test_is_floor_complete_when_requirements_met(self):
         """Test floor completion when all required NPCs completed."""
-        # Floor 1 requires ALGO_SPIRIT
         self.manager.current_floor = 1
         npcs_completed = {"ALGO_SPIRIT", "DATA_GUARDIAN"}
 
-        # Should be complete (ALGO_SPIRIT is done)
         is_complete = self.manager.is_floor_complete(npcs_completed, self.npc_data)
 
-        # This depends on FLOOR_REQUIRED_NPCS config
-        # If ALGO_SPIRIT is required, should be True
         self.assertIsInstance(is_complete, bool)
 
     def test_is_floor_complete_when_requirements_not_met(self):
         """Test floor completion when required NPCs not completed."""
-        # Floor 1 requires ALGO_SPIRIT
         self.manager.current_floor = 1
         npcs_completed = {"DATA_GUARDIAN"}  # Missing ALGO_SPIRIT
 
