@@ -4,10 +4,10 @@
 import json
 
 # Load data
-with open('neural_dive/data/npcs.json') as f:
+with open('neural_dive/data/content/algorithms/npcs.json') as f:
     npcs = json.load(f)
 
-with open('neural_dive/data/questions.json') as f:
+with open('neural_dive/data/content/algorithms/questions.json') as f:
     questions = json.load(f)
 
 print("=" * 70)

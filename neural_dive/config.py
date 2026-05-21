@@ -58,12 +58,8 @@ ITEM_CHAR_CODE_SNIPPET = "S"
 ITEM_COLOR_HINT_TOKEN = "magenta"
 ITEM_COLOR_CODE_SNIPPET = "cyan"
 
-# Floor completion requirements
-FLOOR_REQUIRED_NPCS = {
-    1: {"ALGO_SPIRIT", "HEAP_MASTER", "TEST_ORACLE"},
-    2: {"WEB_ARCHITECT", "NET_DAEMON", "COMPILER_SAGE", "SYSTEM_CORE"},
-    3: set(),  # No requirements for final floor - boss rush with optional NPCs
-}
+# Floor requirements are computed dynamically from NPC data; see
+# neural_dive.data_loader.compute_floor_requirements.
 
 # Quest system
 QUEST_TARGET_NPCS = {
@@ -78,7 +74,6 @@ VICTORY_BOSS_NAMES: set[str] = {
     "FINAL_BOSS",
     "RESILIENCE_BOSS",
     "ML_BOSS",
-    "THEORY_BOSS",
 }
 
 # NPC Wandering System

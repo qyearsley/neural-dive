@@ -161,33 +161,6 @@
       }
     ]
   },
-  "compiler_phases": {
-    "question_text": "Which compiler phase comes immediately after lexical analysis?",
-    "topic": "compilers",
-    "answers": [
-      {
-        "text": "Code generation",
-        "correct": false,
-        "response": "Code generation is near the end of compilation."
-      },
-      {
-        "text": "Optimization",
-        "correct": false,
-        "response": "Optimization happens after semantic analysis."
-      },
-      {
-        "text": "Parsing (syntax analysis)",
-        "correct": true,
-        "response": "Correct! Parsing builds the syntax tree from tokens.",
-        "reward_knowledge": "compilers"
-      },
-      {
-        "text": "Semantic analysis",
-        "correct": false,
-        "response": "Semantic analysis comes after parsing."
-      }
-    ]
-  },
   "acid": {
     "question_text": "In database ACID properties, what does the 'I' stand for?",
     "topic": "databases",
@@ -435,33 +408,6 @@
       }
     ]
   },
-  "inodes": {
-    "question_text": "What does an inode in a Unix filesystem store?",
-    "topic": "systems",
-    "answers": [
-      {
-        "text": "The file name and directory structure",
-        "correct": false,
-        "response": "File names are stored in directory entries, not inodes!"
-      },
-      {
-        "text": "File metadata (permissions, timestamps, pointers to data blocks)",
-        "correct": true,
-        "response": "Correct! Inodes store everything about a file except its name and data.",
-        "reward_knowledge": "filesystems"
-      },
-      {
-        "text": "Only the file size",
-        "correct": false,
-        "response": "Inodes store much more: permissions, owner, timestamps, block pointers..."
-      },
-      {
-        "text": "The actual file contents",
-        "correct": false,
-        "response": "Contents are in data blocks; inodes point to those blocks."
-      }
-    ]
-  },
   "message_queues": {
     "question_text": "What's a key advantage of message queues over direct RPC calls?",
     "topic": "distributed_systems",
@@ -513,33 +459,6 @@
         "text": "You can partition your database for better performance",
         "correct": false,
         "response": "That's horizontal scaling, not partition tolerance."
-      }
-    ]
-  },
-  "cpu_pipelining": {
-    "question_text": "What problem does branch prediction solve in CPU pipelining?",
-    "topic": "architecture",
-    "answers": [
-      {
-        "text": "It prevents race conditions",
-        "correct": false,
-        "response": "That's about concurrency, not pipeline efficiency."
-      },
-      {
-        "text": "It reduces pipeline stalls from conditional branches",
-        "correct": true,
-        "response": "Correct! By guessing which branch to take, we keep the pipeline full.",
-        "reward_knowledge": "cpu_architecture"
-      },
-      {
-        "text": "It increases clock speed",
-        "correct": false,
-        "response": "Branch prediction doesn't change clock speed, it improves throughput."
-      },
-      {
-        "text": "It adds more cores to the CPU",
-        "correct": false,
-        "response": "That's multi-core architecture, not branch prediction."
       }
     ]
   },
@@ -1191,36 +1110,6 @@
       }
     ]
   },
-  "regularization_ml": {
-    "question_text": "How does dropout regularization help prevent overfitting in neural networks?",
-    "topic": "machine_learning",
-    "answers": [
-      {
-        "text": "It randomly disables neurons during training, forcing the network to learn robust features",
-        "correct": true,
-        "response": "Correct! Dropout randomly drops neurons (e.g., 50% probability) each training step. This prevents co-adaptation and forces redundant representations. Like training an ensemble! Turn off during inference.",
-        "reward_knowledge": "ml_regularization"
-      },
-      {
-        "text": "It reduces the number of layers in the network",
-        "correct": false,
-        "response": "Dropout doesn't change architecture. It temporarily disables random neurons during training to prevent overfitting.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It stops training when validation error increases",
-        "correct": false,
-        "response": "That's early stopping, not dropout. Both prevent overfitting but in different ways.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "It adds noise to the training data",
-        "correct": false,
-        "response": "Data augmentation adds noise to data. Dropout adds noise to the model by disabling neurons. Both help regularization but differently.",
-        "reward_knowledge": null
-      }
-    ]
-  },
   "git_basics": {
     "question_text": "What is the difference between 'git pull' and 'git fetch'?",
     "topic": "version_control",
@@ -1619,36 +1508,6 @@
       }
     ]
   },
-  "null_vs_undefined": {
-    "question_text": "In JavaScript, what's the difference between null and undefined?",
-    "topic": "programming_fundamentals",
-    "answers": [
-      {
-        "text": "undefined means uninitialized; null is an explicit absence of value",
-        "correct": true,
-        "response": "Correct! undefined: variable declared but not assigned. null: intentionally set to 'no value'. Both are falsy but semantically different.",
-        "reward_knowledge": "javascript_fundamentals"
-      },
-      {
-        "text": "They're exactly the same thing",
-        "correct": false,
-        "response": "Similar but different! null is intentional; undefined means not yet initialized. typeof null is 'object' (bug!), typeof undefined is 'undefined'.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "null is a number, undefined is a string",
-        "correct": false,
-        "response": "Neither! null is its own type (though typeof says 'object'). undefined is also its own type.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "You should never use null in JavaScript",
-        "correct": false,
-        "response": "null is useful for explicitly indicating 'no value'. It communicates intent better than undefined.",
-        "reward_knowledge": null
-      }
-    ]
-  },
   "solid_srp": {
     "question_text": "What does the 'S' in SOLID principles stand for?",
     "topic": "software_engineering",
@@ -1679,157 +1538,6 @@
       }
     ]
   },
-  "solid_ocp": {
-    "question_text": "What does the 'O' in SOLID principles stand for?",
-    "topic": "software_engineering",
-    "answers": [
-      {
-        "text": "Open/Closed Principle",
-        "correct": true,
-        "response": "Correct! Software entities should be open for extension but closed for modification. Use interfaces and inheritance to add new behavior without changing existing code.",
-        "reward_knowledge": "solid_principles"
-      },
-      {
-        "text": "Object-Oriented Programming",
-        "correct": false,
-        "response": "No. O = Open/Closed Principle. Classes should be open for extension, closed for modification.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Optimized Code Principle",
-        "correct": false,
-        "response": "Not quite! O = Open/Closed Principle. Design so you can extend without modifying existing code.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Operator Overloading",
-        "correct": false,
-        "response": "Incorrect! O = Open/Closed Principle. Open for extension, closed for modification.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "solid_lsp": {
-    "question_text": "What does the 'L' in SOLID principles stand for?",
-    "topic": "software_engineering",
-    "answers": [
-      {
-        "text": "Liskov Substitution Principle",
-        "correct": true,
-        "response": "Correct! Subtypes must be substitutable for their base types without breaking the program. Named after Barbara Liskov, this ensures polymorphism works correctly.",
-        "reward_knowledge": "solid_principles"
-      },
-      {
-        "text": "Layered Architecture",
-        "correct": false,
-        "response": "No. L = Liskov Substitution Principle. Subtypes should be substitutable for their base types.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Loose Coupling",
-        "correct": false,
-        "response": "Not quite! L = Liskov Substitution Principle. If S is a subtype of T, you should be able to replace T with S.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Logical Separation",
-        "correct": false,
-        "response": "Incorrect! L = Liskov Substitution Principle. Derived classes must be substitutable for base classes.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "solid_isp": {
-    "question_text": "What does the 'I' in SOLID principles stand for?",
-    "topic": "software_engineering",
-    "answers": [
-      {
-        "text": "Interface Segregation Principle",
-        "correct": true,
-        "response": "Correct! No client should be forced to depend on methods it doesn't use. Many specific interfaces are better than one general-purpose interface.",
-        "reward_knowledge": "solid_principles"
-      },
-      {
-        "text": "Inheritance Pattern",
-        "correct": false,
-        "response": "No. I = Interface Segregation Principle. Split large interfaces into smaller, more specific ones.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Implementation Hiding",
-        "correct": false,
-        "response": "Not quite! I = Interface Segregation Principle. Clients shouldn't depend on interfaces they don't use.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Immutable Objects",
-        "correct": false,
-        "response": "Incorrect! I = Interface Segregation Principle. Make interfaces focused and specific.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "solid_dip": {
-    "question_text": "What does the 'D' in SOLID principles stand for?",
-    "topic": "software_engineering",
-    "answers": [
-      {
-        "text": "Dependency Inversion Principle",
-        "correct": true,
-        "response": "Correct! Depend on abstractions, not concretions. High-level modules shouldn't depend on low-level modules; both should depend on abstractions.",
-        "reward_knowledge": "solid_principles"
-      },
-      {
-        "text": "Data Encapsulation",
-        "correct": false,
-        "response": "No. D = Dependency Inversion Principle. Depend on abstractions (interfaces), not concrete implementations.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Design Patterns",
-        "correct": false,
-        "response": "Not quite! D = Dependency Inversion Principle. High-level code should depend on abstractions.",
-        "reward_knowledge": null
-      },
-      {
-        "text": "Dynamic Dispatch",
-        "correct": false,
-        "response": "Incorrect! D = Dependency Inversion Principle. Depend on interfaces, not concrete classes.",
-        "reward_knowledge": null
-      }
-    ]
-  },
-  "turing_completeness": {
-    "question_text": "What does it mean for a system to be Turing complete?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "It can simulate any Turing machine given enough time and memory",
-        "correct": true,
-        "response": "Correct! Turing completeness means the system can compute anything computable. Even simple systems like Rule 110 cellular automata are Turing complete!",
-        "reward_knowledge": "computability",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "It can solve the halting problem",
-        "correct": false,
-        "response": "No! The halting problem is undecidable even for Turing complete systems. Turing completeness is about computational power, not decidability.",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "It always terminates for any input",
-        "correct": false,
-        "response": "Opposite! Turing complete systems can run forever. That's why the halting problem is undecidable.",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "It can only execute a fixed set of programs",
-        "correct": false,
-        "response": "No! Turing completeness means universal computation - any computable function can be computed.",
-        "enemy_penalty": 45
-      }
-    ]
-  },
   "gradient_descent": {
     "question_text": "What is the purpose of gradient descent in training neural networks?",
     "topic": "ai_ml",
@@ -1857,37 +1565,6 @@
         "text": "To eliminate the need for training data",
         "correct": false,
         "response": "No! Gradient descent requires training data to compute loss and gradients. It's a supervised learning technique.",
-        "enemy_penalty": 45
-      }
-    ]
-  },
-  "finite_automata": {
-    "question_text": "What type of language can a deterministic finite automaton (DFA) recognize?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "Regular languages",
-        "correct": true,
-        "response": "Correct! DFAs recognize exactly the regular languages - same power as regular expressions and NFAs. They have finite memory (just the current state).",
-        "reward_knowledge": "automata_theory",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "Context-free languages",
-        "correct": false,
-        "response": "That's pushdown automata! DFAs can't count or match nested structures. They recognize regular languages only.",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "All computable languages",
-        "correct": false,
-        "response": "That would require Turing completeness. DFAs have finite memory and can only recognize regular languages.",
-        "enemy_penalty": 45
-      },
-      {
-        "text": "Context-sensitive languages",
-        "correct": false,
-        "response": "That requires a linear bounded automaton. DFAs are much weaker - they recognize only regular languages.",
         "enemy_penalty": 45
       }
     ]
@@ -1946,33 +1623,6 @@
       }
     ]
   },
-  "greedy_algorithms": {
-    "question_text": "Which problem can be solved optimally using a greedy algorithm?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "0/1 Knapsack",
-        "correct": false,
-        "response": "0/1 Knapsack requires dynamic programming."
-      },
-      {
-        "text": "Traveling Salesman",
-        "correct": false,
-        "response": "TSP is NP-hard, greedy doesn't guarantee optimal."
-      },
-      {
-        "text": "Huffman Coding",
-        "correct": true,
-        "response": "Yes! Huffman coding is a classic greedy algorithm.",
-        "reward_knowledge": "greedy"
-      },
-      {
-        "text": "Longest Common Subsequence",
-        "correct": false,
-        "response": "LCS needs dynamic programming."
-      }
-    ]
-  },
   "amortized_analysis": {
     "question_text": "What does amortized time complexity measure?",
     "topic": "algorithms",
@@ -2024,168 +1674,6 @@
         "text": "Random access",
         "correct": false,
         "response": "Arrays give O(1) random access by index. Tries are for string prefix operations - each character is a node, paths spell words. Perfect for autocomplete and spell checking\\!"
-      }
-    ]
-  },
-  "skip_list": {
-    "question_text": "What is the expected time complexity of search in a skip list?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "O(1)",
-        "correct": false,
-        "response": "Skip lists are faster than O(1)\\! They're probabilistic data structures with multiple layers of linked lists, providing O(log n) average search time - like balanced trees but simpler."
-      },
-      {
-        "text": "O(log n)",
-        "correct": true,
-        "response": "Correct! Skip lists provide O(log n) expected search time.",
-        "reward_knowledge": "skip_list"
-      },
-      {
-        "text": "O(n)",
-        "correct": false,
-        "response": "Skip lists are faster\\! They use multiple levels of express lanes (like highways) to skip over elements, achieving O(log n) expected search in a linked list structure."
-      },
-      {
-        "text": "O(n log n)",
-        "correct": false,
-        "response": "O(n log n) is for sorting algorithms. Skip lists achieve O(log n) search by maintaining multiple layers, where higher layers skip more elements - probabilistic balanced search\\!"
-      }
-    ]
-  },
-  "b_tree": {
-    "question_text": "Why are B-trees commonly used in databases?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "They use less memory",
-        "correct": false,
-        "response": "Memory isn't the key reason. B-trees are designed for disk storage where each node holds many keys. Wide nodes mean fewer disk seeks since disk I/O is expensive (milliseconds vs nanoseconds for RAM)."
-      },
-      {
-        "text": "Minimize disk I/O",
-        "correct": true,
-        "response": "Yes! B-trees minimize expensive disk operations.",
-        "reward_knowledge": "b_tree"
-      },
-      {
-        "text": "Faster than hash tables",
-        "correct": false,
-        "response": "Hash tables are faster for exact key lookups (O(1)). B-trees excel at range queries and are optimized for disk I/O - each node is a disk block, minimizing expensive seeks."
-      },
-      {
-        "text": "Easier to implement",
-        "correct": false,
-        "response": "B-trees are actually complex\\! But they're used because they minimize disk I/O. Wide nodes (many keys per node) mean fewer disk accesses, critical for database performance."
-      }
-    ]
-  },
-  "chomsky_hierarchy": {
-    "question_text": "In the Chomsky hierarchy, which languages can a finite automaton recognize?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "Regular languages",
-        "correct": true,
-        "response": "Correct! Finite automata recognize regular languages.",
-        "reward_knowledge": "chomsky"
-      },
-      {
-        "text": "Context-free languages",
-        "correct": false,
-        "response": "Context-free needs push-down automata."
-      },
-      {
-        "text": "All languages",
-        "correct": false,
-        "response": "Finite automata are limited in power."
-      },
-      {
-        "text": "No languages",
-        "correct": false,
-        "response": "They can recognize regular languages!"
-      }
-    ]
-  },
-  "rice_theorem": {
-    "question_text": "What does Rice's Theorem state?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "All problems are decidable",
-        "correct": false,
-        "response": "Many problems are undecidable!"
-      },
-      {
-        "text": "Non-trivial properties of programs are undecidable",
-        "correct": true,
-        "response": "Correct! Rice's Theorem is fundamental to computability.",
-        "reward_knowledge": "rice"
-      },
-      {
-        "text": "P = NP",
-        "correct": false,
-        "response": "Rice's Theorem doesn't address P vs NP."
-      },
-      {
-        "text": "All algorithms terminate",
-        "correct": false,
-        "response": "The halting problem shows this is undecidable."
-      }
-    ]
-  },
-  "reduction": {
-    "question_text": "In complexity theory, what does a reduction prove?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "A problem is easy",
-        "correct": false,
-        "response": "Reductions often prove hardness!"
-      },
-      {
-        "text": "Relative difficulty",
-        "correct": true,
-        "response": "Yes! Reductions show one problem is at least as hard as another.",
-        "reward_knowledge": "reduction"
-      },
-      {
-        "text": "Problems are identical",
-        "correct": false,
-        "response": "Reductions show relationships, not equivalence."
-      },
-      {
-        "text": "Algorithms are optimal",
-        "correct": false,
-        "response": "Reductions are about problem hardness."
-      }
-    ]
-  },
-  "space_hierarchy": {
-    "question_text": "What does the Space Hierarchy Theorem state?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "All space bounds are equivalent",
-        "correct": false,
-        "response": "Different space bounds have different power!"
-      },
-      {
-        "text": "More space = more problems solvable",
-        "correct": true,
-        "response": "Correct! More space enables solving harder problems.",
-        "reward_knowledge": "space_hierarchy"
-      },
-      {
-        "text": "Space and time are identical",
-        "correct": false,
-        "response": "Space and time are related but distinct."
-      },
-      {
-        "text": "Constant space solves everything",
-        "correct": false,
-        "response": "Many problems require more space."
       }
     ]
   },
@@ -2549,33 +2037,6 @@
       }
     ]
   },
-  "page_replacement": {
-    "question_text": "Which page replacement algorithm is optimal but impractical?",
-    "topic": "systems",
-    "answers": [
-      {
-        "text": "FIFO",
-        "correct": false,
-        "response": "FIFO is practical but not optimal."
-      },
-      {
-        "text": "LRU",
-        "correct": false,
-        "response": "LRU is practical and good, but not optimal."
-      },
-      {
-        "text": "Optimal (Bélády's)",
-        "correct": true,
-        "response": "Correct! Optimal requires knowing the future.",
-        "reward_knowledge": "page_replacement"
-      },
-      {
-        "text": "Random",
-        "correct": false,
-        "response": "Random is definitely not optimal!"
-      }
-    ]
-  },
   "scheduler_types": {
     "question_text": "Which scheduling algorithm can cause starvation?",
     "topic": "systems",
@@ -2827,33 +2288,6 @@
       }
     ]
   },
-  "indexing": {
-    "question_text": "What is a trade-off of adding database indexes?",
-    "topic": "databases",
-    "answers": [
-      {
-        "text": "No trade-offs",
-        "correct": false,
-        "response": "There are always trade-offs!"
-      },
-      {
-        "text": "Faster reads, slower writes",
-        "correct": true,
-        "response": "Correct! Indexes speed up queries but slow down inserts.",
-        "reward_knowledge": "indexing"
-      },
-      {
-        "text": "Slower everything",
-        "correct": false,
-        "response": "Indexes do help read performance."
-      },
-      {
-        "text": "More storage needed, but no performance impact",
-        "correct": false,
-        "response": "Indexes affect performance!"
-      }
-    ]
-  },
   "normalization": {
     "type": "yes_no",
     "question_text": "Should you normalize/scale features before training most ML models?",
@@ -2943,33 +2377,6 @@
       }
     ]
   },
-  "lazy_evaluation": {
-    "question_text": "What is lazy evaluation?",
-    "topic": "programming_fundamentals",
-    "answers": [
-      {
-        "text": "Slow execution",
-        "correct": false,
-        "response": "Lazy doesn't mean slow!"
-      },
-      {
-        "text": "Computing values only when needed",
-        "correct": true,
-        "response": "Correct! Lazy evaluation defers computation.",
-        "reward_knowledge": "lazy_eval"
-      },
-      {
-        "text": "Caching all results",
-        "correct": false,
-        "response": "That's memoization, different concept."
-      },
-      {
-        "text": "Parallel execution",
-        "correct": false,
-        "response": "Lazy evaluation is about deferral."
-      }
-    ]
-  },
   "immutability": {
     "question_text": "What is a benefit of immutable data structures?",
     "topic": "programming_fundamentals",
@@ -2994,33 +2401,6 @@
         "text": "Better for I/O",
         "correct": false,
         "response": "Immutability is about state management."
-      }
-    ]
-  },
-  "type_inference": {
-    "question_text": "What does type inference do?",
-    "topic": "programming_fundamentals",
-    "answers": [
-      {
-        "text": "Removes all types",
-        "correct": false,
-        "response": "Types still exist!"
-      },
-      {
-        "text": "Automatically deduces types",
-        "correct": true,
-        "response": "Correct! Type inference determines types from context.",
-        "reward_knowledge": "type_inference"
-      },
-      {
-        "text": "Makes code slower",
-        "correct": false,
-        "response": "Inference happens at compile time."
-      },
-      {
-        "text": "Only works with numbers",
-        "correct": false,
-        "response": "Type inference works with all types."
       }
     ]
   },
@@ -3186,87 +2566,6 @@
       }
     ]
   },
-  "four_golden_signals": {
-    "question_text": "What are the 'Four Golden Signals' of monitoring?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Latency, Traffic, Errors, Saturation",
-        "correct": true,
-        "response": "Correct\\! Google's SRE book defines these: Latency (response time), Traffic (demand), Errors (failed requests), Saturation (resource usage). Monitor these to understand system health\\!",
-        "reward_knowledge": "golden_signals"
-      },
-      {
-        "text": "CPU, Memory, Disk, Network",
-        "correct": false,
-        "response": "Those are infrastructure metrics. Golden signals focus on user-facing metrics: latency, traffic, errors, saturation."
-      },
-      {
-        "text": "Logs, Metrics, Traces, Alerts",
-        "correct": false,
-        "response": "Those are observability pillars. Golden signals are specific metrics: latency, traffic, errors, saturation."
-      },
-      {
-        "text": "Uptime, Downtime, SLA, SLO",
-        "correct": false,
-        "response": "Those are reliability metrics. Golden signals are: latency, traffic, errors, saturation."
-      }
-    ]
-  },
-  "rolling_update": {
-    "question_text": "How does a rolling update work?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Update all servers at once",
-        "correct": false,
-        "response": "That would cause downtime\\! Rolling updates incrementally replace instances."
-      },
-      {
-        "text": "Gradually replace old instances with new ones",
-        "correct": true,
-        "response": "Correct\\! Rolling updates replace instances one by one (or in small batches), maintaining availability. If issues arise, you can pause or roll back. Kubernetes and ECS support this natively.",
-        "reward_knowledge": "rolling_update"
-      },
-      {
-        "text": "Only roll logs, not code",
-        "correct": false,
-        "response": "Not about logs\\! Rolling update means gradually replacing old application versions with new ones."
-      },
-      {
-        "text": "Update database only",
-        "correct": false,
-        "response": "Rolling updates apply to application instances, not just databases."
-      }
-    ]
-  },
-  "terraform_state": {
-    "question_text": "Why is Terraform state important?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "It's not needed",
-        "correct": false,
-        "response": "State is essential\\! Terraform needs it to map configuration to real resources."
-      },
-      {
-        "text": "Tracks real infrastructure to detect drift",
-        "correct": true,
-        "response": "Correct\\! State maps your configuration to real resources, enabling drift detection, incremental changes, and collaboration. Store it remotely (S3, Terraform Cloud) with locking to prevent corruption\\!",
-        "reward_knowledge": "terraform"
-      },
-      {
-        "text": "Only for local testing",
-        "correct": false,
-        "response": "State is critical for production\\! Remote state enables team collaboration and prevents conflicts."
-      },
-      {
-        "text": "Can be deleted safely anytime",
-        "correct": false,
-        "response": "Never delete state\\! You'll lose the mapping to real resources. Back it up carefully."
-      }
-    ]
-  },
   "api_pagination": {
     "question_text": "What's the advantage of cursor-based over offset-based pagination?",
     "topic": "system_design",
@@ -3375,33 +2674,6 @@
       }
     ]
   },
-  "big_theta_notation": {
-    "question_text": "What does Big-Theta (Θ) notation represent?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "Tight bound - both upper and lower",
-        "correct": true,
-        "response": "Correct\\! Θ(n) means the function grows exactly at rate n - both upper and lower bounded. O(n) is upper bound only, Ω(n) is lower bound only. Θ is most precise\\!",
-        "reward_knowledge": "complexity_notation"
-      },
-      {
-        "text": "Worst case only",
-        "correct": false,
-        "response": "That's Big-O\\! Θ (theta) gives a tight bound - the function grows exactly at that rate, not just at most."
-      },
-      {
-        "text": "Best case only",
-        "correct": false,
-        "response": "That's Big-Omega (Ω)\\! Θ bounds both directions - the function grows exactly at that rate."
-      },
-      {
-        "text": "Average case",
-        "correct": false,
-        "response": "Asymptotic notation describes growth rates, not probabilistic cases. Θ means tight bound (exact growth)."
-      }
-    ]
-  },
   "np_complete": {
     "question_text": "What makes a problem NP-complete?",
     "topic": "theory",
@@ -3426,60 +2698,6 @@
         "text": "Easier than NP problems",
         "correct": false,
         "response": "Opposite\\! NP-complete problems are the HARDEST in NP. All other NP problems reduce to them."
-      }
-    ]
-  },
-  "context_free_grammar": {
-    "question_text": "What can context-free grammars describe that regular expressions cannot?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "Nested structures like balanced parentheses",
-        "correct": true,
-        "response": "Correct\\! CFGs can count and match nested structures. RegEx can't match {a^n b^n} (equal a's and b's). That's why parsers use CFGs for code, HTML, etc\\!",
-        "reward_knowledge": "formal_languages"
-      },
-      {
-        "text": "Regular expressions are more powerful",
-        "correct": false,
-        "response": "Opposite\\! CFGs are strictly more powerful than regular expressions in the Chomsky hierarchy."
-      },
-      {
-        "text": "They're equally powerful",
-        "correct": false,
-        "response": "CFGs are more powerful\\! They can handle nested structures that RegEx cannot."
-      },
-      {
-        "text": "Nothing - CFGs are weaker",
-        "correct": false,
-        "response": "CFGs are MORE powerful\\! They can describe nested/recursive structures that regular languages can't."
-      }
-    ]
-  },
-  "master_theorem": {
-    "question_text": "What does the Master Theorem help analyze?",
-    "topic": "theory",
-    "answers": [
-      {
-        "text": "Recurrence relations for divide-and-conquer",
-        "correct": true,
-        "response": "Correct\\! Master Theorem gives Big-O for recurrences like T(n) = aT(n/b) + f(n). Instantly analyze merge sort, binary search, etc without solving\\!",
-        "reward_knowledge": "master_theorem"
-      },
-      {
-        "text": "Graph algorithms only",
-        "correct": false,
-        "response": "Master Theorem analyzes divide-and-conquer recurrences - any recursive algorithm that splits into subproblems."
-      },
-      {
-        "text": "Dynamic programming problems",
-        "correct": false,
-        "response": "Master Theorem is for divide-and-conquer, not DP. DP has overlapping subproblems; D&C splits independently."
-      },
-      {
-        "text": "Database query performance",
-        "correct": false,
-        "response": "Master Theorem analyzes recursive algorithm complexity, not database queries."
       }
     ]
   },
@@ -3511,34 +2729,6 @@
       }
     ]
   },
-  "overfitting_definition": {
-    "type": "multiple_choice",
-    "question_text": "What is overfitting in machine learning?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "Model performs well on training data but poorly on new data",
-        "correct": true,
-        "response": "Correct! Overfitting means the model memorized training data instead of learning patterns.",
-        "reward_knowledge": "overfitting"
-      },
-      {
-        "text": "Model performs poorly on all data",
-        "correct": false,
-        "response": "That's underfitting, not overfitting."
-      },
-      {
-        "text": "Model trains too slowly",
-        "correct": false,
-        "response": "Overfitting is about generalization, not training speed."
-      },
-      {
-        "text": "Model uses too much memory",
-        "correct": false,
-        "response": "Overfitting is about generalization, not memory usage."
-      }
-    ]
-  },
   "train_test_split": {
     "type": "yes_no",
     "question_text": "Should you evaluate your ML model on the same data you trained it on?",
@@ -3546,44 +2736,6 @@
     "correct_answer": "no|false|n",
     "correct_response": "Correct! Always use separate test data to evaluate generalization.",
     "incorrect_response": "No - you need separate test data to measure how well the model generalizes."
-  },
-  "gradient_descent_purpose": {
-    "type": "short_answer",
-    "question_text": "What algorithm is commonly used to minimize the loss function in neural networks?",
-    "topic": "ai_ml",
-    "correct_answer": "gradient descent|SGD|stochastic gradient descent|backpropagation|backprop",
-    "match_type": "exact",
-    "correct_response": "Correct! Gradient descent iteratively adjusts weights to minimize loss.",
-    "incorrect_response": "Think about how neural networks optimize their weights during training.",
-    "reward_knowledge": "optimization"
-  },
-  "neural_network_layer": {
-    "type": "multiple_choice",
-    "question_text": "What is a layer in a neural network?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "A collection of neurons/nodes",
-        "correct": true,
-        "response": "Correct! Layers contain neurons that process information.",
-        "reward_knowledge": "neural_networks"
-      },
-      {
-        "text": "A training epoch",
-        "correct": false,
-        "response": "An epoch is a full pass through training data, not a layer."
-      },
-      {
-        "text": "A type of activation function",
-        "correct": false,
-        "response": "Activation functions are used within layers, not layers themselves."
-      },
-      {
-        "text": "A data preprocessing step",
-        "correct": false,
-        "response": "Preprocessing happens before the neural network."
-      }
-    ]
   },
   "classification_vs_regression": {
     "type": "multiple_choice",
@@ -3741,70 +2893,6 @@
     "correct_response": "Correct! That's a commonly used activation function.",
     "incorrect_response": "Try ReLU, sigmoid, tanh, or softmax."
   },
-  "learning_rate": {
-    "type": "multiple_choice",
-    "question_text": "What happens if the learning rate is too high?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "Training may not converge or diverge",
-        "correct": true,
-        "response": "Correct! Too high a learning rate causes unstable training."
-      },
-      {
-        "text": "Training will be perfectly optimized",
-        "correct": false,
-        "response": "Too high actually destabilizes training."
-      },
-      {
-        "text": "The model will underfit",
-        "correct": false,
-        "response": "Underfitting is more about model capacity, not learning rate."
-      },
-      {
-        "text": "Memory usage will increase",
-        "correct": false,
-        "response": "Learning rate doesn't significantly affect memory usage."
-      }
-    ]
-  },
-  "epoch_definition": {
-    "type": "short_answer",
-    "question_text": "What is one complete pass through the entire training dataset called?",
-    "topic": "ai_ml",
-    "correct_answer": "epoch|training epoch|iteration",
-    "match_type": "exact",
-    "correct_response": "Correct! An epoch is one full pass through all training data.",
-    "incorrect_response": "Think about the term for a complete training cycle through all data."
-  },
-  "dropout_technique": {
-    "type": "multiple_choice",
-    "question_text": "What is dropout in neural networks?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "Randomly deactivating neurons during training",
-        "correct": true,
-        "response": "Correct! Dropout prevents overfitting by randomly ignoring neurons.",
-        "reward_knowledge": "regularization"
-      },
-      {
-        "text": "Removing bad training samples",
-        "correct": false,
-        "response": "That's data cleaning, not dropout."
-      },
-      {
-        "text": "Stopping training early",
-        "correct": false,
-        "response": "That's early stopping, not dropout."
-      },
-      {
-        "text": "Reducing the learning rate",
-        "correct": false,
-        "response": "That's learning rate decay, not dropout."
-      }
-    ]
-  },
   "reinforcement_learning": {
     "type": "multiple_choice",
     "question_text": "What is reinforcement learning?",
@@ -3832,14 +2920,6 @@
         "response": "While neural, the term refers to the learning paradigm, not neurology."
       }
     ]
-  },
-  "decision_tree": {
-    "type": "yes_no",
-    "question_text": "Can decision trees handle both classification and regression tasks?",
-    "topic": "ai_ml",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Decision trees work for both classification and regression.",
-    "incorrect_response": "Actually, decision trees are versatile and handle both tasks."
   },
   "ensemble_learning": {
     "type": "multiple_choice",
@@ -3869,33 +2949,6 @@
       }
     ]
   },
-  "data_augmentation": {
-    "type": "multiple_choice",
-    "question_text": "Why use data augmentation in machine learning?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "To artificially increase training data variety",
-        "correct": true,
-        "response": "Correct! Augmentation creates variations to improve generalization."
-      },
-      {
-        "text": "To reduce training time",
-        "correct": false,
-        "response": "Augmentation actually increases training time."
-      },
-      {
-        "text": "To compress the model",
-        "correct": false,
-        "response": "That's model compression, not data augmentation."
-      },
-      {
-        "text": "To visualize the data",
-        "correct": false,
-        "response": "That's data visualization, not augmentation."
-      }
-    ]
-  },
   "transfer_learning": {
     "type": "multiple_choice",
     "question_text": "What is transfer learning?",
@@ -3921,33 +2974,6 @@
         "text": "Teaching one model to another",
         "correct": false,
         "response": "That's knowledge distillation, not quite transfer learning."
-      }
-    ]
-  },
-  "loss_function": {
-    "type": "multiple_choice",
-    "question_text": "What does the loss function measure?",
-    "topic": "ai_ml",
-    "answers": [
-      {
-        "text": "How far predictions are from actual values",
-        "correct": true,
-        "response": "Correct! Loss quantifies prediction error during training."
-      },
-      {
-        "text": "How fast the model trains",
-        "correct": false,
-        "response": "That's training speed, not loss."
-      },
-      {
-        "text": "How much memory the model uses",
-        "correct": false,
-        "response": "That's memory usage, not loss."
-      },
-      {
-        "text": "How many parameters the model has",
-        "correct": false,
-        "response": "That's model size, not loss."
       }
     ]
   },
@@ -3988,100 +3014,6 @@
       }
     ]
   },
-  "docker_purpose": {
-    "type": "multiple_choice",
-    "question_text": "What is the primary benefit of using Docker containers?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Consistent environments across development and production",
-        "correct": true,
-        "response": "Correct! Docker ensures 'it works on my machine' works everywhere.",
-        "reward_knowledge": "containerization"
-      },
-      {
-        "text": "Faster code execution than native",
-        "correct": false,
-        "response": "Containers have slight overhead, not performance gains."
-      },
-      {
-        "text": "Automatic code optimization",
-        "correct": false,
-        "response": "Docker packages code, doesn't optimize it."
-      },
-      {
-        "text": "Built-in security scanning",
-        "correct": false,
-        "response": "Security scanning is separate from containerization."
-      }
-    ]
-  },
-  "ci_cd_definition": {
-    "type": "multiple_choice",
-    "question_text": "What does CI/CD stand for?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Continuous Integration / Continuous Deployment",
-        "correct": true,
-        "response": "Correct! CI/CD automates testing and deployment.",
-        "reward_knowledge": "cicd"
-      },
-      {
-        "text": "Code Integration / Code Distribution",
-        "correct": false,
-        "response": "Close, but not the standard terminology."
-      },
-      {
-        "text": "Container Integration / Container Delivery",
-        "correct": false,
-        "response": "CI/CD is broader than just containers."
-      },
-      {
-        "text": "Compiled Infrastructure / Compiled Deployment",
-        "correct": false,
-        "response": "Not about compilation."
-      }
-    ]
-  },
-  "microservices_benefit": {
-    "type": "multiple_choice",
-    "question_text": "What is a key advantage of microservices architecture?",
-    "topic": "software_engineering",
-    "answers": [
-      {
-        "text": "Independent scaling and deployment of services",
-        "correct": true,
-        "response": "Correct! Each microservice can scale and deploy independently.",
-        "reward_knowledge": "architecture"
-      },
-      {
-        "text": "Simpler codebase than monoliths",
-        "correct": false,
-        "response": "Microservices add distributed systems complexity."
-      },
-      {
-        "text": "No need for inter-service communication",
-        "correct": false,
-        "response": "Services must communicate, adding complexity."
-      },
-      {
-        "text": "Eliminates all bugs",
-        "correct": false,
-        "response": "Architecture doesn't eliminate bugs."
-      }
-    ]
-  },
-  "rest_idempotent": {
-    "type": "short_answer",
-    "question_text": "Which HTTP method is idempotent: GET, POST, or both?",
-    "topic": "web_development",
-    "correct_answer": "GET|get|Get",
-    "match_type": "exact",
-    "correct_response": "Correct! GET is idempotent - multiple identical requests have the same effect.",
-    "incorrect_response": "GET is idempotent (same result every time), POST is not (creates new resources).",
-    "reward_knowledge": "rest_api"
-  },
   "git_merge_vs_rebase": {
     "type": "multiple_choice",
     "question_text": "What's the main difference between git merge and git rebase?",
@@ -4107,100 +3039,6 @@
         "text": "Merge requires pull requests",
         "correct": false,
         "response": "Pull requests are a workflow choice, not a merge requirement."
-      }
-    ]
-  },
-  "kubernetes_purpose": {
-    "type": "multiple_choice",
-    "question_text": "What does Kubernetes primarily do?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Orchestrates and manages containerized applications",
-        "correct": true,
-        "response": "Correct! Kubernetes automates deployment, scaling, and management of containers.",
-        "reward_knowledge": "kubernetes"
-      },
-      {
-        "text": "Writes Docker files automatically",
-        "correct": false,
-        "response": "Kubernetes uses existing containers, doesn't create them."
-      },
-      {
-        "text": "Compiles code faster",
-        "correct": false,
-        "response": "Kubernetes is about deployment, not compilation."
-      },
-      {
-        "text": "Monitors network traffic only",
-        "correct": false,
-        "response": "Monitoring is one feature, not the primary purpose."
-      }
-    ]
-  },
-  "observability_vs_monitoring": {
-    "type": "multiple_choice",
-    "question_text": "How does observability differ from monitoring?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Observability lets you ask new questions without predicting them",
-        "correct": true,
-        "response": "Correct! Monitoring tracks known issues, observability explores unknown problems.",
-        "reward_knowledge": "observability"
-      },
-      {
-        "text": "Observability is just a buzzword for monitoring",
-        "correct": false,
-        "response": "They're related but meaningfully different concepts."
-      },
-      {
-        "text": "Monitoring is more advanced than observability",
-        "correct": false,
-        "response": "Observability is actually the broader concept."
-      },
-      {
-        "text": "Observability only works in cloud environments",
-        "correct": false,
-        "response": "Observability applies to any system."
-      }
-    ]
-  },
-  "twelve_factor_app": {
-    "type": "short_answer",
-    "question_text": "What methodology defines 12 best practices for building cloud-native apps?",
-    "topic": "software_engineering",
-    "correct_answer": "twelve-factor|12-factor|twelve factor|12 factor|the twelve-factor app|12factor",
-    "match_type": "exact",
-    "correct_response": "Correct! The Twelve-Factor App methodology guides modern cloud app development.",
-    "incorrect_response": "Think about a numbered methodology for cloud-native applications.",
-    "reward_knowledge": "cloud_native"
-  },
-  "container_vs_vm": {
-    "type": "multiple_choice",
-    "question_text": "What's the main difference between containers and virtual machines?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Containers share the host OS kernel, VMs include full OS",
-        "correct": true,
-        "response": "Correct! Containers are lighter weight by sharing the kernel.",
-        "reward_knowledge": "virtualization"
-      },
-      {
-        "text": "VMs are always faster than containers",
-        "correct": false,
-        "response": "Containers typically start faster due to less overhead."
-      },
-      {
-        "text": "Containers cannot run Linux applications",
-        "correct": false,
-        "response": "Most containers run Linux applications!"
-      },
-      {
-        "text": "VMs require Docker to run",
-        "correct": false,
-        "response": "VMs predate Docker and don't require it."
       }
     ]
   },
@@ -4240,44 +3078,6 @@
     "correct_response": "Correct! Event-driven systems use async events for loose coupling.",
     "incorrect_response": "Yes - event-driven architecture uses asynchronous event messages for communication."
   },
-  "cdn_purpose": {
-    "type": "short_answer",
-    "question_text": "What does CDN stand for?",
-    "topic": "networking",
-    "correct_answer": "Content Delivery Network|content delivery network|CDN",
-    "match_type": "exact",
-    "correct_response": "Correct! CDNs cache content closer to users for faster delivery.",
-    "incorrect_response": "Think about networks that deliver content from distributed locations.",
-    "reward_knowledge": "cdn"
-  },
-  "load_balancer_purpose": {
-    "type": "multiple_choice",
-    "question_text": "What is the primary purpose of a load balancer?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Distribute incoming requests across multiple servers",
-        "correct": true,
-        "response": "Correct! Load balancers improve availability and handle more traffic.",
-        "reward_knowledge": "load_balancing"
-      },
-      {
-        "text": "Reduce server electricity costs",
-        "correct": false,
-        "response": "It's about traffic distribution, not power usage."
-      },
-      {
-        "text": "Encrypt all network traffic",
-        "correct": false,
-        "response": "Encryption is separate from load balancing."
-      },
-      {
-        "text": "Store database backups",
-        "correct": false,
-        "response": "That's backup systems, not load balancers."
-      }
-    ]
-  },
   "feature_flags": {
     "type": "multiple_choice",
     "question_text": "What are feature flags used for?",
@@ -4305,52 +3105,6 @@
         "response": "That's testing tools, not feature flags."
       }
     ]
-  },
-  "circuit_breaker_pattern": {
-    "type": "multiple_choice",
-    "question_text": "What does the circuit breaker pattern do in microservices?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Stops requests to failing services to prevent cascading failures",
-        "correct": true,
-        "response": "Correct! Circuit breakers provide graceful degradation and fast failure.",
-        "reward_knowledge": "resilience_patterns"
-      },
-      {
-        "text": "Routes electricity to servers",
-        "correct": false,
-        "response": "It's a software pattern, not electrical."
-      },
-      {
-        "text": "Encrypts service-to-service communication",
-        "correct": false,
-        "response": "That's service mesh or TLS, not circuit breakers."
-      },
-      {
-        "text": "Balances load between services",
-        "correct": false,
-        "response": "That's load balancing, not circuit breaking."
-      }
-    ]
-  },
-  "immutable_infrastructure": {
-    "type": "yes_no",
-    "question_text": "In immutable infrastructure, do you replace servers rather than update them?",
-    "topic": "devops",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Immutable infrastructure prevents configuration drift.",
-    "incorrect_response": "Yes - you deploy new servers instead of modifying existing ones."
-  },
-  "service_mesh": {
-    "type": "short_answer",
-    "question_text": "What pattern manages service-to-service communication in microservices?",
-    "topic": "distributed_systems",
-    "correct_answer": "service mesh|servicemesh|service-mesh",
-    "match_type": "exact",
-    "correct_response": "Correct! Service mesh handles routing, security, and observability between services.",
-    "incorrect_response": "Think about a mesh or network layer for microservices communication.",
-    "reward_knowledge": "service_mesh"
   },
   "chaos_engineering": {
     "type": "multiple_choice",
@@ -4380,34 +3134,6 @@
       }
     ]
   },
-  "message_queue_purpose": {
-    "type": "multiple_choice",
-    "question_text": "What is the main purpose of message queues (like RabbitMQ, Kafka)?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Decouple services and enable asynchronous communication",
-        "correct": true,
-        "response": "Correct! Queues buffer messages and enable reliable async processing.",
-        "reward_knowledge": "message_queues"
-      },
-      {
-        "text": "Store user session data",
-        "correct": false,
-        "response": "That's session storage, not message queues."
-      },
-      {
-        "text": "Replace databases entirely",
-        "correct": false,
-        "response": "Queues complement databases, don't replace them."
-      },
-      {
-        "text": "Speed up synchronous API calls",
-        "correct": false,
-        "response": "Queues are for async communication, not speeding up sync calls."
-      }
-    ]
-  },
   "horizontal_vs_vertical_scaling": {
     "type": "short_answer",
     "question_text": "Adding more servers is called _____ scaling. (horizontal or vertical?)",
@@ -4417,26 +3143,6 @@
     "correct_response": "Correct! Horizontal scaling adds more machines. Vertical scaling adds more power to one machine.",
     "incorrect_response": "Think: horizontal = more machines, vertical = bigger machine.",
     "reward_knowledge": "scaling_strategies"
-  },
-  "quicksort_complexity": {
-    "type": "short_answer",
-    "question_text": "What is the average-case time complexity of quicksort?",
-    "topic": "algorithms",
-    "correct_answer": "O(n log n)|O(nlogn)|n log n|nlogn|linearithmic|quasilinear",
-    "match_type": "complexity",
-    "correct_response": "Correct! Quicksort averages O(n log n), though worst case is O(n²).",
-    "incorrect_response": "Think about how quicksort divides and conquers the array.",
-    "reward_knowledge": "quicksort"
-  },
-  "bfs_graph_traversal": {
-    "type": "short_answer",
-    "question_text": "What algorithm uses a queue to explore graph nodes level by level?",
-    "topic": "algorithms",
-    "correct_answer": "BFS|Breadth-First Search|breadth first search|breadth-first|breadthfirst",
-    "match_type": "exact",
-    "correct_response": "Correct! BFS uses a queue for level-order traversal.",
-    "incorrect_response": "Think about the algorithm that explores neighbors before going deeper.",
-    "reward_knowledge": "bfs"
   },
   "linked_list_insertion": {
     "type": "short_answer",
@@ -4456,26 +3162,6 @@
     "correct_response": "Correct! Stacks are LIFO - last item pushed is first popped.",
     "incorrect_response": "Yes - stacks are LIFO (like a stack of plates)."
   },
-  "binary_tree_height": {
-    "type": "short_answer",
-    "question_text": "What is the height of a balanced binary tree with n nodes? (Big-O notation)",
-    "topic": "data_structures",
-    "correct_answer": "O(log n)|O(logn)|log n|logn|logarithmic",
-    "match_type": "complexity",
-    "correct_response": "Correct! Balanced trees have O(log n) height.",
-    "incorrect_response": "Think about how height grows as you double the nodes.",
-    "reward_knowledge": "binary_tree"
-  },
-  "heap_extract_max": {
-    "type": "short_answer",
-    "question_text": "What is the time complexity of extracting the maximum from a max heap?",
-    "topic": "data_structures",
-    "correct_answer": "O(log n)|O(logn)|log n|logn|logarithmic",
-    "match_type": "complexity",
-    "correct_response": "Correct! Extract-max requires O(log n) to restore heap property.",
-    "incorrect_response": "Consider the height of the heap and the bubbling down process.",
-    "reward_knowledge": "heap"
-  },
   "process_vs_thread": {
     "type": "yes_no",
     "question_text": "Do threads within a process share the same memory space?",
@@ -4484,44 +3170,6 @@
     "correct_response": "Correct! Threads share memory, making communication fast but requiring synchronization.",
     "incorrect_response": "Yes - threads share memory within a process, unlike separate processes."
   },
-  "deadlock_conditions": {
-    "type": "short_answer",
-    "question_text": "How many conditions must hold simultaneously for deadlock to occur?",
-    "topic": "systems",
-    "correct_answer": "4|four",
-    "match_type": "numeric",
-    "correct_response": "Correct! The 4 conditions: mutual exclusion, hold and wait, no preemption, circular wait.",
-    "incorrect_response": "There are exactly 4 necessary conditions for deadlock.",
-    "reward_knowledge": "deadlock"
-  },
-  "virtual_memory_purpose": {
-    "type": "multiple_choice",
-    "question_text": "What is the main benefit of virtual memory?",
-    "topic": "systems",
-    "answers": [
-      {
-        "text": "Programs can use more memory than physically available",
-        "correct": true,
-        "response": "Correct! Virtual memory uses disk as extended RAM.",
-        "reward_knowledge": "virtual_memory"
-      },
-      {
-        "text": "Programs run faster",
-        "correct": false,
-        "response": "Virtual memory can actually slow things down due to disk access."
-      },
-      {
-        "text": "Programs use less CPU",
-        "correct": false,
-        "response": "Virtual memory doesn't reduce CPU usage."
-      },
-      {
-        "text": "Programs become smaller",
-        "correct": false,
-        "response": "It's about available memory, not program size."
-      }
-    ]
-  },
   "cache_miss_types": {
     "type": "yes_no",
     "question_text": "Is a cache miss when requested data is NOT found in the cache?",
@@ -4529,60 +3177,6 @@
     "correct_answer": "yes|true|y",
     "correct_response": "Correct! A miss requires fetching from slower memory.",
     "incorrect_response": "Yes - a miss means the data must be fetched from main memory."
-  },
-  "tcp_reliable": {
-    "type": "yes_no",
-    "question_text": "Does TCP guarantee reliable, ordered delivery of data?",
-    "topic": "networking",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! TCP ensures reliability through acknowledgments and retransmission.",
-    "incorrect_response": "Yes - TCP is reliable and ordered, unlike UDP."
-  },
-  "http_port": {
-    "type": "short_answer",
-    "question_text": "What is the default port number for HTTP?",
-    "topic": "networking",
-    "correct_answer": "80",
-    "match_type": "exact",
-    "correct_response": "Correct! HTTP uses port 80 (HTTPS uses 443).",
-    "incorrect_response": "Think about the standard HTTP port (not HTTPS).",
-    "reward_knowledge": "http"
-  },
-  "dns_purpose": {
-    "type": "short_answer",
-    "question_text": "What does DNS stand for?",
-    "topic": "networking",
-    "correct_answer": "Domain Name System|domain name system|DNS",
-    "match_type": "exact",
-    "correct_response": "Correct! DNS translates domain names to IP addresses.",
-    "incorrect_response": "Think about the system that translates names to IP addresses.",
-    "reward_knowledge": "dns"
-  },
-  "three_way_handshake": {
-    "type": "short_answer",
-    "question_text": "How many steps are in TCP's connection establishment handshake?",
-    "topic": "networking",
-    "correct_answer": "3|three",
-    "match_type": "numeric",
-    "correct_response": "Correct! TCP uses a 3-way handshake: SYN, SYN-ACK, ACK.",
-    "incorrect_response": "It's called the 'three-way' handshake for a reason!",
-    "reward_knowledge": "tcp"
-  },
-  "acid_properties": {
-    "type": "yes_no",
-    "question_text": "Do ACID properties ensure database transaction reliability?",
-    "topic": "databases",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! ACID (Atomicity, Consistency, Isolation, Durability) ensures reliable transactions.",
-    "incorrect_response": "Yes - ACID properties are fundamental to reliable database transactions."
-  },
-  "index_speedup": {
-    "type": "yes_no",
-    "question_text": "Do database indexes speed up SELECT queries but slow down INSERT/UPDATE?",
-    "topic": "databases",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Indexes are a classic time-space tradeoff.",
-    "incorrect_response": "Yes - indexes speed up reads but add overhead to writes."
   },
   "normalization_purpose": {
     "type": "multiple_choice",
@@ -4640,22 +3234,6 @@
       }
     ]
   },
-  "hash_collision": {
-    "type": "yes_no",
-    "question_text": "Is a hash collision when two different inputs produce the same hash?",
-    "topic": "security",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Collisions are rare in good hash functions but mathematically inevitable.",
-    "incorrect_response": "Yes - a collision means different inputs hash to the same value."
-  },
-  "https_encryption": {
-    "type": "yes_no",
-    "question_text": "Does HTTPS encrypt data between client and server?",
-    "topic": "security",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! HTTPS uses TLS/SSL to encrypt HTTP traffic.",
-    "incorrect_response": "Yes - HTTPS adds encryption to HTTP using TLS/SSL."
-  },
   "greedy_algorithm": {
     "type": "yes_no",
     "question_text": "Does a greedy algorithm always make the locally optimal choice at each step?",
@@ -4691,16 +3269,6 @@
         "response": "DP doesn't skip checks, it caches results."
       }
     ]
-  },
-  "trie_search_complexity": {
-    "type": "short_answer",
-    "question_text": "What is the time complexity of searching for a word of length k in a trie?",
-    "topic": "data_structures",
-    "correct_answer": "O(k)|k|O(length)|linear",
-    "match_type": "complexity",
-    "correct_response": "Correct! Trie search is O(k) where k is the word length.",
-    "incorrect_response": "Think about how many characters you need to check in the word.",
-    "reward_knowledge": "trie"
   },
   "mvc_pattern": {
     "type": "multiple_choice",
@@ -5010,88 +3578,6 @@
       }
     ]
   },
-  "eventual_consistency_example": {
-    "type": "multiple_choice",
-    "question_text": "Which scenario best demonstrates eventual consistency?",
-    "topic": "distributed_systems",
-    "answers": [
-      {
-        "text": "Social media likes count may temporarily differ across users but converges",
-        "correct": true,
-        "response": "Correct! When you like a post, different users might see different counts briefly, but they'll eventually all see the same number. Classic eventual consistency - prioritizing availability!",
-        "reward_knowledge": "eventual_consistency"
-      },
-      {
-        "text": "Bank transactions that must be immediately consistent",
-        "correct": false,
-        "response": "Banks require strong consistency! Money transfers can't be 'eventually correct' - you need ACID guarantees."
-      },
-      {
-        "text": "A single-server database with no replication",
-        "correct": false,
-        "response": "Single servers don't have consistency issues. Eventual consistency is about distributed systems with replicas."
-      },
-      {
-        "text": "Caching that never expires",
-        "correct": false,
-        "response": "That's permanent inconsistency! Eventual consistency means replicas will eventually agree, not stay stale forever."
-      }
-    ]
-  },
-  "dijkstra_algorithm": {
-    "question_text": "What algorithm finds the shortest path from a source to all other nodes in a weighted graph?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Dijkstra's algorithm",
-        "correct": true,
-        "response": "Correct! Dijkstra's algorithm uses a priority queue to greedily select the closest unvisited node. Works for non-negative edge weights. Time: O((V+E) log V) with a min-heap.",
-        "reward_knowledge": "graph_algorithms"
-      },
-      {
-        "text": "BFS (Breadth-First Search)",
-        "correct": false,
-        "response": "BFS only works for unweighted graphs or graphs where all edges have the same weight. Dijkstra's handles varying edge weights."
-      },
-      {
-        "text": "DFS (Depth-First Search)",
-        "correct": false,
-        "response": "DFS doesn't find shortest paths - it explores as deep as possible first. Use Dijkstra's or BFS for shortest paths."
-      },
-      {
-        "text": "Binary Search",
-        "correct": false,
-        "response": "Binary search is for sorted arrays, not graph traversal! For shortest paths, use Dijkstra's or Bellman-Ford."
-      }
-    ]
-  },
-  "bellman_ford": {
-    "question_text": "What advantage does Bellman-Ford have over Dijkstra's algorithm?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "It works with negative edge weights",
-        "correct": true,
-        "response": "Correct! Bellman-Ford handles negative weights and detects negative cycles. It's slower (O(VE)) but more robust than Dijkstra's (which requires non-negative weights).",
-        "reward_knowledge": "graph_algorithms_advanced"
-      },
-      {
-        "text": "It's always faster",
-        "correct": false,
-        "response": "Bellman-Ford is actually slower! O(VE) vs Dijkstra's O((V+E) log V). But Bellman-Ford handles negative weights."
-      },
-      {
-        "text": "It uses less memory",
-        "correct": false,
-        "response": "Memory isn't the key difference. Bellman-Ford's advantage is handling negative edge weights."
-      },
-      {
-        "text": "It only works on directed graphs",
-        "correct": false,
-        "response": "Both algorithms work on directed and undirected graphs. The difference is negative weight handling."
-      }
-    ]
-  },
   "topological_sort": {
     "question_text": "When can you perform a topological sort on a graph?",
     "topic": "algorithms",
@@ -5116,492 +3602,6 @@
         "text": "Only on weighted graphs",
         "correct": false,
         "response": "Weight doesn't matter! Topological sort needs a DAG (directed, no cycles), weighted or not."
-      }
-    ]
-  },
-  "minimum_spanning_tree": {
-    "question_text": "What do Kruskal's and Prim's algorithms both compute?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Minimum Spanning Tree (MST)",
-        "correct": true,
-        "response": "Correct! Both find the minimum spanning tree - connecting all nodes with minimum total edge weight. Kruskal: sort edges, add if no cycle (union-find). Prim: grow tree from a node (like Dijkstra's).",
-        "reward_knowledge": "mst_algorithms"
-      },
-      {
-        "text": "Maximum flow in a network",
-        "correct": false,
-        "response": "That's Ford-Fulkerson or Edmonds-Karp! Kruskal's and Prim's find minimum spanning trees, not maximum flow."
-      },
-      {
-        "text": "Shortest path between two nodes",
-        "correct": false,
-        "response": "That's Dijkstra's or Bellman-Ford! MST algorithms connect all nodes with minimum total weight, not shortest paths."
-      },
-      {
-        "text": "Strongly connected components",
-        "correct": false,
-        "response": "That's Tarjan's or Kosaraju's algorithm! MST algorithms find trees that span the graph with minimum weight."
-      }
-    ]
-  },
-  "union_find": {
-    "question_text": "What data structure efficiently tracks disjoint sets with union and find operations?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Union-Find (Disjoint Set Union)",
-        "correct": true,
-        "response": "Correct! Union-Find tracks partitions with near-constant time operations using path compression + union by rank. Essential for Kruskal's MST and detecting cycles. Amortized O(α(n)) ≈ O(1)!",
-        "reward_knowledge": "union_find"
-      },
-      {
-        "text": "Binary Search Tree",
-        "correct": false,
-        "response": "BSTs are for ordered data with logarithmic operations. Union-Find is specialized for partition tracking with near-constant time."
-      },
-      {
-        "text": "Hash Table",
-        "correct": false,
-        "response": "Hash tables don't efficiently handle set merging (union). Union-Find is optimized specifically for disjoint set operations."
-      },
-      {
-        "text": "Linked List",
-        "correct": false,
-        "response": "Linked lists would make union expensive (O(n)). Union-Find achieves near-constant time with clever optimizations."
-      }
-    ]
-  },
-  "bit_manipulation_count": {
-    "question_text": "What's the fastest way to count the number of 1 bits in an integer?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Use n & (n-1) repeatedly until n becomes 0",
-        "correct": true,
-        "response": "Correct! Brian Kernighan's algorithm: n & (n-1) clears the lowest set bit. Count iterations until n=0. O(number of 1 bits) instead of O(32 or 64). Also: some CPUs have popcount instruction!",
-        "reward_knowledge": "bit_manipulation"
-      },
-      {
-        "text": "Convert to string and count '1' characters",
-        "correct": false,
-        "response": "That works but is slower! Bit manipulation n & (n-1) is much more efficient than string conversion."
-      },
-      {
-        "text": "Divide by 2 repeatedly and check remainders",
-        "correct": false,
-        "response": "That works (checking n % 2 for each bit) but is slower. The n & (n-1) trick is faster - it skips zeros."
-      },
-      {
-        "text": "Use a lookup table for all possible integers",
-        "correct": false,
-        "response": "For 32-bit integers, that's 4 billion entries! Impractical. Use bit manipulation or split into bytes with small lookup tables."
-      }
-    ]
-  },
-  "two_pointers": {
-    "question_text": "What technique uses two pointers to find a pair in a sorted array that sums to a target?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Two pointers (one at start, one at end)",
-        "correct": true,
-        "response": "Correct! Start with left=0, right=n-1. If sum too small, move left++. If too large, move right--. O(n) time, O(1) space. Also works for 3-sum, palindrome checking, and container problems!",
-        "reward_knowledge": "two_pointers"
-      },
-      {
-        "text": "Binary search for each element's complement",
-        "correct": false,
-        "response": "That works (O(n log n)) but two pointers is more elegant for sorted arrays - O(n) with one pass!"
-      },
-      {
-        "text": "Hash table to store complements",
-        "correct": false,
-        "response": "Hash table works for unsorted arrays (O(n) time, O(n) space). But for sorted arrays, two pointers is better (O(1) space)."
-      },
-      {
-        "text": "Check all pairs with nested loops",
-        "correct": false,
-        "response": "That's O(n²) - too slow! Two pointers technique achieves O(n) for sorted arrays."
-      }
-    ]
-  },
-  "sliding_window": {
-    "question_text": "What technique maintains a window over an array to find max sum of k consecutive elements?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Sliding window",
-        "correct": true,
-        "response": "Correct! Sliding window maintains a running sum: add new element, subtract old element. O(n) vs O(nk) naive. Also for longest substring problems, variable-size windows, and streaming data!",
-        "reward_knowledge": "sliding_window"
-      },
-      {
-        "text": "Recalculate sum for each position",
-        "correct": false,
-        "response": "That's O(nk) - recalculating wastes work! Sliding window reuses the previous sum for O(n)."
-      },
-      {
-        "text": "Binary search for the maximum",
-        "correct": false,
-        "response": "Binary search doesn't apply here - you're not searching in sorted space. Use sliding window for O(n)."
-      },
-      {
-        "text": "Dynamic programming with memoization",
-        "correct": false,
-        "response": "DP is overkill for this! Sliding window is simpler and more efficient - just maintain a running sum."
-      }
-    ]
-  },
-  "backtracking_use": {
-    "question_text": "What algorithm design technique explores all possibilities by trying, then undoing (backtracking)?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Backtracking",
-        "correct": true,
-        "response": "Correct! Backtracking builds solutions incrementally, abandoning invalid paths. Classic for N-Queens, Sudoku, permutations, subset sum. It's DFS with pruning - try a choice, recurse, undo if invalid!",
-        "reward_knowledge": "backtracking"
-      },
-      {
-        "text": "Divide and conquer",
-        "correct": false,
-        "response": "Divide and conquer splits problems into independent subproblems. Backtracking explores a tree of choices with pruning."
-      },
-      {
-        "text": "Dynamic programming",
-        "correct": false,
-        "response": "DP solves overlapping subproblems with optimal substructure. Backtracking exhaustively searches the solution space with pruning."
-      },
-      {
-        "text": "Greedy algorithm",
-        "correct": false,
-        "response": "Greedy makes one choice and never reconsiders. Backtracking tries options and backtracks when they don't work."
-      }
-    ]
-  },
-  "kmp_algorithm": {
-    "question_text": "What's the time complexity of the KMP (Knuth-Morris-Pratt) string matching algorithm?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "O(n + m) where n is text length, m is pattern length",
-        "correct": true,
-        "response": "Correct! KMP builds a failure function in O(m), then scans text in O(n) without backtracking. Much better than naive O(nm)! The failure function remembers where to continue after a mismatch.",
-        "reward_knowledge": "string_algorithms"
-      },
-      {
-        "text": "O(nm) same as naive string matching",
-        "correct": false,
-        "response": "KMP is faster! It avoids backtracking in the text by using a failure function, achieving O(n+m) vs naive O(nm)."
-      },
-      {
-        "text": "O(n log m) using binary search",
-        "correct": false,
-        "response": "KMP doesn't use binary search. It processes text linearly with a clever failure function for O(n+m)."
-      },
-      {
-        "text": "O(n²) in worst case",
-        "correct": false,
-        "response": "Even in worst case, KMP is O(n+m)! That's its advantage - guaranteed linear time unlike naive matching."
-      }
-    ]
-  },
-  "rabin_karp": {
-    "question_text": "What string matching algorithm uses hashing to find patterns?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Rabin-Karp",
-        "correct": true,
-        "response": "Correct! Rabin-Karp computes rolling hash of pattern and text windows. Hash match → verify characters. Average O(n+m), worst O(nm). Great for multiple pattern search!",
-        "reward_knowledge": "string_algorithms_advanced"
-      },
-      {
-        "text": "KMP (Knuth-Morris-Pratt)",
-        "correct": false,
-        "response": "KMP uses a failure function, not hashing. Rabin-Karp is the hashing-based string matching algorithm."
-      },
-      {
-        "text": "Boyer-Moore",
-        "correct": false,
-        "response": "Boyer-Moore uses suffix matching and jump tables, not hashing. Rabin-Karp is the hash-based approach."
-      },
-      {
-        "text": "Z-algorithm",
-        "correct": false,
-        "response": "Z-algorithm computes longest prefix matches, not hashes. Rabin-Karp uses rolling hash for pattern matching."
-      }
-    ]
-  },
-  "kadanes_algorithm": {
-    "question_text": "What algorithm finds the maximum sum subarray in O(n) time?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Kadane's algorithm",
-        "correct": true,
-        "response": "Correct! Kadane's: track max_ending_here and max_so_far. At each position: max_ending_here = max(arr[i], max_ending_here + arr[i]). Elegant DP solution - one pass, O(n) time, O(1) space!",
-        "reward_knowledge": "kadanes_algorithm"
-      },
-      {
-        "text": "Try all possible subarrays",
-        "correct": false,
-        "response": "That's O(n²) or O(n³)! Kadane's algorithm finds max subarray sum in just O(n) with one pass."
-      },
-      {
-        "text": "Divide and conquer",
-        "correct": false,
-        "response": "Divide and conquer works (O(n log n)) but Kadane's is simpler and faster at O(n)."
-      },
-      {
-        "text": "Sliding window",
-        "correct": false,
-        "response": "Sliding window needs fixed window size. Kadane's handles variable-length subarrays with dynamic programming."
-      }
-    ]
-  },
-  "longest_common_subsequence": {
-    "question_text": "What's the time complexity of finding the longest common subsequence (LCS) of two strings?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "O(mn) using dynamic programming",
-        "correct": true,
-        "response": "Correct! Build a 2D table where dp[i][j] = LCS of first i chars and first j chars. If match: dp[i][j] = dp[i-1][j-1] + 1. Classic DP problem - also used for diff tools!",
-        "reward_knowledge": "dp_strings"
-      },
-      {
-        "text": "O(n + m) with two pointers",
-        "correct": false,
-        "response": "Two pointers work for longest common prefix/suffix, not subsequence. LCS allows non-contiguous matches, requiring O(mn) DP."
-      },
-      {
-        "text": "O(n) with sliding window",
-        "correct": false,
-        "response": "Sliding window is for contiguous subarrays. Subsequences can skip characters, needing O(mn) dynamic programming."
-      },
-      {
-        "text": "O(log n) with binary search",
-        "correct": false,
-        "response": "Binary search doesn't apply to LCS. You need DP to track all possible subsequences, taking O(mn)."
-      }
-    ]
-  },
-  "edit_distance": {
-    "question_text": "What does the edit distance (Levenshtein distance) measure?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Minimum operations (insert/delete/replace) to transform one string to another",
-        "correct": true,
-        "response": "Correct! Edit distance uses DP with O(mn) time. dp[i][j] = min cost to transform first i chars to first j chars. Used for spell check, DNA sequencing, plagiarism detection!",
-        "reward_knowledge": "edit_distance"
-      },
-      {
-        "text": "Number of characters that differ at the same position",
-        "correct": false,
-        "response": "That's Hamming distance (for equal-length strings). Edit distance handles different lengths with insert/delete operations."
-      },
-      {
-        "text": "Length of the longest common substring",
-        "correct": false,
-        "response": "That's a different problem! Edit distance counts operations needed to transform strings, not common substrings."
-      },
-      {
-        "text": "Number of characters in common",
-        "correct": false,
-        "response": "That's intersection. Edit distance measures how many operations (insert/delete/replace) to transform one string to another."
-      }
-    ]
-  },
-  "knapsack_01": {
-    "question_text": "What's the difference between 0/1 knapsack and fractional knapsack?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "0/1: take whole item or nothing (DP). Fractional: take fractions (greedy)",
-        "correct": true,
-        "response": "Correct! 0/1 knapsack requires DP O(nW) - you can't split items. Fractional knapsack: sort by value/weight ratio, take greedily - O(n log n). Continuous vs discrete choices!",
-        "reward_knowledge": "knapsack_problems"
-      },
-      {
-        "text": "They're the same problem, just different names",
-        "correct": false,
-        "response": "Very different! 0/1 is discrete (take or leave), needs DP. Fractional allows fractions, solvable with greedy."
-      },
-      {
-        "text": "0/1 is easier to solve than fractional",
-        "correct": false,
-        "response": "Opposite! Fractional is easier (greedy O(n log n)). 0/1 is NP-hard without constraints, needs DP O(nW)."
-      },
-      {
-        "text": "Fractional requires dynamic programming",
-        "correct": false,
-        "response": "Fractional knapsack is solvable with greedy (sort by value/weight). 0/1 knapsack needs DP."
-      }
-    ]
-  },
-  "avl_tree": {
-    "question_text": "What property do AVL trees maintain?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Height difference between left and right subtrees is at most 1",
-        "correct": true,
-        "response": "Correct! AVL trees maintain |height(left) - height(right)| ≤ 1 at every node through rotations. First self-balancing BST! Guarantees O(log n) operations but more rotations than Red-Black trees.",
-        "reward_knowledge": "balanced_trees"
-      },
-      {
-        "text": "All nodes have exactly two children",
-        "correct": false,
-        "response": "That's a full binary tree. AVL trees maintain balanced heights (difference ≤ 1), not fixed structure."
-      },
-      {
-        "text": "Left subtree has all smaller values",
-        "correct": false,
-        "response": "That's a Binary Search Tree property, not specific to AVL. AVL adds balance constraint: height difference ≤ 1."
-      },
-      {
-        "text": "Every node is red or black",
-        "correct": false,
-        "response": "That's Red-Black trees! AVL trees use height balance (difference ≤ 1), not colors."
-      }
-    ]
-  },
-  "red_black_tree": {
-    "question_text": "What advantage do Red-Black trees have over AVL trees?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Fewer rotations during insertion/deletion (faster writes)",
-        "correct": true,
-        "response": "Correct! Red-Black trees are less rigidly balanced (height ≤ 2 log n vs AVL's log n), requiring fewer rotations. Better for write-heavy workloads. AVL is better for read-heavy (stricter balance).",
-        "reward_knowledge": "balanced_trees_advanced"
-      },
-      {
-        "text": "Faster search operations",
-        "correct": false,
-        "response": "AVL trees are actually slightly faster for search (stricter balance). Red-Black trees excel at insertion/deletion with fewer rotations."
-      },
-      {
-        "text": "Use less memory per node",
-        "correct": false,
-        "response": "Red-Black trees store an extra color bit. Memory difference is minimal. The advantage is fewer rotations during modifications."
-      },
-      {
-        "text": "Can store more than binary data",
-        "correct": false,
-        "response": "Both are binary search trees. The difference is balancing strategy: Red-Black uses colors and relaxed balance."
-      }
-    ]
-  },
-  "segment_tree": {
-    "question_text": "What data structure efficiently answers range queries on arrays?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Segment Tree",
-        "correct": true,
-        "response": "Correct! Segment trees support range queries (sum, min, max) and point updates in O(log n). Build in O(n), use for range sum, RMQ, lazy propagation. Alternative: Fenwick Tree (simpler but less general).",
-        "reward_knowledge": "segment_tree"
-      },
-      {
-        "text": "Binary Search Tree",
-        "correct": false,
-        "response": "BSTs are for searching sorted data, not range queries on arrays. Segment trees are specifically designed for range operations."
-      },
-      {
-        "text": "Hash Table",
-        "correct": false,
-        "response": "Hash tables provide O(1) lookup but can't efficiently handle range queries. Use segment trees for range operations."
-      },
-      {
-        "text": "Linked List",
-        "correct": false,
-        "response": "Linked lists would be O(n) for range queries. Segment trees achieve O(log n) through tree structure."
-      }
-    ]
-  },
-  "fenwick_tree": {
-    "question_text": "What's another name for a Fenwick Tree?",
-    "topic": "data_structures",
-    "answers": [
-      {
-        "text": "Binary Indexed Tree (BIT)",
-        "correct": true,
-        "response": "Correct! Fenwick Tree = Binary Indexed Tree. Supports prefix sum queries and point updates in O(log n). Simpler than segment tree but less general. Uses bit manipulation for parent/child calculation!",
-        "reward_knowledge": "fenwick_tree"
-      },
-      {
-        "text": "B-tree",
-        "correct": false,
-        "response": "B-trees are for databases with wide nodes. Fenwick Tree (BIT) is for efficient prefix sums with bit manipulation."
-      },
-      {
-        "text": "Trie",
-        "correct": false,
-        "response": "Tries are for string prefix matching. Fenwick Tree (Binary Indexed Tree) is for range queries on numeric arrays."
-      },
-      {
-        "text": "Heap",
-        "correct": false,
-        "response": "Heaps maintain priority queues. Fenwick Tree (BIT) is for prefix sums and range queries."
-      }
-    ]
-  },
-  "floyd_warshall": {
-    "question_text": "What algorithm finds shortest paths between all pairs of nodes?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Floyd-Warshall",
-        "correct": true,
-        "response": "Correct! Floyd-Warshall uses DP: try each node as intermediate. O(V³) time, works with negative weights. For each pair (i,j), check if path through k is shorter. Simple triple loop!",
-        "reward_knowledge": "all_pairs_shortest_path"
-      },
-      {
-        "text": "Dijkstra's algorithm",
-        "correct": false,
-        "response": "Dijkstra finds single-source shortest paths. Run it V times for all pairs (O(V²E log V)) or use Floyd-Warshall (O(V³))."
-      },
-      {
-        "text": "BFS (Breadth-First Search)",
-        "correct": false,
-        "response": "BFS finds shortest paths from one source in unweighted graphs. Floyd-Warshall finds all pairs in weighted graphs."
-      },
-      {
-        "text": "DFS (Depth-First Search)",
-        "correct": false,
-        "response": "DFS doesn't find shortest paths at all! Use Floyd-Warshall for all-pairs shortest paths in weighted graphs."
-      }
-    ]
-  },
-  "a_star_heuristic": {
-    "question_text": "What makes A* search efficient for pathfinding?",
-    "topic": "algorithms",
-    "answers": [
-      {
-        "text": "Uses heuristic to guide search toward goal",
-        "correct": true,
-        "response": "Correct! A* = Dijkstra + heuristic. f(n) = g(n) + h(n) where g = cost so far, h = estimated cost to goal. With admissible heuristic, finds optimal path faster than Dijkstra. Common for game AI!",
-        "reward_knowledge": "informed_search"
-      },
-      {
-        "text": "It's always faster than BFS",
-        "correct": false,
-        "response": "With a good heuristic, A* is faster. But with a bad heuristic (h=0), it's just Dijkstra. Heuristic quality matters!"
-      },
-      {
-        "text": "It doesn't need to track visited nodes",
-        "correct": false,
-        "response": "A* still tracks visited nodes! The heuristic guides which nodes to explore first, reducing search space."
-      },
-      {
-        "text": "It uses randomness to find paths",
-        "correct": false,
-        "response": "A* is deterministic, not random. It uses a heuristic function to intelligently guide search toward the goal."
       }
     ]
   }
