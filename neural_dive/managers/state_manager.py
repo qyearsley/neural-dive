@@ -79,6 +79,7 @@ class StateManager:
 
         # Emit event
         old_pos = move_result.old_position
+        assert old_pos is not None  # success implies old_position is set
         new_pos = (self.game.player.x, self.game.player.y)
         self.event_bus.publish(PlayerMoved(old_pos, new_pos))
 
@@ -189,22 +190,6 @@ class StateManager:
         self.game.active_inventory = False
         self.game.active_terminal = None
         self.game.active_snippet = None
-
-    def show_terminal(self, terminal_id: str) -> None:
-        """Show terminal overlay.
-
-        Args:
-            terminal_id: ID of terminal to show
-        """
-        self.game.active_terminal = terminal_id
-
-    def show_snippet(self, snippet_id: str) -> None:
-        """Show code snippet overlay.
-
-        Args:
-            snippet_id: ID of snippet to show
-        """
-        self.game.active_snippet = snippet_id
 
     # Floor transitions
     def change_floor(self, new_floor: int, direction: str) -> None:

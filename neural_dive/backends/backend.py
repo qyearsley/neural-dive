@@ -7,7 +7,7 @@ used interchangeably.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 
 class RenderBackend(Protocol):
@@ -16,6 +16,11 @@ class RenderBackend(Protocol):
     This protocol defines the interface that all rendering backends must implement.
     Backends handle low-level terminal operations like drawing text, colors, and
     cursor positioning.
+
+    Backends also forward arbitrary attribute access to the underlying terminal
+    library (e.g. ``backend.move_xy(x, y)``, ``backend.bold_black(text)``,
+    ``backend.normal``). The ``__getattr__`` hook below documents that contract
+    so static analysis accepts these blessed-style accessors.
     """
 
     @property
@@ -74,7 +79,7 @@ class RenderBackend(Protocol):
         """Show the cursor."""
         ...
 
-    def get_color_func(self, color: str, bold: bool = False):
+    def get_color_func(self, color: str, bold: bool = False) -> Any:
         """Get a color function for the given color and style.
 
         Args:
@@ -83,5 +88,15 @@ class RenderBackend(Protocol):
 
         Returns:
             Callable that applies the color/style to text
+        """
+        ...
+
+    def __getattr__(self, name: str) -> Any:
+        """Forward arbitrary attribute access to the underlying terminal.
+
+        Used for blessed-style accessors like ``move_xy``, ``home``, ``clear``,
+        ``normal``, and color functions (``red``, ``bold_black``,
+        ``black_on_white``, etc.). Returns either an escape-sequence string or a
+        callable depending on what the wrapped terminal exposes.
         """
         ...
