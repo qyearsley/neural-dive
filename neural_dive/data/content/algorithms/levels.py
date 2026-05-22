@@ -22,20 +22,20 @@ FLOOR_1_LAYOUT = """
 #................................................#
 #................................................#
 #................................................#
-#.....O...................M......................#
+#..........................M.....................#
 #................................................#
 #####......#########......########################
 #...#......#.......#......#.........#............#
-#.P.#......#...A...#......#....U....#............#
+#...#......#...A...#......#....U....#............#
 #...#......#.......#......#.........#............#
 #...#............................................#
 #...#........................T...................#
 #...#..........................KNOWLEDGE.SECTOR..#
-#...#.........H............................Q.....#
+#...#............G..........................Q....#
 #...#............................................#
 #...###############..............................#
 #................................................#
-#..H....................................>........#
+#........................................>.......#
 #................................................#
 #................................................#
 ##################################################
@@ -78,7 +78,7 @@ FLOOR_3_LAYOUT = """
 #.T..............................................#
 #.THE.CORE.LAYER.................................#
 #................................................#
-#.H..............................................#
+#................................................#
 #................................................#
 ###################........#######################
 #................................................#
@@ -95,7 +95,7 @@ FLOOR_3_LAYOUT = """
 #.ML.CONSCIOUSNESS...............................#
 #..........F.....................................#
 #................................................#
-#.H..............................................#
+#................................................#
 ###################........#######################
 #................................................#
 #.T..............................................#
@@ -220,6 +220,10 @@ def parse_level(layout_string: str) -> dict:
     """
     Parse a level layout string into structured data.
 
+    NPC characters are single letters that are surrounded by non-letter characters
+    (e.g. ``.`` or ``#``); runs of two or more adjacent letters are treated as text
+    labels (e.g. ``ARENA``, ``INFRASTRUCTURE``) and become walkable floor.
+
     Returns:
         dict with keys:
             - tiles: 2D list of characters
@@ -257,12 +261,17 @@ def parse_level(layout_string: str) -> dict:
             elif char == ">":
                 stairs_down.append((x, y))
                 row.append(".")
-            elif char.isalpha() and char not in ["T"]:
-                # NPC position
-                if char not in npc_positions:
-                    npc_positions[char] = []
-                npc_positions[char].append((x, y))
-                row.append(".")
+            elif char.isalpha():
+                left = line[x - 1] if x > 0 else ""
+                right = line[x + 1] if x + 1 < len(line) else ""
+                if left.isalpha() or right.isalpha():
+                    # Part of a text label (e.g. "ARENA", "PLAZA"); treat as floor.
+                    row.append(".")
+                else:
+                    if char not in npc_positions:
+                        npc_positions[char] = []
+                    npc_positions[char].append((x, y))
+                    row.append(".")
             elif char == "#":
                 row.append("#")
             else:
@@ -308,11 +317,14 @@ def validate_npc_layout_consistency(npc_data: dict, parsed_levels: dict) -> list
     reserved_chars = {"T", "@", "<", ">", "#", "."}
 
     for floor_num, level_data in parsed_levels.items():
-        # Get all NPCs assigned to this floor
+        # Get all NPCs assigned to this floor (specialists, enemies, and bosses
+        # all need a placement on the map; helpers/quest NPCs are placed too if
+        # they exist).
         floor_npcs = {
             name: data
             for name, data in npc_data.items()
-            if data.get("floor") == floor_num and data.get("npc_type") in ["specialist", "enemy"]
+            if data.get("floor") == floor_num
+            and data.get("npc_type") in ["specialist", "enemy", "boss", "helper", "quest"]
         }
 
         # Get all NPC characters placed in the layout

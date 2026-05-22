@@ -27,9 +27,7 @@ if TYPE_CHECKING:
     from neural_dive.models import Conversation
 
 
-def _get_color_func(
-    backend: RenderBackend, color_expr: str, fallback: str
-) -> Callable[[str], str]:
+def _get_color_func(backend: RenderBackend, color_expr: str, fallback: str) -> Callable[[str], str]:
     """Resolve a color/style function on the backend by attribute name.
 
     Args:
@@ -410,7 +408,10 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
     if game.show_greeting:
         lines = wrap_text(conv.greeting, overlay.width - 4)
         current_y = _draw_wrapped_lines(
-            backend, lines, overlay.start_x + 2, current_y,
+            backend,
+            lines,
+            overlay.start_x + 2,
+            current_y,
             overlay.start_y + overlay.height - 2,
         )
         current_y += 1
@@ -500,7 +501,10 @@ def _draw_response(
     # Show response text
     lines = wrap_text(response_text, overlay_width - 4)
     current_y = _draw_wrapped_lines(
-        backend, lines, start_x + 2, current_y,
+        backend,
+        lines,
+        start_x + 2,
+        current_y,
         start_y + overlay_height - 3,
     )
     current_y += 1
@@ -575,7 +579,10 @@ def draw_completion_overlay(backend: RenderBackend, game: Game, colors: ColorSch
     # Show response text directly
     lines = wrap_text(response_text, overlay.width - 4) if response_text else []
     current_y = _draw_wrapped_lines(
-        backend, lines, overlay.start_x + 2, current_y,
+        backend,
+        lines,
+        overlay.start_x + 2,
+        current_y,
         overlay.start_y + overlay.height - 3,
     )
     current_y += 1
@@ -610,7 +617,10 @@ def draw_terminal_overlay(backend: RenderBackend, game: Game, colors: ColorSchem
     for line in terminal.content:
         wrapped_lines = wrap_text(line, overlay.width - 4)
         current_y = _draw_wrapped_lines(
-            backend, wrapped_lines, overlay.start_x + 2, current_y,
+            backend,
+            wrapped_lines,
+            overlay.start_x + 2,
+            current_y,
             overlay.start_y + overlay.height - 2,
         )
 

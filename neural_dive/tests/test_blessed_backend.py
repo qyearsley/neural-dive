@@ -135,14 +135,13 @@ class TestBlessedBackend(unittest.TestCase):
         self.assertEqual(result, mock_func)
 
     def test_get_color_func_fallback(self):
-        """Test get_color_func falls back to normal if color not found."""
-        mock_normal = Mock()
-        self.mock_term.normal = mock_normal
+        """Test get_color_func falls back to identity function if color not found."""
         # Simulate missing color
         del self.mock_term.invalid_color
 
         result = self.backend.get_color_func("invalid_color")
-        self.assertEqual(result, mock_normal)
+        # Fallback is an identity function: returns input unchanged
+        self.assertEqual(result("hello"), "hello")
 
     def test_getattr_delegation(self):
         """Test __getattr__ delegates to Terminal for backwards compatibility."""

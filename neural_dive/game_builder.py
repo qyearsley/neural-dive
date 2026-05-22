@@ -256,7 +256,9 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_floor_entity_generator(level_data: dict, snippets: dict, rand: random.Random) -> FloorEntityGenerator:
+    def create_floor_entity_generator(
+        level_data: dict, snippets: dict, rand: random.Random
+    ) -> FloorEntityGenerator:
         """Create a FloorEntityGenerator for entity generation.
 
         Args:

@@ -6,10 +6,15 @@ library for actual terminal rendering.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from blessed import Terminal
+
+
+def _identity(text: str) -> str:
+    return text
 
 
 class BlessedBackend:
@@ -63,7 +68,7 @@ class BlessedBackend:
         # Apply color/style
         if color:
             attr_name = f"bold_{color}" if bold else color
-            color_func = getattr(self._term, attr_name, self._term.normal)
+            color_func: Callable[[str], str] = getattr(self._term, attr_name, _identity)
             print(color_func(text), end="")
         elif bold:
             print(self._term.bold(text), end="")
@@ -84,8 +89,8 @@ class BlessedBackend:
         print(self._term.move_xy(x, y), end="")
 
         # Get color functions
-        fg_func = getattr(self._term, fg, self._term.normal)
-        bg_func = getattr(self._term, f"on_{bg}", self._term.normal)
+        fg_func: Callable[[str], str] = getattr(self._term, fg, _identity)
+        bg_func: Callable[[str], str] = getattr(self._term, f"on_{bg}", _identity)
 
         # Apply both foreground and background
         print(fg_func(bg_func(text)), end="")
@@ -104,7 +109,7 @@ class BlessedBackend:
         """Show the cursor."""
         print(self._term.normal_cursor, end="", flush=True)
 
-    def get_color_func(self, color: str, bold: bool = False):
+    def get_color_func(self, color: str, bold: bool = False) -> Callable[[str], str]:
         """Get a color function for the given color and style.
 
         Args:
@@ -115,9 +120,10 @@ class BlessedBackend:
             Callable that applies the color/style to text
         """
         attr_name = f"bold_{color}" if bold else color
-        return getattr(self._term, attr_name, self._term.normal)
+        func: Callable[[str], str] = getattr(self._term, attr_name, _identity)
+        return func
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         """Delegate unknown attributes to the wrapped Terminal for backwards compatibility.
 
         This allows rendering code to access Terminal attributes like move_xy, color functions,
