@@ -52,7 +52,7 @@ class TestGameInitialization(unittest.TestCase):
 
         # Note: NPCs list may be empty initially if using level-based placement
         # all_npcs includes all NPCs defined for the floor
-        self.assertGreaterEqual(len(game.all_npcs), 0, "Should track NPCs")
+        self.assertGreaterEqual(len(game.npc_manager.all_npcs), 0, "Should track NPCs")
         # The game should have loaded NPC data
         self.assertIsNotNone(game.npc_data)
 

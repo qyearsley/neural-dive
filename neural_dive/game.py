@@ -233,8 +233,7 @@ class Game:
     @property
     def questions_answered(self) -> int:
         """Get questions answered from StatsTracker."""
-        val: int = self.stats_tracker.questions_answered
-        return val
+        return self.stats_tracker.questions_answered
 
     @questions_answered.setter
     def questions_answered(self, value: int) -> None:
@@ -244,8 +243,7 @@ class Game:
     @property
     def questions_correct(self) -> int:
         """Get questions correct from StatsTracker."""
-        val: int = self.stats_tracker.questions_correct
-        return val
+        return self.stats_tracker.questions_correct
 
     @questions_correct.setter
     def questions_correct(self, value: int) -> None:
@@ -255,8 +253,7 @@ class Game:
     @property
     def questions_wrong(self) -> int:
         """Get questions wrong from StatsTracker."""
-        val: int = self.stats_tracker.questions_wrong
-        return val
+        return self.stats_tracker.questions_wrong
 
     @questions_wrong.setter
     def questions_wrong(self, value: int) -> None:
@@ -266,8 +263,7 @@ class Game:
     @property
     def start_time(self) -> float:
         """Get start time from StatsTracker."""
-        val: float = self.stats_tracker.start_time
-        return val
+        return self.stats_tracker.start_time
 
     @start_time.setter
     def start_time(self, value: float) -> None:
@@ -281,37 +277,20 @@ class Game:
         return self.npc_manager.npcs
 
     @property
-    def all_npcs(self) -> list[Entity]:
-        """Get all NPCs from NPCManager."""
-        return self.npc_manager.all_npcs
-
-    @property
     def npc_conversations(self) -> dict[str, Conversation]:
         """Get NPC conversations from NPCManager."""
         return self.npc_manager.conversations
 
     @property
-    def npc_opinions(self) -> dict[str, int]:
-        """Get NPC opinions from NPCManager."""
-        return self.npc_manager.npc_opinions
-
-    @property
     def quest_completed_npcs(self) -> set[str]:
         """Get quest completed NPCs from QuestManager."""
-        val: set[str] = self.quest_manager.completed_npcs
-        return val
-
-    @property
-    def old_npc_positions(self) -> dict[str, tuple[int, int]]:
-        """Get old NPC positions from NPCManager."""
-        return self.npc_manager.old_positions
+        return self.quest_manager.completed_npcs
 
     # Backward compatibility properties for QuestManager
     @property
     def quest_active(self) -> bool:
         """Get quest active state from QuestManager."""
-        val: bool = self.quest_manager.quest_active
-        return val
+        return self.quest_manager.quest_active
 
     @quest_active.setter
     def quest_active(self, value: bool) -> None:

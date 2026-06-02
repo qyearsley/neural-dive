@@ -15,6 +15,7 @@ import unittest
 from neural_dive.enums import NPCType
 from neural_dive.managers.conversation_engine import ConversationEngine
 from neural_dive.models import Answer, Conversation, Question
+from neural_dive.question_types import QuestionType
 
 
 class TestConversationEngineInitialization(unittest.TestCase):
@@ -233,7 +234,7 @@ class TestConversationEngineCurrentQuestion(unittest.TestCase):
 
         question = self.engine.get_current_question()
 
-        self.assertIsNotNone(question)
+        assert question is not None
         self.assertEqual(question.question_text, "Question 1?")
 
     def test_get_current_question_after_answer(self):
@@ -243,7 +244,7 @@ class TestConversationEngineCurrentQuestion(unittest.TestCase):
 
         question = self.engine.get_current_question()
 
-        self.assertIsNotNone(question)
+        assert question is not None
         self.assertEqual(question.question_text, "Question 2?")
 
     def test_get_current_question_when_complete(self):
@@ -377,6 +378,133 @@ class TestConversationEngineSerialization(unittest.TestCase):
         self.assertEqual(restored_engine.show_greeting, self.engine.show_greeting)
         self.assertEqual(restored_engine.last_answer_response, self.engine.last_answer_response)
         self.assertEqual(restored_engine.text_input_buffer, self.engine.text_input_buffer)
+
+
+class TestConversationEngineHintToken(unittest.TestCase):
+    """Tests for use_hint_token: eliminates wrong answers, respects question type."""
+
+    def _multi_choice_conv(self) -> Conversation:
+        return Conversation(
+            npc_name="MC_NPC",
+            greeting="Hi",
+            questions=[
+                Question(
+                    question_text="Pick correct",
+                    answers=[
+                        Answer("Right", True, "yes"),
+                        Answer("Wrong A", False, "no"),
+                        Answer("Wrong B", False, "no"),
+                        Answer("Wrong C", False, "no"),
+                    ],
+                    topic="t",
+                    question_type=QuestionType.MULTIPLE_CHOICE,
+                )
+            ],
+            npc_type=NPCType.SPECIALIST,
+        )
+
+    def test_hint_without_active_conversation_fails(self):
+        engine = ConversationEngine()
+        success, msg = engine.use_hint_token()
+        self.assertFalse(success)
+        self.assertIn("No active", msg)
+
+    def test_hint_eliminates_one_wrong_answer(self):
+        engine = ConversationEngine()
+        engine.start_conversation(self._multi_choice_conv())
+
+        success, _ = engine.use_hint_token()
+
+        self.assertTrue(success)
+        self.assertEqual(len(engine.eliminated_answers), 1)
+        # The eliminated index must be a wrong answer (index 1, 2, or 3 — not 0).
+        self.assertNotIn(0, engine.eliminated_answers)
+
+    def test_hint_eliminate_multiple(self):
+        engine = ConversationEngine()
+        engine.start_conversation(self._multi_choice_conv())
+
+        success, _ = engine.use_hint_token(num_to_eliminate=2)
+
+        self.assertTrue(success)
+        self.assertEqual(len(engine.eliminated_answers), 2)
+
+    def test_hint_eliminate_more_than_available_caps_at_wrong_count(self):
+        engine = ConversationEngine()
+        engine.start_conversation(self._multi_choice_conv())
+
+        # 3 wrong answers exist; asking for 10 should cap at 3.
+        success, _ = engine.use_hint_token(num_to_eliminate=10)
+
+        self.assertTrue(success)
+        self.assertEqual(len(engine.eliminated_answers), 3)
+
+    def test_hint_when_all_wrong_already_eliminated_fails(self):
+        engine = ConversationEngine()
+        engine.start_conversation(self._multi_choice_conv())
+        # Eliminate all wrong answers up front.
+        engine.use_hint_token(num_to_eliminate=3)
+
+        success, msg = engine.use_hint_token()
+
+        self.assertFalse(success)
+        self.assertIn("No wrong answers", msg)
+
+    def test_hint_rejected_for_short_answer_question(self):
+        engine = ConversationEngine()
+        engine.start_conversation(
+            Conversation(
+                npc_name="SA_NPC",
+                greeting="Hi",
+                questions=[
+                    Question(
+                        question_text="Big-O of binary search?",
+                        answers=[],
+                        topic="t",
+                        question_type=QuestionType.SHORT_ANSWER,
+                        correct_answer="O(log n)",
+                    )
+                ],
+                npc_type=NPCType.SPECIALIST,
+            )
+        )
+
+        success, msg = engine.use_hint_token()
+
+        self.assertFalse(success)
+        self.assertIn("multiple choice", msg.lower())
+
+    def test_answer_clears_eliminated_set(self):
+        """Eliminating answers on Q1 must not carry over to Q2."""
+        engine = ConversationEngine()
+        engine.start_conversation(
+            Conversation(
+                npc_name="MC_NPC",
+                greeting="Hi",
+                questions=[
+                    Question(
+                        question_text="Q1",
+                        answers=[
+                            Answer("Right", True, "yes"),
+                            Answer("Wrong", False, "no"),
+                        ],
+                        topic="t",
+                    ),
+                    Question(
+                        question_text="Q2",
+                        answers=[Answer("Right", True, "yes")],
+                        topic="t",
+                    ),
+                ],
+                npc_type=NPCType.SPECIALIST,
+            )
+        )
+        engine.use_hint_token()
+        self.assertTrue(engine.eliminated_answers)
+
+        engine.answer_question(0)
+
+        self.assertEqual(engine.eliminated_answers, set())
 
 
 if __name__ == "__main__":

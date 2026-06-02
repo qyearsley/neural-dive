@@ -100,26 +100,16 @@ class ItemPickup:
         color: Color of the pickup
     """
 
+    _DISPLAY_BY_TYPE: dict[ItemType, tuple[str, str]] = {
+        ItemType.HINT_TOKEN: (ITEM_CHAR_HINT_TOKEN, ITEM_COLOR_HINT_TOKEN),
+        ItemType.CODE_SNIPPET: (ITEM_CHAR_CODE_SNIPPET, ITEM_COLOR_CODE_SNIPPET),
+    }
+
     def __init__(self, x: int, y: int, item: Item):
         self.x = x
         self.y = y
         self.item = item
-        self.char = self._get_char_for_item(item)
-        self.color = self._get_color_for_item(item)
-
-    def _get_char_for_item(self, item: Item) -> str:
-        """Get the map character for an item type."""
-        if item.item_type == ItemType.HINT_TOKEN:
-            return ITEM_CHAR_HINT_TOKEN
-        # item.item_type == ItemType.CODE_SNIPPET
-        return ITEM_CHAR_CODE_SNIPPET
-
-    def _get_color_for_item(self, item: Item) -> str:
-        """Get the color for an item type."""
-        if item.item_type == ItemType.HINT_TOKEN:
-            return ITEM_COLOR_HINT_TOKEN
-        # item.item_type == ItemType.CODE_SNIPPET
-        return ITEM_COLOR_CODE_SNIPPET
+        self.char, self.color = self._DISPLAY_BY_TYPE[item.item_type]
 
     def __repr__(self) -> str:
         return f"ItemPickup(item={self.item.name}, pos=({self.x}, {self.y}))"

@@ -7,7 +7,7 @@ state including active conversations, greetings, responses, and text input.
 
 from __future__ import annotations
 
-from neural_dive.models import Conversation
+from neural_dive.models import Conversation, Question
 
 
 class ConversationEngine:
@@ -156,7 +156,7 @@ class ConversationEngine:
 
         return True, f"Eliminated {to_eliminate} wrong answer(s)"
 
-    def get_current_question(self):
+    def get_current_question(self) -> Question | None:
         """
         Get the current question in the active conversation.
 
