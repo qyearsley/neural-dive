@@ -60,7 +60,7 @@ class GameSerializer:
                 json.dump(save_data, f, indent=2)
 
             return True, filepath
-        except Exception as e:
+        except (OSError, TypeError) as e:
             print(f"Error saving game: {e}")
             return False, None
 
@@ -87,7 +87,7 @@ class GameSerializer:
 
             # Deserialize into game instance
             return cls._deserialize_game_state(save_data)
-        except Exception as e:
+        except (OSError, json.JSONDecodeError, KeyError, ValueError) as e:
             print(f"Error loading game: {e}")
             return None
 

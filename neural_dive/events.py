@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TypeVar, cast
 
 
 class GameEvent:
@@ -153,6 +154,9 @@ class QuestCompleted(GameEvent):
     bonus_coherence: int
 
 
+E = TypeVar("E", bound=GameEvent)
+
+
 class EventBus:
     """Event dispatcher for game events.
 
@@ -165,7 +169,7 @@ class EventBus:
         """Initialize event bus with empty listener registry."""
         self._listeners: dict[type, list[Callable[[GameEvent], None]]] = {}
 
-    def subscribe(self, event_type: type[GameEvent], handler: Callable[[GameEvent], None]) -> None:
+    def subscribe(self, event_type: type[E], handler: Callable[[E], None]) -> None:
         """Register an event listener.
 
         Args:
@@ -174,11 +178,9 @@ class EventBus:
         """
         if event_type not in self._listeners:
             self._listeners[event_type] = []
-        self._listeners[event_type].append(handler)
+        self._listeners[event_type].append(cast(Callable[[GameEvent], None], handler))
 
-    def unsubscribe(
-        self, event_type: type[GameEvent], handler: Callable[[GameEvent], None]
-    ) -> None:
+    def unsubscribe(self, event_type: type[E], handler: Callable[[E], None]) -> None:
         """Remove an event listener.
 
         Args:
@@ -186,7 +188,7 @@ class EventBus:
             handler: Callback function to remove
         """
         if event_type in self._listeners:
-            self._listeners[event_type].remove(handler)
+            self._listeners[event_type].remove(cast(Callable[[GameEvent], None], handler))
 
     def publish(self, event: GameEvent) -> None:
         """Dispatch an event to all registered listeners.

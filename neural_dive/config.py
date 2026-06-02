@@ -44,6 +44,8 @@ OVERLAY_MAX_HEIGHT = 30  # Increased from 25
 COMPLETION_OVERLAY_MAX_HEIGHT = 35  # Increased from 30
 TERMINAL_OVERLAY_MAX_HEIGHT = 20  # Height for info terminal overlays
 INVENTORY_OVERLAY_MAX_HEIGHT = 25  # Height for inventory overlays
+VICTORY_SCREEN_MAX_WIDTH = 70  # Maximum width for victory screen
+VICTORY_SCREEN_MAX_HEIGHT = 20  # Maximum height for victory screen
 UI_BOTTOM_OFFSET = 4
 TERMINAL_UI_RESERVED_LINES = 6  # Lines reserved for UI at terminal bottom
 

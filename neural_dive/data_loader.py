@@ -262,17 +262,22 @@ def load_all_game_data(content_set: str | None = None):
         # Import validation function from content set's levels module
         module_path = f"neural_dive.data.content.{content_set}.levels"
         levels_module = importlib.import_module(module_path)
+    except ImportError:
+        # Content set doesn't have a levels module - that's okay
+        pass
+    else:
         validate_func = getattr(levels_module, "validate_npc_layout_consistency", None)
-
         if validate_func:
-            warnings = validate_func(npcs, levels)
+            try:
+                warnings = validate_func(npcs, levels)
+            except (AttributeError, KeyError, TypeError) as e:
+                # Validator hit malformed data (e.g. test fixtures); log but don't fail load.
+                logger.warning("NPC/Layout validator raised %s: %s", type(e).__name__, e)
+                warnings = []
             if warnings:
                 logger.warning("NPC/Layout Validation Warnings:")
                 for warning in warnings:
                     logger.warning("  - %s", warning)
-    except (ImportError, AttributeError):
-        # Content set doesn't have validation - that's okay
-        pass
 
     return questions, npcs, levels, snippets
 

@@ -21,6 +21,20 @@ if TYPE_CHECKING:
     from neural_dive.models import Conversation
 
 
+# Adjacency threshold (in Chebyshev distance) for entity interaction.
+INTERACTION_RADIUS = 1
+
+# Sort priority when multiple equidistant entities are interactable.
+_ENTITY_PRIORITY = {"npc": 0, "terminal": 1, "stairs": 2}
+
+
+_Candidate = (
+    tuple[Literal["terminal"], int, InfoTerminal]
+    | tuple[Literal["npc"], int, Entity]
+    | tuple[Literal["stairs"], int, Stairs]
+)
+
+
 @dataclass
 class InteractionResult:
     """Result of an interaction attempt.
@@ -116,32 +130,7 @@ class InteractionHandler:
         Returns:
             InteractionResult describing what happened
         """
-        player_x, player_y = player_pos
-
-        # Find all interactable entities with distances
-        candidates: list[
-            tuple[Literal["terminal"], int, InfoTerminal]
-            | tuple[Literal["npc"], int, Entity]
-            | tuple[Literal["stairs"], int, Stairs]
-        ] = []
-
-        # Check terminals
-        for terminal in terminals:
-            dist = max(abs(player_x - terminal.x), abs(player_y - terminal.y))
-            if dist <= 1:
-                candidates.append(("terminal", dist, terminal))
-
-        # Check NPCs
-        for npc in npcs:
-            dist = max(abs(player_x - npc.x), abs(player_y - npc.y))
-            if dist <= 1:
-                candidates.append(("npc", dist, npc))
-
-        # Check stairs
-        for stair in stairs:
-            dist = max(abs(player_x - stair.x), abs(player_y - stair.y))
-            if dist <= 1:
-                candidates.append(("stairs", dist, stair))
+        candidates = self._find_adjacent_candidates(player_pos, terminals, npcs, stairs)
 
         if not candidates:
             return InteractionResult(
@@ -150,12 +139,9 @@ class InteractionHandler:
                 action="none",
             )
 
-        # Sort by: distance first, then priority (npc=0, terminal=1, stairs=2)
-        priority_map = {"npc": 0, "terminal": 1, "stairs": 2}
-        candidates.sort(key=lambda x: (x[1], priority_map[x[0]]))
-
-        # Interact with closest/highest priority entity
-        entity_type, dist, entity = candidates[0]
+        # Sort by distance, then priority (npc=0, terminal=1, stairs=2).
+        candidates.sort(key=lambda c: (c[1], _ENTITY_PRIORITY[c[0]]))
+        entity_type, _, entity = candidates[0]
 
         if entity_type == "terminal":
             assert isinstance(entity, InfoTerminal)
@@ -165,28 +151,44 @@ class InteractionHandler:
                 action="terminal",
                 terminal=entity,
             )
-        elif entity_type == "npc":
+        if entity_type == "npc":
             assert isinstance(entity, Entity)
             return self._interact_with_npc(entity, npc_conversations)
-        else:  # entity_type == "stairs"
-            return InteractionResult(
-                success=True,
-                message="Use Space or >/< to use stairs.",
-                action="stairs",
-            )
+        # entity_type == "stairs"
+        return InteractionResult(
+            success=True,
+            message="Use Space or >/< to use stairs.",
+            action="stairs",
+        )
+
+    @staticmethod
+    def _find_adjacent_candidates(
+        player_pos: tuple[int, int],
+        terminals: list[InfoTerminal],
+        npcs: list[Entity],
+        stairs: list[Stairs],
+    ) -> list[_Candidate]:
+        """Collect every entity within INTERACTION_RADIUS of the player."""
+        player_x, player_y = player_pos
+        candidates: list[_Candidate] = []
+        for terminal in terminals:
+            dist = max(abs(player_x - terminal.x), abs(player_y - terminal.y))
+            if dist <= INTERACTION_RADIUS:
+                candidates.append(("terminal", dist, terminal))
+        for npc in npcs:
+            dist = max(abs(player_x - npc.x), abs(player_y - npc.y))
+            if dist <= INTERACTION_RADIUS:
+                candidates.append(("npc", dist, npc))
+        for stair in stairs:
+            dist = max(abs(player_x - stair.x), abs(player_y - stair.y))
+            if dist <= INTERACTION_RADIUS:
+                candidates.append(("stairs", dist, stair))
+        return candidates
 
     def _interact_with_npc(
         self, npc: Entity, npc_conversations: dict[str, Conversation]
     ) -> InteractionResult:
-        """Handle interaction with a specific NPC.
-
-        Args:
-            npc: The NPC entity to interact with
-            npc_conversations: Dictionary of NPC conversations
-
-        Returns:
-            InteractionResult describing what happened
-        """
+        """Dispatch NPC interaction by type."""
         npc_name = npc.name
         conversation = npc_conversations.get(npc_name)
 
@@ -197,38 +199,48 @@ class InteractionHandler:
                 action="none",
             )
 
-        # Handle helper NPCs (restore coherence)
-        if conversation.npc_type == NPCType.HELPER and not conversation.completed:
-            restore_amount = self.difficulty_settings.helper_restore_amount
-            gained = self.player_manager.gain_coherence(restore_amount)
-            conversation.completed = True
-            return InteractionResult(
-                success=True,
-                message=(
-                    f"{npc_name}: Your coherence has been restored by {gained}. "
-                    f"[+{restore_amount} Coherence]"
-                ),
-                action="helper",
-            )
-
-        # Handle quest NPCs
+        if conversation.npc_type == NPCType.HELPER:
+            return self._interact_helper(npc_name, conversation)
         if conversation.npc_type == NPCType.QUEST:
             return self._handle_quest_npc(npc_name, conversation)
+        return self._interact_specialist_or_enemy(npc_name, conversation)
 
-        # Standard interaction for specialists and enemies
-        if not conversation.completed:
-            return InteractionResult(
-                success=True,
-                message=conversation.greeting,
-                action="conversation",
-                conversation=conversation,
-            )
-        else:
+    def _interact_helper(self, npc_name: str, conversation: Conversation) -> InteractionResult:
+        """Helper NPCs restore coherence on first interaction; nothing afterward."""
+        if conversation.completed:
             return InteractionResult(
                 success=True,
                 message=f"{npc_name}: You have proven yourself. We have nothing more to discuss.",
                 action="none",
             )
+        restore_amount = self.difficulty_settings.helper_restore_amount
+        gained = self.player_manager.gain_coherence(restore_amount)
+        conversation.completed = True
+        return InteractionResult(
+            success=True,
+            message=(
+                f"{npc_name}: Your coherence has been restored by {gained}. "
+                f"[+{restore_amount} Coherence]"
+            ),
+            action="helper",
+        )
+
+    def _interact_specialist_or_enemy(
+        self, npc_name: str, conversation: Conversation
+    ) -> InteractionResult:
+        """Specialists and enemies start a Q&A conversation; once completed, nothing more."""
+        if conversation.completed:
+            return InteractionResult(
+                success=True,
+                message=f"{npc_name}: You have proven yourself. We have nothing more to discuss.",
+                action="none",
+            )
+        return InteractionResult(
+            success=True,
+            message=conversation.greeting,
+            action="conversation",
+            conversation=conversation,
+        )
 
     def _handle_quest_npc(self, npc_name: str, conversation: Conversation) -> InteractionResult:
         """Handle interaction with a quest-giving NPC.

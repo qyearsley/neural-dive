@@ -432,7 +432,7 @@ class NPCManager:
         """
         return self.npc_opinions.get(npc_name, 0)
 
-    def update_opinion(self, npc_name: str, delta: int):
+    def update_opinion(self, npc_name: str, delta: int) -> None:
         """
         Update NPC's opinion of the player.
 
@@ -456,7 +456,7 @@ class NPCManager:
         """
         return self.conversations.get(npc_name)
 
-    def clear_floor(self):
+    def clear_floor(self) -> None:
         """Clear NPCs for current floor (when changing floors)."""
         self.npcs = []
 

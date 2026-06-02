@@ -17,6 +17,8 @@ from neural_dive.config import (
     OVERLAY_MAX_WIDTH,
     TERMINAL_OVERLAY_MAX_HEIGHT,
     UI_BOTTOM_OFFSET,
+    VICTORY_SCREEN_MAX_HEIGHT,
+    VICTORY_SCREEN_MAX_WIDTH,
 )
 from neural_dive.conversation import wrap_text
 from neural_dive.question_renderers import get_question_renderer
@@ -71,6 +73,29 @@ def _draw_wrapped_lines(
             print(backend.move_xy(start_x, current_y) + draw(line), end="")
             current_y += 1
     return current_y
+
+
+def _draw_text_block(
+    backend: RenderBackend,
+    text: str | None,
+    start_x: int,
+    current_y: int,
+    max_y: int,
+    wrap_width: int,
+    color_func: Callable[[str], str] | None = None,
+) -> int:
+    """Wrap a string to ``wrap_width`` and draw it within a vertical bound.
+
+    Convenience wrapper combining ``wrap_text`` + ``_draw_wrapped_lines`` so callers
+    don't repeat the same wrap-then-draw boilerplate. Empty / None ``text`` is a no-op.
+
+    Returns:
+        The Y coordinate after the last drawn line (``current_y`` if nothing drawn).
+    """
+    if not text:
+        return current_y
+    lines = wrap_text(text, wrap_width)
+    return _draw_wrapped_lines(backend, lines, start_x, current_y, max_y, color_func)
 
 
 class OverlayRenderer:
@@ -272,7 +297,7 @@ def _clear_old_npc_positions(
         chars: Character set for rendering tiles
         colors: Color scheme for tile colors
     """
-    for _npc_name, (old_x, old_y) in game.old_npc_positions.items():
+    for _npc_name, (old_x, old_y) in game.npc_manager.old_positions.items():
         # If not occupied, redraw the floor tile
         if not _is_position_occupied(game, old_x, old_y):
             char = game.game_map[old_y][old_x]
@@ -284,7 +309,7 @@ def _clear_old_npc_positions(
                 print(backend.move_xy(old_x, old_y) + color_func(chars.wall), end="")
 
     # Clear the tracking dictionary after processing
-    game.old_npc_positions.clear()
+    game.npc_manager.old_positions.clear()
 
 
 def _draw_entities(
@@ -406,13 +431,13 @@ def draw_conversation_overlay(backend: RenderBackend, game: Game, colors: ColorS
 
     # If showing greeting
     if game.show_greeting:
-        lines = wrap_text(conv.greeting, overlay.width - 4)
-        current_y = _draw_wrapped_lines(
+        current_y = _draw_text_block(
             backend,
-            lines,
+            conv.greeting,
             overlay.start_x + 2,
             current_y,
             overlay.start_y + overlay.height - 2,
+            overlay.width - 4,
         )
         current_y += 1
 
@@ -499,13 +524,13 @@ def _draw_response(
         current_y += 2
 
     # Show response text
-    lines = wrap_text(response_text, overlay_width - 4)
-    current_y = _draw_wrapped_lines(
+    current_y = _draw_text_block(
         backend,
-        lines,
+        response_text,
         start_x + 2,
         current_y,
         start_y + overlay_height - 3,
+        overlay_width - 4,
     )
     current_y += 1
 
@@ -577,13 +602,13 @@ def draw_completion_overlay(backend: RenderBackend, game: Game, colors: ColorSch
     # (No longer showing "CONVERSATION COMPLETE" banner)
 
     # Show response text directly
-    lines = wrap_text(response_text, overlay.width - 4) if response_text else []
-    current_y = _draw_wrapped_lines(
+    current_y = _draw_text_block(
         backend,
-        lines,
+        response_text,
         overlay.start_x + 2,
         current_y,
         overlay.start_y + overlay.height - 3,
+        overlay.width - 4,
     )
     current_y += 1
 
@@ -615,13 +640,13 @@ def draw_terminal_overlay(backend: RenderBackend, game: Game, colors: ColorSchem
 
     # Show content
     for line in terminal.content:
-        wrapped_lines = wrap_text(line, overlay.width - 4)
-        current_y = _draw_wrapped_lines(
+        current_y = _draw_text_block(
             backend,
-            wrapped_lines,
+            line,
             overlay.start_x + 2,
             current_y,
             overlay.start_y + overlay.height - 2,
+            overlay.width - 4,
         )
 
     # Instructions at bottom
@@ -788,8 +813,8 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
     print(backend.home + backend.clear, end="")
 
     # Calculate centered position
-    width = min(70, backend.width - 4)
-    height = min(20, backend.height - 4)
+    width = min(VICTORY_SCREEN_MAX_WIDTH, backend.width - 4)
+    height = min(VICTORY_SCREEN_MAX_HEIGHT, backend.height - 4)
     start_x = (backend.width - width) // 2
     start_y = (backend.height - height) // 2
 
