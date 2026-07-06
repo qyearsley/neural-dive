@@ -12,11 +12,17 @@ MAX_FLOORS = 3
 STARTING_COHERENCE = 80
 MAX_COHERENCE = 100
 
-# Conversation rewards and penalties
-CORRECT_ANSWER_COHERENCE_GAIN = 8
-WRONG_ANSWER_COHERENCE_PENALTY = 30
+# Conversation rewards and penalties.
+#
+# NOTE: The per-answer coherence gain/penalty and helper-restore amounts are
+# owned by the difficulty system (neural_dive.difficulty.DifficultySettings),
+# which is the source of truth consulted at runtime by AnswerProcessor and
+# friends. Do not add coherence-tuning constants here expecting them to affect
+# gameplay -- edit DifficultySettings instead. Only the two values still
+# referenced directly live here:
+#   - ENEMY_WRONG_ANSWER_PENALTY: default for the Answer.enemy_penalty data field
+#   - QUEST_COMPLETION_COHERENCE_BONUS: applied by QuestManager on quest completion
 ENEMY_WRONG_ANSWER_PENALTY = 45
-HELPER_COHERENCE_RESTORE = 15
 QUEST_COMPLETION_COHERENCE_BONUS = 50
 
 # Player starting position
@@ -48,6 +54,12 @@ VICTORY_SCREEN_MAX_WIDTH = 70  # Maximum width for victory screen
 VICTORY_SCREEN_MAX_HEIGHT = 20  # Maximum height for victory screen
 UI_BOTTOM_OFFSET = 4
 TERMINAL_UI_RESERVED_LINES = 6  # Lines reserved for UI at terminal bottom
+
+# Overlay layout offsets (in character cells)
+OVERLAY_SCREEN_MARGIN = 4  # Clearance subtracted from screen w/h when sizing an overlay
+OVERLAY_PADDING_X = 2  # Horizontal inset for text from the overlay's left edge
+OVERLAY_CONTENT_MARGIN = 4  # Subtracted from overlay width to get the text wrap width
+OVERLAY_FOOTER_MARGIN = 2  # Rows above the overlay bottom for the footer prompt
 
 # Entity characters
 STAIRS_UP_CHAR = "<"

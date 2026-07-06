@@ -12,7 +12,6 @@ This module contains the main Game class that manages:
 from __future__ import annotations
 
 from pathlib import Path
-import random
 from typing import TYPE_CHECKING
 
 from neural_dive.config import (
@@ -25,6 +24,8 @@ from neural_dive.entities import Entity, InfoTerminal
 from neural_dive.models import Conversation
 
 if TYPE_CHECKING:
+    import random
+
     from neural_dive.managers.conversation_engine import ConversationEngine
     from neural_dive.managers.floor_manager import FloorManager
     from neural_dive.managers.npc_manager import NPCManager

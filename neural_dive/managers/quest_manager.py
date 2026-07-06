@@ -87,15 +87,6 @@ class QuestManager:
             return QUEST_COMPLETION_COHERENCE_BONUS
         return 0
 
-    def reset(self) -> None:
-        """Reset quest state (for new game or floor transition if needed).
-
-        Note: Currently quests persist across floors, so this is mainly
-        for future extensibility or testing.
-        """
-        self.quest_active = False
-        self.completed_npcs.clear()
-
     def to_dict(self) -> dict:
         """Serialize quest state to dictionary for save/load.
 

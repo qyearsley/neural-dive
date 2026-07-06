@@ -238,35 +238,6 @@ class TestCompletionBonus(unittest.TestCase):
         self.assertGreater(bonus, 0)
 
 
-class TestQuestReset(unittest.TestCase):
-    """Test quest reset functionality."""
-
-    def test_reset_clears_state(self):
-        """Test reset clears all quest state."""
-        manager = QuestManager()
-
-        manager.activate_quest()
-        manager.complete_npc_objective("TEST_ORACLE")
-        manager.complete_npc_objective("WEB_ARCHITECT")
-
-        manager.reset()
-
-        self.assertFalse(manager.quest_active)
-        self.assertEqual(len(manager.completed_npcs), 0)
-
-    def test_reset_allows_reactivation(self):
-        """Test quest can be reactivated after reset."""
-        manager = QuestManager()
-
-        manager.activate_quest()
-        manager.reset()
-
-        success, _ = manager.activate_quest()
-
-        self.assertTrue(success)
-        self.assertTrue(manager.quest_active)
-
-
 class TestSerialization(unittest.TestCase):
     """Test serialization and deserialization."""
 

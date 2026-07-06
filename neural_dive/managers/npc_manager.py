@@ -456,10 +456,6 @@ class NPCManager:
         """
         return self.conversations.get(npc_name)
 
-    def clear_floor(self) -> None:
-        """Clear NPCs for current floor (when changing floors)."""
-        self.npcs = []
-
     def to_dict(self) -> dict:
         """
         Serialize NPCManager state to dictionary.

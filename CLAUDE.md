@@ -107,8 +107,11 @@ width = len(game.game_map[0])
 
 ### Configuration constants
 Live in `neural_dive/config.py`. Use the named constant — don't inline magic
-numbers (`STARTING_COHERENCE`, `MAX_COHERENCE`,
-`CORRECT_ANSWER_COHERENCE_GAIN`, etc.).
+numbers (`STARTING_COHERENCE`, `MAX_COHERENCE`, `QUEST_COMPLETION_COHERENCE_BONUS`,
+etc.). Note that per-answer coherence gains/penalties and helper-restore amounts
+are **not** in `config.py` — they live in `DifficultySettings`
+(`neural_dive/difficulty.py`), which is the runtime source of truth for those
+values.
 
 ## Adding new content
 

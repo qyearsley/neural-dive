@@ -223,37 +223,6 @@ class TestNPCGeneration(unittest.TestCase):
                 tile = self.game_map[npc.y][npc.x]
                 self.assertNotEqual(tile, "#", f"NPC at ({npc.x}, {npc.y}) is on a wall")
 
-    def test_clear_floor_removes_npcs(self):
-        """Test that clear_floor removes current floor NPCs."""
-        manager = NPCManager(
-            self.npc_data, self.questions, self.rng, self.difficulty_settings, seed=42
-        )
-
-        # Use larger map for random placement success
-        larger_map = [
-            ["#"] * 20,
-            *[["#"] + ["."] * 18 + ["#"] for _ in range(18)],
-            ["#"] * 20,
-        ]
-
-        # Generate NPCs
-        manager.generate_npcs_for_floor(
-            floor=1,
-            game_map=larger_map,
-            player_pos=(1, 1),
-            random_placement=True,
-            map_width=20,
-            map_height=20,
-        )
-
-        # Should have generated at least one NPC
-        self.assertGreaterEqual(len(manager.npcs), 0)
-
-        # Clear floor
-        manager.clear_floor()
-
-        self.assertEqual(len(manager.npcs), 0)
-
 
 class TestNPCWandering(unittest.TestCase):
     """Test NPC wandering AI."""
