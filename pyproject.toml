@@ -121,8 +121,8 @@ line-ending = "auto"
 testpaths = ["neural_dive/tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+# Kept terse so `make test` stays readable; `make test-verbose` adds -vv.
 addopts = [
-    "--verbose",
     "--strict-markers",
 ]
 

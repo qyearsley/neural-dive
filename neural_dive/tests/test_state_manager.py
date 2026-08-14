@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import unittest
 
+from neural_dive.entities import InfoTerminal
 from neural_dive.events import (
     CoherenceChanged,
     ConversationStateChanged,
     EventBus,
     FloorChanged,
+    GameEvent,
     GameOver,
     GameWon,
     NPCDefeated,
@@ -39,7 +41,7 @@ class TestStateManager(unittest.TestCase):
         self.state_manager = StateManager(self.game, self.event_bus)
 
         # Track events
-        self.events = []
+        self.events: list[GameEvent] = []
 
         def track_event(event):
             self.events.append(event)
@@ -72,7 +74,7 @@ class TestStateManager(unittest.TestCase):
         # Check event
         self.assertEqual(len(self.events), 1)
         event = self.events[0]
-        self.assertIsInstance(event, PlayerMoved)
+        assert isinstance(event, PlayerMoved)
         self.assertEqual(event.old_pos, (old_x, old_y))
         self.assertEqual(event.new_pos, (old_x + 1, old_y))
 
@@ -148,7 +150,7 @@ class TestStateManager(unittest.TestCase):
         success = self.state_manager.start_conversation(npc_name)
 
         self.assertTrue(success)
-        self.assertIsNotNone(self.game.active_conversation)
+        assert self.game.active_conversation is not None
         self.assertEqual(self.game.active_conversation.npc_name, npc_name)
         self.assertTrue(self.game.show_greeting)
 
@@ -229,8 +231,8 @@ class TestStateManager(unittest.TestCase):
     def test_close_all_overlays(self):
         """Test closing all overlays."""
         self.game.active_inventory = True
-        self.game.active_terminal = "test_terminal"
-        self.game.active_snippet = "test_snippet"
+        self.game.active_terminal = InfoTerminal(1, 1, "Test Terminal", ["Line 1"])
+        self.game.active_snippet = {"name": "Test Snippet", "content": ["code"]}
 
         self.state_manager.close_all_overlays()
 
@@ -337,7 +339,7 @@ class TestStateManager(unittest.TestCase):
         self.assertTrue(self.state_manager.is_overlay_active())
 
         self.game.active_inventory = False
-        self.game.active_terminal = "test"
+        self.game.active_terminal = InfoTerminal(1, 1, "Test Terminal", ["Line 1"])
         self.assertTrue(self.state_manager.is_overlay_active())
 
     def test_can_move(self):

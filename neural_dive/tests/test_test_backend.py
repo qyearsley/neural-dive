@@ -113,7 +113,7 @@ class TestTestBackend(unittest.TestCase):
         self.backend.draw_text(5, 10, "Hello")
 
         call = self.backend.get_draw_at(5, 10)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, "Hello")
 
     def test_get_draw_at_multiple_calls(self):
@@ -123,7 +123,7 @@ class TestTestBackend(unittest.TestCase):
         self.backend.draw_text(5, 10, "Third")
 
         call = self.backend.get_draw_at(5, 10)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, "Third")
 
     def test_get_draw_at_no_match(self):
@@ -139,7 +139,7 @@ class TestTestBackend(unittest.TestCase):
         self.backend.draw_text(10, 5, "Text")
 
         call = self.backend.get_draw_at(10, 5)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.call_type, "text")
 
     def test_multiple_operations(self):

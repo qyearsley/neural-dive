@@ -9,14 +9,20 @@ project-specific patterns rather than restating generic Python style.
 ```bash
 make help          # All available targets
 make dev-install   # Install dev dependencies (run once)
+make hooks         # Install the git pre-commit hooks (run once)
 
-make check         # Lint + format-check + typecheck (run before pushing)
-make test          # Run all tests
+make ci            # check + test -- run this before pushing
+make check         # Lint + format-check + typecheck
+make test          # Run all tests (ARGS="-k name" to filter)
 make fix           # Auto-fix lint and format
 
 make run           # Launch the game
 make run-debug     # Launch with a fixed seed (42) for reproducible debugging
 ```
+
+There is no CI for this repo. `make ci` and the pre-commit hooks are the only
+automatic checks, and they run the same commands — see
+`.pre-commit-config.yaml`.
 
 ## Layout
 
@@ -144,9 +150,11 @@ values.
 - **Reproducible runs:** `make run-debug` (fixed seed 42) or pass `seed=42` to
   `Game(...)`.
 - **Inspect state:** `game.get_state()` returns a dict snapshot.
-- **`make typecheck`** is currently noisy in test files but production code is
-  clean. New mypy errors in `neural_dive/` (non-test) should be fixed before
-  merging.
+- **`make check` is clean** across production and test code. Keep it that way —
+  fix new mypy errors rather than adding ignores. Note that `assertIsNotNone`
+  and `assertIsInstance` do not narrow types for mypy; use plain
+  `assert x is not None` / `assert isinstance(x, T)` when the following lines
+  access attributes.
 
 ## Testing
 

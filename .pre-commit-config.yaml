@@ -1,30 +1,62 @@
-# Pre-commit hooks for Neural Dive
-# See https://pre-commit.com for more information
+# Pre-commit hooks for Neural Dive.
+#
+# Install with `make hooks`. The runner is prek, a drop-in reimplementation of
+# pre-commit that reads this same file. See https://pre-commit.com for the
+# config format.
+#
+# The ruff, mypy, and pytest hooks deliberately shell out to the project's own
+# uv environment rather than using pinned mirror repos, so they check exactly
+# what `make ci` checks -- one definition of "clean" rather than two that drift.
 
 repos:
-  # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-json
+      - id: check-toml
       - id: check-merge-conflict
 
-  # Ruff - linting and formatting (replaces black, isort, flake8, etc.)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+  - repo: local
     hooks:
-      # Run the linter
-      - id: ruff
-        args: [--fix]
-      # Run the formatter
-      - id: ruff-format
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix neural_dive/
+        language: system
+        types: [python]
+        pass_filenames: false
 
-  # mypy - static type checking
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
-    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format neural_dive/
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: mypy
-        additional_dependencies: []
-        args: [--ignore-missing-imports, --show-error-codes]
+        name: mypy
+        entry: uv run mypy neural_dive/
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # The suite runs in about a second, so there is no reason not to gate on
+      # it. This repo has no CI, so these hooks are the only automatic check.
+      - id: pytest
+        name: pytest
+        entry: uv run pytest -q
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # This is a public repo, and uv bakes whichever index it resolved against
+      # into uv.lock. Running uv behind an internal mirror silently rewrites
+      # every URL to that mirror, which then leaks in the lockfile. Runs last,
+      # because the hooks above invoke `uv run` and can reintroduce it.
+      - id: no-internal-index-in-lockfile
+        name: uv.lock uses public PyPI only
+        entry: scripts/check-lockfile-index.sh
+        language: system
+        files: ^uv\.lock$
+        pass_filenames: false

@@ -34,7 +34,7 @@ class TestTerminalGeneration(unittest.TestCase):
                 "terminal_positions": [(10, 10), (20, 20)],
             }
         }
-        self.snippets = {}
+        self.snippets: dict = {}
         self.rand = random.Random(42)
         self.generator = FloorEntityGenerator(self.level_data, self.snippets, self.rand)
 
@@ -78,7 +78,7 @@ class TestStairsGeneration(unittest.TestCase):
                 "stairs_up": (10, 10),
             },
         }
-        self.snippets = {}
+        self.snippets: dict = {}
         self.rand = random.Random(42)
         self.generator = FloorEntityGenerator(self.level_data, self.snippets, self.rand)
 
@@ -184,7 +184,7 @@ class TestItemGeneration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.level_data = {}
+        self.level_data: dict = {}
         self.snippets = {
             "snippet1": {
                 "name": "Test Snippet 1",

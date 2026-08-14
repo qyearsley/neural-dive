@@ -65,7 +65,7 @@ class TestRenderingBackendIntegration(unittest.TestCase):
 
         # Find player draw call
         player_call = self.backend.get_draw_at(px, py)
-        self.assertIsNotNone(player_call, f"Should have drawn player at ({px}, {py})")
+        assert player_call is not None, f"Should have drawn player at ({px}, {py})"
         self.assertEqual(player_call.text, self.chars.player)
 
     @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
@@ -79,7 +79,7 @@ class TestRenderingBackendIntegration(unittest.TestCase):
 
         # Find NPC draw call
         npc_call = self.backend.get_draw_at(npc.x, npc.y)
-        self.assertIsNotNone(npc_call, f"Should have drawn NPC at ({npc.x}, {npc.y})")
+        assert npc_call is not None, f"Should have drawn NPC at ({npc.x}, {npc.y})"
         self.assertEqual(npc_call.text, npc.char)
 
     @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
@@ -93,7 +93,7 @@ class TestRenderingBackendIntegration(unittest.TestCase):
 
         # Find stairs draw call
         stair_call = self.backend.get_draw_at(stair.x, stair.y)
-        self.assertIsNotNone(stair_call, f"Should have drawn stairs at ({stair.x}, {stair.y})")
+        assert stair_call is not None, f"Should have drawn stairs at ({stair.x}, {stair.y})"
 
     @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_status_bar_rendering(self):
@@ -176,7 +176,7 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         renderer.render(self.backend, player, self.chars, self.colors)
 
         call = self.backend.get_draw_at(10, 5)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, self.chars.player)
 
     @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
@@ -188,7 +188,7 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         renderer.render(self.backend, npc, self.chars, self.colors, is_required=False)
 
         call = self.backend.get_draw_at(15, 8)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, "N")
 
     @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
@@ -202,7 +202,7 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         renderer.render(self.backend, terminal, self.chars, self.colors)
 
         call = self.backend.get_draw_at(20, 10)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, self.chars.terminal)
 
     @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
@@ -216,7 +216,7 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         renderer.render(self.backend, stairs, self.chars, self.colors)
 
         call = self.backend.get_draw_at(12, 6)
-        self.assertIsNotNone(call)
+        assert call is not None
         self.assertEqual(call.text, self.chars.stairs_down)
 
 
@@ -232,6 +232,7 @@ class TestBackendColorHandling(unittest.TestCase):
         self.backend.draw_text(5, 10, "Text", color="blue")
 
         call = self.backend.get_draw_at(5, 10)
+        assert call is not None
         self.assertEqual(call.color, "blue")
         self.assertFalse(call.bold)
 
@@ -240,6 +241,7 @@ class TestBackendColorHandling(unittest.TestCase):
         self.backend.draw_text(5, 10, "Text", color="red", bold=True)
 
         call = self.backend.get_draw_at(5, 10)
+        assert call is not None
         self.assertEqual(call.color, "red")
         self.assertTrue(call.bold)
 
@@ -248,6 +250,7 @@ class TestBackendColorHandling(unittest.TestCase):
         self.backend.draw_with_bg(5, 10, "Text", "black", "white")
 
         call = self.backend.get_draw_at(5, 10)
+        assert call is not None
         self.assertEqual(call.fg, "black")
         self.assertEqual(call.bg, "white")
 

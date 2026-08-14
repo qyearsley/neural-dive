@@ -12,7 +12,7 @@
 
 ## Features
 
-- **Computer Science learning content** - 227 questions across algorithms, systems, web, ML, and more
+- **Computer Science learning content** - 140 questions across algorithms, systems, web, ML, and more
 - **Roguelike gameplay** with wandering NPCs and procedural maps
 - **Cyberpunk theme** with Unicode graphics (light/dark mode support)
 - **Save/Load system** - save your progress and continue later
@@ -104,8 +104,9 @@ Want to create your own learning content? See **[Content Guide](docs/content-gui
 **Quick start for adding questions:**
 
 1. Edit `neural_dive/data/content/algorithms/questions.json` (see [Question Guide](docs/question-guide.md))
-2. Run `python3 scripts/redistribute_questions.py` to assign questions to NPCs
-3. Test with `./ndive --seed 42`
+2. Reference the new question's ID from one or more NPCs in `npcs.json`
+3. Run `uv run validate_questions.py` to confirm every reference resolves
+4. Test with `./ndive --seed 42`
 
 ---
 
@@ -113,16 +114,20 @@ Want to create your own learning content? See **[Content Guide](docs/content-gui
 
 ```bash
 # Setup
-pip install -e ".[dev]"
-uv run prek install
+make dev-install   # Install package + dev dependencies
+make hooks         # Install git pre-commit hooks
 
 # Common tasks
 make run           # Play game
-make lint          # Check code quality
-make format        # Auto-format
-make test          # Run tests
+make test          # Run tests (ARGS="-k name" to filter)
+make check         # Lint + format check + typecheck
+make ci            # check + test -- run before pushing
+make fix           # Auto-fix lint and format
 make clean         # Remove artifacts
 ```
+
+This repo has no CI. `make ci` and the pre-commit hooks are the only automatic
+checks, and both run the same commands.
 
 **Project Structure:**
 ```
@@ -145,9 +150,11 @@ neural_dive/
 ├── rendering.py              # Terminal UI
 ├── data_loader.py            # Load content sets
 ├── themes.py                 # Visual themes
+├── tests/                    # pytest suite
 └── ...
 scripts/
-└── redistribute_questions.py # Assign questions to NPCs uniquely
+└── README.md                 # Content-inspection one-liners
+validate_questions.py         # Check NPC → question references resolve
 ndive                         # Launcher
 ```
 
@@ -166,7 +173,7 @@ ndive                         # Launcher
 ## Topics Covered
 
 ### Computer Science (algorithms content)
-227 questions covering algorithms, data structures, systems programming, networking, databases, security, web development, distributed systems, machine learning, design patterns, testing, DevOps, compilers, version control, and software architecture.
+140 questions covering algorithms, data structures, systems programming, networking, databases, security, web development, distributed systems, machine learning, design patterns, testing, DevOps, compilers, version control, and software architecture.
 
 ---
 

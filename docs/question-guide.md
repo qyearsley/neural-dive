@@ -495,11 +495,12 @@ To add questions:
 1. Edit `neural_dive/data/content/algorithms/questions.json`
 2. Follow this guide
 3. Ensure unique question IDs
-4. Run `python3 scripts/redistribute_questions.py` to assign to NPCs
-5. Test in-game
+4. Reference each new ID from one or more NPCs in `npcs.json`
+5. Run `uv run validate_questions.py` to confirm every reference resolves
+6. Test in-game with `./ndive --seed 42`
 
 For major additions (10+ questions), consider:
-- Running `python3 scripts/generate_questions.py` as a template
+- Copying an existing entry of the same `type` as a template
 - Opening an issue first to discuss
 - Creating a pull request with explanations
 

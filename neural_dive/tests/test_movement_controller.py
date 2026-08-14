@@ -255,7 +255,7 @@ class TestMovePlayer(unittest.TestCase):
         snippet = CodeSnippet(
             name="Test Snippet",
             topic="testing",
-            content="def test(): pass",
+            content=["def test(): pass"],
         )
         pickup = ItemPickup(2, 1, snippet)
         self.item_pickups.append(pickup)

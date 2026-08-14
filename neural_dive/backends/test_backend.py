@@ -42,6 +42,11 @@ class TestBackend:
     allowing tests to verify rendering behavior.
     """
 
+    # The `Test` prefix makes pytest try to collect this as a test class and
+    # warn that it can't (it takes constructor arguments). It's a helper, not a
+    # test, so opt out of collection.
+    __test__ = False
+
     def __init__(self, width: int = 80, height: int = 24):
         """Initialize test backend.
 

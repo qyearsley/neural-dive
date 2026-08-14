@@ -17,6 +17,11 @@ print(f'Total questions: {len(questions)}')
 ```
 
 ### Check for Duplicate NPC Assignments
+
+Bosses deliberately reuse questions from the NPCs on their floor, so some
+duplicates are expected. This is for spotting *unintended* overlap between
+regular NPCs.
+
 ```bash
 python3 -c "
 import json
