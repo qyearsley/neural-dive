@@ -1,5 +1,5 @@
 .PHONY: help install dev-install hooks lint format check typecheck fix \
-        test test-verbose test-cov ci run run-classic run-light run-debug clean
+        test test-verbose test-cov ci run run-debug clean
 
 # Pass extra pytest arguments through, e.g.
 #   make test ARGS="-k conversation"
@@ -31,8 +31,6 @@ help:
 	@echo ""
 	@echo "Running:"
 	@echo "  make run           Run the game"
-	@echo "  make run-classic   Run with classic theme"
-	@echo "  make run-light     Run with light background"
 	@echo "  make run-debug     Run with a fixed seed (42)"
 	@echo ""
 	@echo "Cleanup:"
@@ -83,12 +81,6 @@ ci: check test
 # Running the game
 run:
 	uv run python -m neural_dive
-
-run-classic:
-	uv run python -m neural_dive --theme classic
-
-run-light:
-	uv run python -m neural_dive --background light
 
 run-debug:
 	uv run python -m neural_dive --fixed --seed 42

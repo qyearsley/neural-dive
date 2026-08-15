@@ -50,8 +50,8 @@ pip3 install blessed
 
 # Other options
 ./ndive --help
-./ndive --light      # Light terminal background
-./ndive --classic    # ASCII graphics (compatibility mode)
+./ndive --seed 42    # Reproducible run
+./ndive --load       # Resume the saved game
 ```
 
 **Controls:** Arrow keys to move • Space/Enter to interact • >/< for stairs • **S to Save** • **L to Load** • Q to quit
@@ -80,14 +80,11 @@ Required NPCs glow brighter than optional ones.
 
 ```bash
 # Command line
-./ndive --theme cyberpunk --background dark
-./ndive -t classic -b light
 ./ndive --width 60 --height 30 --seed 42
-
-# Environment variables
-export NEURAL_DIVE_THEME=cyberpunk      # or 'classic'
-export NEURAL_DIVE_BACKGROUND=dark      # or 'light'
+./ndive --load /path/to/save.json
 ```
+
+The display is fixed to the cyberpunk dark theme; there are no theme options.
 
 Edit `neural_dive/config.py` for game parameters (NPC speed, rewards, map size, etc).
 

@@ -12,8 +12,8 @@ computer science questions and battling AI entities.
 
 Quick Start:
   ndive              Play with default settings
-  ndive --light      Play with light terminal background
-  ndive --classic    Play with ASCII-only graphics
+  ndive --seed 42    Play a reproducible run
+  ndive --load       Resume the saved game
   ndive --help       Show all options
 """
 
