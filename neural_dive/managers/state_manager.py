@@ -71,7 +71,7 @@ class StateManager:
             self.game.item_pickups,
             self.game.stairs,
             self.game.player_manager,
-            bool(self.game.active_conversation),
+            bool(self.game.conversation_engine.active_conversation),
         )
 
         if not move_result.success:
@@ -99,15 +99,22 @@ class StateManager:
         Returns:
             Actual amount changed (may be capped)
         """
-        old = self.game.coherence
-        self.game.coherence = max(0, min(self.game.max_coherence, self.game.coherence + amount))
-        actual_change = self.game.coherence - old
+        old = self.game.player_manager.coherence
+        self.game.player_manager.coherence = max(
+            0,
+            min(
+                self.game.player_manager.max_coherence, self.game.player_manager.coherence + amount
+            ),
+        )
+        actual_change = self.game.player_manager.coherence - old
 
         if actual_change != 0:
-            self.event_bus.publish(CoherenceChanged(old, self.game.coherence, reason))
+            self.event_bus.publish(
+                CoherenceChanged(old, self.game.player_manager.coherence, reason)
+            )
 
         # Check for game over
-        if self.game.coherence <= 0:
+        if self.game.player_manager.coherence <= 0:
             self.event_bus.publish(GameOver("coherence_lost"))
 
         return actual_change
@@ -122,15 +129,15 @@ class StateManager:
         Returns:
             True if conversation started, False otherwise
         """
-        conversation = self.game.npc_conversations.get(npc_name)
+        conversation = self.game.npc_manager.conversations.get(npc_name)
         if not conversation or conversation.completed:
             return False
 
         # Perform mutations
-        self.game.active_conversation = conversation
-        self.game.show_greeting = True
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = True
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
         # Clear eliminated answers
         self.game.conversation_engine.eliminated_answers = set()
 
@@ -145,16 +152,16 @@ class StateManager:
         Returns:
             True if conversation was active, False otherwise
         """
-        if not self.game.active_conversation:
+        if not self.game.conversation_engine.active_conversation:
             return False
 
-        npc_name = self.game.active_conversation.npc_name
+        npc_name = self.game.conversation_engine.active_conversation.npc_name
 
         # Perform mutations
-        self.game.active_conversation = None
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = None
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
         # Clear eliminated answers
         self.game.conversation_engine.eliminated_answers = set()
 
@@ -183,13 +190,15 @@ class StateManager:
     # Overlay mutations
     def toggle_inventory(self) -> None:
         """Toggle inventory overlay."""
-        self.game.active_inventory = not self.game.active_inventory
+        self.game.conversation_engine.active_inventory = (
+            not self.game.conversation_engine.active_inventory
+        )
 
     def close_all_overlays(self) -> None:
         """Close all overlays."""
-        self.game.active_inventory = False
-        self.game.active_terminal = None
-        self.game.active_snippet = None
+        self.game.conversation_engine.active_inventory = False
+        self.game.conversation_engine.active_terminal = None
+        self.game.conversation_engine.active_snippet = None
 
     # Floor transitions
     def change_floor(self, new_floor: int, direction: str) -> None:
@@ -199,10 +208,10 @@ class StateManager:
             new_floor: Floor number to move to
             direction: "up" or "down"
         """
-        old_floor = self.game.current_floor
+        old_floor = self.game.floor_manager.current_floor
 
         # Update floor
-        self.game.current_floor = new_floor
+        self.game.floor_manager.current_floor = new_floor
 
         # Emit event
         self.event_bus.publish(FloorChanged(old_floor, new_floor, direction))
@@ -247,9 +256,9 @@ class StateManager:
 
         # Get final stats
         final_score = self.game.stats_tracker.get_current_score(
-            len(self.game.knowledge_modules),
+            len(self.game.player_manager.knowledge_modules),
             len(self.game.npcs_completed),
-            self.game.coherence,
+            self.game.player_manager.coherence,
         )
         time_played = self.game.stats_tracker.get_time_played()
 
@@ -272,7 +281,7 @@ class StateManager:
         Returns:
             True if in conversation, False otherwise
         """
-        return self.game.active_conversation is not None
+        return self.game.conversation_engine.active_conversation is not None
 
     def is_overlay_active(self) -> bool:
         """Check if any overlay is active.
@@ -281,9 +290,9 @@ class StateManager:
             True if any overlay is showing, False otherwise
         """
         return (
-            self.game.active_inventory
-            or self.game.active_terminal is not None
-            or self.game.active_snippet is not None
+            self.game.conversation_engine.active_inventory
+            or self.game.conversation_engine.active_terminal is not None
+            or self.game.conversation_engine.active_snippet is not None
         )
 
     def can_move(self) -> bool:

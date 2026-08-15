@@ -156,7 +156,7 @@ neural_dive/
 │   └── conversation_engine.py
 ├── game.py                   # Core game logic
 ├── input_handler.py          # Keyboard input, per game mode
-├── rendering.py              # Terminal UI
+├── rendering.py              # Frame composition (see *_renderer.py modules)
 ├── data_loader.py            # Load content sets
 ├── themes.py                 # Visual theme (cyberpunk dark)
 ├── tests/                    # pytest suite

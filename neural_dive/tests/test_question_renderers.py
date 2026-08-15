@@ -1,18 +1,22 @@
 """Tests for question_renderers.
 
-Verifies that each strategy renders the expected text content (question stem,
-answer choices, prompt labels) and that the registry returns the right
-implementation per ``QuestionType``.
+Verifies that each strategy draws the expected text content (question stem,
+answer choices, prompt labels), that it draws through the backend rather than
+printing, and that the registry returns the right implementation per
+``QuestionType``.
+
+The renderers go through ``backend.draw_text``, so ``TestBackend`` records every
+line as a ``DrawCall``. That lets these tests assert on position and colour too,
+not just on the text.
 """
 
 from __future__ import annotations
 
-from contextlib import redirect_stdout
-import io
 import unittest
 from unittest.mock import Mock
 
-from neural_dive.backends.test_backend import TestBackend
+from neural_dive.backends.test_backend import DrawCall, TestBackend
+from neural_dive.managers.conversation_engine import ConversationEngine
 from neural_dive.models import Answer, Question
 from neural_dive.question_renderers import (
     MultipleChoiceRenderer,
@@ -22,6 +26,9 @@ from neural_dive.question_renderers import (
     get_question_renderer,
 )
 from neural_dive.question_types import QuestionType
+
+OVERLAY_WIDTH = 80
+OVERLAY_HEIGHT = 20
 
 
 def _make_mc_question() -> Question:
@@ -38,11 +45,17 @@ def _make_mc_question() -> Question:
     )
 
 
-def _fake_game(eliminated: set[int] | None = None) -> Mock:
-    """Build a minimal game stub with the attributes the renderers read."""
+def _fake_game(eliminated: set[int] | None = None, text_buffer: str = "") -> Mock:
+    """Build a minimal game stub with the state the renderers read.
+
+    ``ConversationEngine`` is cheap, so use the real one rather than a Mock --
+    the renderers read the typed answer and eliminated-answer set from it.
+    """
     game = Mock()
-    game.eliminated_answers = eliminated or set()
-    game.text_input_buffer = ""
+    engine = ConversationEngine()
+    engine.eliminated_answers = eliminated or set()
+    engine.text_input_buffer = text_buffer
+    game.conversation_engine = engine
     game.player_manager.has_item_type.return_value = False
     return game
 
@@ -53,12 +66,39 @@ def _fake_colors() -> Mock:
     return colors
 
 
-def _render_and_capture(render_call) -> str:
-    """Run a renderer and return everything it wrote to stdout."""
-    buf = io.StringIO()
-    with redirect_stdout(buf):
-        render_call()
-    return buf.getvalue()
+def _render(
+    renderer,
+    backend: TestBackend,
+    question: Question,
+    *,
+    game: Mock | None = None,
+    question_number: int = 1,
+    total_questions: int = 1,
+) -> None:
+    """Render a question with the fixed overlay geometry these tests assume."""
+    renderer.render(
+        term=backend,
+        question=question,
+        question_number=question_number,
+        total_questions=total_questions,
+        start_x=0,
+        start_y=0,
+        current_y=2,
+        overlay_width=OVERLAY_WIDTH,
+        overlay_height=OVERLAY_HEIGHT,
+        colors=_fake_colors(),
+        game=game if game is not None else _fake_game(),
+    )
+
+
+def _text_calls(backend: TestBackend) -> list[DrawCall]:
+    """Every text-drawing call the renderer made, in order."""
+    return [call for call in backend.draw_calls if call.call_type == "text"]
+
+
+def _drawn_text(backend: TestBackend) -> str:
+    """All drawn text joined by newlines, for substring assertions."""
+    return "\n".join(call.text for call in _text_calls(backend))
 
 
 class TestMultipleChoiceRenderer(unittest.TestCase):
@@ -67,92 +107,78 @@ class TestMultipleChoiceRenderer(unittest.TestCase):
         self.backend = TestBackend()
 
     def test_renders_question_text(self):
-        question = _make_mc_question()
+        _render(self.renderer, self.backend, _make_mc_question(), total_questions=3)
 
-        output = _render_and_capture(
-            lambda: self.renderer.render(
-                term=self.backend,
-                question=question,
-                question_number=1,
-                total_questions=3,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=_fake_game(),
-            )
-        )
+        drawn = _drawn_text(self.backend)
+        self.assertIn("What is 2+2?", drawn)
+        self.assertIn("Q1/3", drawn)
 
-        self.assertIn("What is 2+2?", output)
-        self.assertIn("Q1/3", output)
+    def test_draws_through_the_backend_rather_than_printing(self):
+        _render(self.renderer, self.backend, _make_mc_question())
+
+        # If the renderer went back to print(), there would be no recorded calls.
+        self.assertTrue(_text_calls(self.backend))
 
     def test_renders_all_answer_choices(self):
         question = _make_mc_question()
 
-        output = _render_and_capture(
-            lambda: self.renderer.render(
-                term=self.backend,
-                question=question,
-                question_number=1,
-                total_questions=1,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=_fake_game(),
-            )
-        )
+        _render(self.renderer, self.backend, question)
 
+        drawn = _drawn_text(self.backend)
         for i, ans in enumerate(question.answers, start=1):
-            self.assertIn(f"{i}. {ans.text}", output)
+            self.assertIn(f"{i}. {ans.text}", drawn)
 
     def test_skips_eliminated_answers(self):
-        question = _make_mc_question()
-
-        output = _render_and_capture(
-            lambda: self.renderer.render(
-                term=self.backend,
-                question=question,
-                question_number=1,
-                total_questions=1,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=_fake_game(eliminated={0, 2}),
-            )
+        _render(
+            self.renderer,
+            self.backend,
+            _make_mc_question(),
+            game=_fake_game(eliminated={0, 2}),
         )
 
-        self.assertNotIn("1. 3", output)
-        self.assertNotIn("3. 5", output)
-        self.assertIn("2. 4", output)
-        self.assertIn("4. 22", output)
+        drawn = _drawn_text(self.backend)
+        self.assertNotIn("1. 3", drawn)
+        self.assertNotIn("3. 5", drawn)
+        self.assertIn("2. 4", drawn)
+        self.assertIn("4. 22", drawn)
 
     def test_renders_instructions_footer(self):
-        output = _render_and_capture(
-            lambda: self.renderer.render(
-                term=self.backend,
-                question=_make_mc_question(),
-                question_number=1,
-                total_questions=1,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=_fake_game(),
-            )
+        _render(self.renderer, self.backend, _make_mc_question())
+
+        footer = next(call for call in _text_calls(self.backend) if "ESC/Q to exit" in call.text)
+        self.assertIn("Press 1-4 to answer", footer.text)
+        # Pinned to the overlay's second-to-last row, in the error colour
+        self.assertEqual(footer.y, OVERLAY_HEIGHT - 2)
+        self.assertEqual(footer.color, "red")
+        self.assertTrue(footer.bold)
+
+    def test_question_stem_is_bold_and_answers_are_not(self):
+        _render(self.renderer, self.backend, _make_mc_question())
+
+        stem = next(call for call in _text_calls(self.backend) if "What is 2+2?" in call.text)
+        choice = next(call for call in _text_calls(self.backend) if call.text == "1. 3")
+        self.assertTrue(stem.bold)
+        self.assertEqual(stem.color, "black")
+        self.assertFalse(choice.bold)
+        self.assertEqual(choice.color, "blue")
+
+    def test_stops_drawing_answers_at_the_overlay_bottom(self):
+        # Long answers wrap to many lines; nothing may be drawn below the footer row.
+        question = Question(
+            question_text="Pick one",
+            topic="math",
+            question_type=QuestionType.MULTIPLE_CHOICE,
+            answers=[
+                Answer(text=f"choice {i} " + "padding " * 20, correct=False, response="")
+                for i in range(4)
+            ],
         )
 
-        self.assertIn("Press 1-4 to answer", output)
-        self.assertIn("ESC/Q to exit", output)
+        _render(self.renderer, self.backend, question)
+
+        answer_rows = [call.y for call in _text_calls(self.backend) if call.color == "blue"]
+        self.assertTrue(answer_rows)
+        self.assertLessEqual(max(answer_rows), OVERLAY_HEIGHT - 2)
 
 
 class TestShortAnswerRenderer(unittest.TestCase):
@@ -164,29 +190,58 @@ class TestShortAnswerRenderer(unittest.TestCase):
             correct_answer="log n",
         )
         backend = TestBackend()
-        game = _fake_game()
-        game.text_input_buffer = "log"
 
-        output = _render_and_capture(
-            lambda: ShortAnswerRenderer().render(
-                term=backend,
-                question=question,
-                question_number=1,
-                total_questions=1,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=game,
-            )
+        _render(
+            ShortAnswerRenderer(),
+            backend,
+            question,
+            game=_fake_game(text_buffer="log"),
         )
 
-        self.assertIn("Big-O of binary search?", output)
-        self.assertIn("Your answer:", output)
-        self.assertIn("log", output)
-        self.assertIn("Type your answer", output)
+        drawn = _drawn_text(backend)
+        self.assertIn("Big-O of binary search?", drawn)
+        self.assertIn("Your answer:", drawn)
+        self.assertIn("log", drawn)
+        self.assertIn("Type your answer", drawn)
+
+    def test_draws_the_input_box_and_the_typed_text(self):
+        question = Question(
+            question_text="Big-O of binary search?",
+            topic="algorithms",
+            question_type=QuestionType.SHORT_ANSWER,
+            correct_answer="log n",
+        )
+        backend = TestBackend()
+
+        _render(ShortAnswerRenderer(), backend, question, game=_fake_game(text_buffer="log"))
+
+        calls = _text_calls(backend)
+        # The box is drawn in three segments on the text row: left border, the
+        # typed text, then padding and the right border.
+        typed = next(call for call in calls if call.text == "log")
+        left_border = next(call for call in calls if call.text == "│ " and call.y == typed.y)
+        self.assertEqual(left_border.x, 2)
+        self.assertEqual(typed.x, 4)
+        self.assertEqual(typed.color, "black")
+        self.assertEqual(left_border.color, "blue")
+        # Top and bottom rules
+        self.assertTrue(any(call.text.startswith("┌") for call in calls))
+        self.assertTrue(any(call.text.startswith("└") for call in calls))
+
+    def test_truncates_typed_text_that_overflows_the_box(self):
+        question = Question(
+            question_text="Long?",
+            topic="algorithms",
+            question_type=QuestionType.SHORT_ANSWER,
+            correct_answer="x",
+        )
+        backend = TestBackend()
+        long_answer = "x" * 200
+
+        _render(ShortAnswerRenderer(), backend, question, game=_fake_game(text_buffer=long_answer))
+
+        typed = next(call for call in _text_calls(backend) if call.text.startswith("xxx"))
+        self.assertLessEqual(get_display_width(typed.text), OVERLAY_WIDTH - 10)
 
 
 class TestYesNoRenderer(unittest.TestCase):
@@ -197,26 +252,14 @@ class TestYesNoRenderer(unittest.TestCase):
             question_type=QuestionType.YES_NO,
             correct_answer="yes",
         )
+        backend = TestBackend()
 
-        output = _render_and_capture(
-            lambda: YesNoRenderer().render(
-                term=TestBackend(),
-                question=question,
-                question_number=2,
-                total_questions=2,
-                start_x=0,
-                start_y=0,
-                current_y=2,
-                overlay_width=80,
-                overlay_height=20,
-                colors=_fake_colors(),
-                game=_fake_game(),
-            )
-        )
+        _render(YesNoRenderer(), backend, question, question_number=2, total_questions=2)
 
-        self.assertIn("Is the heap balanced?", output)
-        self.assertIn("Answer (yes/no):", output)
-        self.assertIn("Press Y/N", output)
+        drawn = _drawn_text(backend)
+        self.assertIn("Is the heap balanced?", drawn)
+        self.assertIn("Answer (yes/no):", drawn)
+        self.assertIn("Press Y/N", drawn)
 
 
 class TestRendererRegistry(unittest.TestCase):

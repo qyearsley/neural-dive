@@ -104,23 +104,23 @@ class OverlayHandler:
         """
         # Each overlay type has its own dismiss key; branches are
         # intentionally separate so close behavior stays obvious.
-        if game.active_inventory:
+        if game.conversation_engine.active_inventory:
             if key.name == "KEY_ESCAPE" or key.lower() == "v":
-                game.active_inventory = False
+                game.conversation_engine.active_inventory = False
                 return InputResult(handled=True, needs_redraw=True)
             return InputResult(handled=True)
 
         # Snippet viewing mode
-        if game.active_snippet:
+        if game.conversation_engine.active_snippet:
             if key.name == "KEY_ESCAPE" or key.lower() == "s":
-                game.active_snippet = None
+                game.conversation_engine.active_snippet = None
                 return InputResult(handled=True, needs_redraw=True)
             return InputResult(handled=True)
 
         # Terminal reading mode
-        if game.active_terminal:
+        if game.conversation_engine.active_terminal:
             # Any key closes terminal
-            game.active_terminal = None
+            game.conversation_engine.active_terminal = None
             return InputResult(handled=True, needs_redraw=True)
 
         return InputResult(handled=False)
@@ -148,29 +148,29 @@ class ConversationHandler:
         Returns:
             InputResult indicating conversation state changes
         """
-        if not game.active_conversation:
+        if not game.conversation_engine.active_conversation:
             # Clean up any lingering response state
-            if game.last_answer_response:
-                game.last_answer_response = None
+            if game.conversation_engine.last_answer_response:
+                game.conversation_engine.last_answer_response = None
                 return InputResult(handled=True, needs_redraw=True)
             return InputResult(handled=False)
 
         # Stage 1: Greeting dismissal
-        if game.show_greeting:
-            game.show_greeting = False
-            game.text_input_buffer = ""
+        if game.conversation_engine.show_greeting:
+            game.conversation_engine.show_greeting = False
+            game.conversation_engine.text_input_buffer = ""
             return InputResult(handled=True)
 
         # Stage 2: Response dismissal
-        if hasattr(game, "last_answer_response") and game.last_answer_response:
-            game.last_answer_response = None
-            game.text_input_buffer = ""
+        if game.conversation_engine.last_answer_response:
+            game.conversation_engine.last_answer_response = None
+            game.conversation_engine.text_input_buffer = ""
             return InputResult(handled=True)
 
         # Stage 3: Question answering
         from neural_dive.question_types import QuestionType
 
-        current_question = game.active_conversation.get_current_question()
+        current_question = game.conversation_engine.active_conversation.get_current_question()
         if not current_question:
             return InputResult(handled=False)
 
@@ -204,26 +204,30 @@ class ConversationHandler:
         if question.question_type == QuestionType.YES_NO:
             if key.lower() == "y":
                 correct, response = game.answer_text_question("yes")
-                game.text_input_buffer = ""
-                game.last_answer_response = response
+                game.conversation_engine.text_input_buffer = ""
+                game.conversation_engine.last_answer_response = response
                 return InputResult(handled=True, needs_redraw=True)
             elif key.lower() == "n":
                 correct, response = game.answer_text_question("no")
-                game.text_input_buffer = ""
-                game.last_answer_response = response
+                game.conversation_engine.text_input_buffer = ""
+                game.conversation_engine.last_answer_response = response
                 return InputResult(handled=True, needs_redraw=True)
 
         # Enter submits answer
         if key.name == "KEY_ENTER" or key == "\n" or key == "\r":
-            if game.text_input_buffer.strip():
-                correct, response = game.answer_text_question(game.text_input_buffer.strip())
-                game.text_input_buffer = ""
-                game.last_answer_response = response
+            if game.conversation_engine.text_input_buffer.strip():
+                correct, response = game.answer_text_question(
+                    game.conversation_engine.text_input_buffer.strip()
+                )
+                game.conversation_engine.text_input_buffer = ""
+                game.conversation_engine.last_answer_response = response
                 return InputResult(handled=True, needs_redraw=True)
             return InputResult(handled=True)
 
         # ESC/X exits conversation (only when buffer empty)
-        if key.name == "KEY_ESCAPE" or (key.lower() == "x" and not game.text_input_buffer):
+        if key.name == "KEY_ESCAPE" or (
+            key.lower() == "x" and not game.conversation_engine.text_input_buffer
+        ):
             self._exit_conversation(game)
             return InputResult(handled=True, needs_redraw=True)
 
@@ -260,8 +264,8 @@ class ConversationHandler:
         if key in ["1", "2", "3", "4"]:
             answer_idx = int(key) - 1
             correct, response = game.answer_question(answer_idx)
-            game.text_input_buffer = ""
-            game.last_answer_response = response
+            game.conversation_engine.text_input_buffer = ""
+            game.conversation_engine.last_answer_response = response
             return InputResult(handled=True, needs_redraw=True)
 
         # ESC/Q/X exits conversation
@@ -283,15 +287,17 @@ class ConversationHandler:
         """
         # Backspace
         if key.name == "KEY_BACKSPACE" or key == "\x7f":
-            if game.text_input_buffer:
-                game.text_input_buffer = game.text_input_buffer[:-1]
+            if game.conversation_engine.text_input_buffer:
+                game.conversation_engine.text_input_buffer = (
+                    game.conversation_engine.text_input_buffer[:-1]
+                )
             return True
 
         # Regular character input
         if key.is_sequence:
             return True  # Ignore special sequences
         if len(key) == 1 and key.isprintable():
-            game.text_input_buffer += key
+            game.conversation_engine.text_input_buffer += key
             return True
 
         return False
@@ -303,9 +309,9 @@ class ConversationHandler:
             game: Game instance
         """
         game.exit_conversation()
-        game.last_answer_response = None
-        game.show_greeting = False
-        game.text_input_buffer = ""
+        game.conversation_engine.last_answer_response = None
+        game.conversation_engine.show_greeting = False
+        game.conversation_engine.text_input_buffer = ""
 
 
 class NormalModeHandler:
@@ -357,7 +363,9 @@ class NormalModeHandler:
 
         # Toggle inventory (V key)
         if key.lower() == "v":
-            game.active_inventory = not game.active_inventory
+            game.conversation_engine.active_inventory = (
+                not game.conversation_engine.active_inventory
+            )
             return InputResult(handled=True, needs_redraw=True)
 
         # Movement and interactions
@@ -399,10 +407,10 @@ class NormalModeHandler:
         # Interaction: Space, Enter, or 'i'
         elif key.lower() == "i" or key == " " or key.name == "KEY_ENTER":
             result = game.interact()
-            if result and game.active_conversation:
+            if result and game.conversation_engine.active_conversation:
                 # Starting conversation - initialize state
-                game.show_greeting = True
-                game.last_answer_response = None
+                game.conversation_engine.show_greeting = True
+                game.conversation_engine.last_answer_response = None
                 return InputResult(handled=True)
             elif not result:
                 # No NPC nearby, try stairs

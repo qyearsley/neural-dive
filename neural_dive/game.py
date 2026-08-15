@@ -20,8 +20,6 @@ from neural_dive.config import (
     MAX_FLOORS,
 )
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings
-from neural_dive.entities import Entity, InfoTerminal
-from neural_dive.models import Conversation
 
 if TYPE_CHECKING:
     import random
@@ -215,197 +213,6 @@ class Game:
             difficulty_settings=self.difficulty_settings,
         )
 
-    # Backward compatibility properties for FloorManager
-    @property
-    def current_floor(self) -> int:
-        """Get current floor from FloorManager."""
-        return self.floor_manager.current_floor
-
-    @current_floor.setter
-    def current_floor(self, value: int):
-        """Set current floor on FloorManager."""
-        self.floor_manager.current_floor = value
-
-    @property
-    def max_floors(self) -> int:
-        """Get max floors from FloorManager."""
-        return self.floor_manager.max_floors
-
-    # Backward compatibility properties for PlayerManager
-    @property
-    def coherence(self) -> int:
-        """Get current coherence from PlayerManager."""
-        return self.player_manager.coherence
-
-    @coherence.setter
-    def coherence(self, value: int) -> None:
-        """Set coherence directly on PlayerManager."""
-        self.player_manager.coherence = value
-
-    @property
-    def max_coherence(self) -> int:
-        """Get max coherence from PlayerManager."""
-        return self.player_manager.max_coherence
-
-    @max_coherence.setter
-    def max_coherence(self, value: int) -> None:
-        """Set max coherence on PlayerManager."""
-        self.player_manager.max_coherence = value
-
-    @property
-    def knowledge_modules(self) -> set[str]:
-        """Get knowledge modules from PlayerManager."""
-        return self.player_manager.knowledge_modules
-
-    @knowledge_modules.setter
-    def knowledge_modules(self, value: set[str]) -> None:
-        """Set knowledge modules on PlayerManager."""
-        self.player_manager.knowledge_modules = value
-
-    # Backward compatibility properties for StatsTracker
-    @property
-    def questions_answered(self) -> int:
-        """Get questions answered from StatsTracker."""
-        return self.stats_tracker.questions_answered
-
-    @questions_answered.setter
-    def questions_answered(self, value: int) -> None:
-        """Set questions answered on StatsTracker."""
-        self.stats_tracker.questions_answered = value
-
-    @property
-    def questions_correct(self) -> int:
-        """Get questions correct from StatsTracker."""
-        return self.stats_tracker.questions_correct
-
-    @questions_correct.setter
-    def questions_correct(self, value: int) -> None:
-        """Set questions correct on StatsTracker."""
-        self.stats_tracker.questions_correct = value
-
-    @property
-    def questions_wrong(self) -> int:
-        """Get questions wrong from StatsTracker."""
-        return self.stats_tracker.questions_wrong
-
-    @questions_wrong.setter
-    def questions_wrong(self, value: int) -> None:
-        """Set questions wrong on StatsTracker."""
-        self.stats_tracker.questions_wrong = value
-
-    @property
-    def start_time(self) -> float:
-        """Get start time from StatsTracker."""
-        return self.stats_tracker.start_time
-
-    @start_time.setter
-    def start_time(self, value: float) -> None:
-        """Set start time on StatsTracker."""
-        self.stats_tracker.start_time = value
-
-    # Backward compatibility properties for NPCManager
-    @property
-    def npcs(self) -> list[Entity]:
-        """Get current floor NPCs from NPCManager."""
-        return self.npc_manager.npcs
-
-    @property
-    def npc_conversations(self) -> dict[str, Conversation]:
-        """Get NPC conversations from NPCManager."""
-        return self.npc_manager.conversations
-
-    @property
-    def quest_completed_npcs(self) -> set[str]:
-        """Get quest completed NPCs from QuestManager."""
-        return self.quest_manager.completed_npcs
-
-    # Backward compatibility properties for QuestManager
-    @property
-    def quest_active(self) -> bool:
-        """Get quest active state from QuestManager."""
-        return self.quest_manager.quest_active
-
-    @quest_active.setter
-    def quest_active(self, value: bool) -> None:
-        """Set quest active state on QuestManager."""
-        self.quest_manager.quest_active = value
-
-    # Backward compatibility properties for ConversationEngine
-    @property
-    def active_conversation(self) -> Conversation | None:
-        """Get active conversation from ConversationEngine."""
-        return self.conversation_engine.active_conversation
-
-    @active_conversation.setter
-    def active_conversation(self, value: Conversation | None) -> None:
-        """Set active conversation on ConversationEngine."""
-        self.conversation_engine.active_conversation = value
-
-    @property
-    def active_terminal(self) -> InfoTerminal | None:
-        """Get active terminal from ConversationEngine."""
-        return self.conversation_engine.active_terminal
-
-    @active_terminal.setter
-    def active_terminal(self, value: InfoTerminal | None) -> None:
-        """Set active terminal on ConversationEngine."""
-        self.conversation_engine.active_terminal = value
-
-    @property
-    def active_inventory(self) -> bool:
-        """Get active inventory state from ConversationEngine."""
-        return self.conversation_engine.active_inventory
-
-    @active_inventory.setter
-    def active_inventory(self, value: bool) -> None:
-        """Set active inventory state on ConversationEngine."""
-        self.conversation_engine.active_inventory = value
-
-    @property
-    def active_snippet(self) -> dict | None:
-        """Get active snippet from ConversationEngine."""
-        return self.conversation_engine.active_snippet
-
-    @active_snippet.setter
-    def active_snippet(self, value: dict | None) -> None:
-        """Set active snippet on ConversationEngine."""
-        self.conversation_engine.active_snippet = value
-
-    @property
-    def show_greeting(self) -> bool:
-        """Get show greeting from ConversationEngine."""
-        return self.conversation_engine.show_greeting
-
-    @show_greeting.setter
-    def show_greeting(self, value: bool) -> None:
-        """Set show greeting on ConversationEngine."""
-        self.conversation_engine.show_greeting = value
-
-    @property
-    def last_answer_response(self) -> str | None:
-        """Get last answer response from ConversationEngine."""
-        return self.conversation_engine.last_answer_response
-
-    @last_answer_response.setter
-    def last_answer_response(self, value: str | None) -> None:
-        """Set last answer response on ConversationEngine."""
-        self.conversation_engine.last_answer_response = value
-
-    @property
-    def text_input_buffer(self) -> str:
-        """Get text input buffer from ConversationEngine."""
-        return self.conversation_engine.text_input_buffer
-
-    @text_input_buffer.setter
-    def text_input_buffer(self, value: str) -> None:
-        """Set text input buffer on ConversationEngine."""
-        self.conversation_engine.text_input_buffer = value
-
-    @property
-    def eliminated_answers(self) -> set[int]:
-        """Get eliminated answers from ConversationEngine."""
-        return self.conversation_engine.eliminated_answers
-
     def _generate_floor(self):
         """Generate all entities (NPCs, terminals, stairs, items) for the current floor.
 
@@ -424,12 +231,12 @@ class Game:
         self.item_pickups = []
 
         # Clear old position tracking when changing floors
-        self.npc_manager.old_positions.clear()
+        self.npc_manager.movement.old_positions.clear()
         self.old_player_pos = None  # Clear player's old position to prevent stale rendering
 
         # Generate NPCs for this floor using NPCManager
         self.npc_manager.generate_npcs_for_floor(
-            floor=self.current_floor,
+            floor=self.floor_manager.current_floor,
             game_map=self.game_map,
             player_pos=(self.player.x, self.player.y),
             random_placement=self.random_npcs,
@@ -440,8 +247,8 @@ class Game:
         # Generate all non-NPC entities using FloorEntityGenerator
         self.stairs, self.terminals, self.item_pickups = (
             self.floor_entity_generator.generate_all_entities(
-                floor=self.current_floor,
-                max_floors=self.max_floors,
+                floor=self.floor_manager.current_floor,
+                max_floors=self.floor_manager.max_floors,
                 game_map=self.game_map,
                 map_width=self.map_width,
                 map_height=self.map_height,
@@ -459,7 +266,7 @@ class Game:
         self.npc_manager.update_wandering(
             game_map=self.game_map,
             player_pos=(self.player.x, self.player.y),
-            is_conversation_active=self.active_conversation is not None,
+            is_conversation_active=self.conversation_engine.active_conversation is not None,
         )
 
     def is_walkable(self, x: int, y: int) -> bool:
@@ -492,7 +299,7 @@ class Game:
             item_pickups=self.item_pickups,
             stairs=self.stairs,
             player_manager=self.player_manager,
-            is_in_conversation=self.active_conversation is not None,
+            is_in_conversation=self.conversation_engine.active_conversation is not None,
         )
 
         # Update game message and old position
@@ -513,18 +320,18 @@ class Game:
         result = self.interaction_handler.interact(
             player_pos=(self.player.x, self.player.y),
             terminals=self.terminals,
-            npcs=self.npcs,
+            npcs=self.npc_manager.npcs,
             stairs=self.stairs,
-            npc_conversations=self.npc_conversations,
+            npc_conversations=self.npc_manager.conversations,
         )
 
         self.message = result.message
 
         # Process the interaction result
         if result.action == "terminal" and result.terminal:
-            self.active_terminal = result.terminal
+            self.conversation_engine.active_terminal = result.terminal
         elif result.action == "conversation" and result.conversation:
-            self.active_conversation = result.conversation
+            self.conversation_engine.active_conversation = result.conversation
 
         return result.success
 
@@ -573,7 +380,7 @@ class Game:
             return False, "No hint tokens available"
 
         # Check if in a conversation
-        if not self.active_conversation:
+        if not self.conversation_engine.active_conversation:
             return False, "Not in a conversation"
 
         # Try to use the hint
@@ -602,7 +409,7 @@ class Game:
             return False, "No code snippets available"
 
         # Check if in a conversation
-        if not self.active_conversation:
+        if not self.conversation_engine.active_conversation:
             return False, "Not in a conversation"
 
         # Show the first available snippet
@@ -615,7 +422,7 @@ class Game:
             # Find matching snippet in snippets data
             for _snippet_id, snippet_data in self.snippets.items():
                 if snippet_data.get("topic") == snippet_item.topic:
-                    self.active_snippet = snippet_data
+                    self.conversation_engine.active_snippet = snippet_data
                     return True, "Viewing snippet"
 
         return False, "Snippet not found"
@@ -682,9 +489,9 @@ class Game:
             Current score value
         """
         score: int = self.stats_tracker.get_current_score(
-            knowledge_count=len(self.knowledge_modules),
+            knowledge_count=len(self.player_manager.knowledge_modules),
             npcs_completed_count=len(self.npcs_completed),
-            coherence=self.coherence,
+            coherence=self.player_manager.coherence,
         )
         return score
 
@@ -696,9 +503,9 @@ class Game:
         """
         stats: dict = self.stats_tracker.get_final_stats(
             npcs_completed_count=len(self.npcs_completed),
-            knowledge_count=len(self.knowledge_modules),
-            final_coherence=self.coherence,
-            current_floor=self.current_floor,
+            knowledge_count=len(self.player_manager.knowledge_modules),
+            final_coherence=self.player_manager.coherence,
+            current_floor=self.floor_manager.current_floor,
         )
         return stats
 
@@ -709,8 +516,8 @@ class Game:
         Returns:
             True if a conversation was exited, False otherwise
         """
-        if self.active_conversation:
-            self.active_conversation = None
+        if self.conversation_engine.active_conversation:
+            self.conversation_engine.active_conversation = None
             self.message = "Conversation ended."
             return True
         return False
@@ -728,7 +535,7 @@ class Game:
         command = command.strip().lower()
 
         # Handle conversation answers
-        if self.active_conversation and command in ["1", "2", "3", "4"]:
+        if self.conversation_engine.active_conversation and command in ["1", "2", "3", "4"]:
             answer_idx = int(command) - 1
             correct, response = self.answer_question(answer_idx)
             return correct, response
@@ -766,17 +573,19 @@ class Game:
         """
         return {
             "player_pos": (self.player.x, self.player.y),
-            "npcs": [(npc.x, npc.y, npc.name) for npc in self.npcs],
+            "npcs": [(npc.x, npc.y, npc.name) for npc in self.npc_manager.npcs],
             "message": self.message,
-            "coherence": self.coherence,
-            "knowledge_modules": list(self.knowledge_modules),
-            "in_conversation": self.active_conversation is not None,
+            "coherence": self.player_manager.coherence,
+            "knowledge_modules": list(self.player_manager.knowledge_modules),
+            "in_conversation": self.conversation_engine.active_conversation is not None,
             "conversation_npc": (
-                self.active_conversation.npc_name if self.active_conversation else None
+                self.conversation_engine.active_conversation.npc_name
+                if self.conversation_engine.active_conversation
+                else None
             ),
-            "current_floor": self.current_floor,
-            "quest_active": self.quest_active,
-            "quest_completed_npcs": list(self.quest_completed_npcs),
+            "current_floor": self.floor_manager.current_floor,
+            "quest_active": self.quest_manager.quest_active,
+            "quest_completed_npcs": list(self.quest_manager.completed_npcs),
         }
 
     def save_game(self, filepath: str | Path | None = None) -> tuple[bool, Path | None]:

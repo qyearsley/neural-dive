@@ -27,14 +27,16 @@ class TestGameConversations(unittest.TestCase):
     def test_answer_question_correct_increases_coherence(self):
         """Test that correct answer increases coherence."""
         # Start a conversation with an NPC
-        npc_name = list(self.game.npc_conversations.keys())[0]
-        self.game.active_conversation = self.game.npc_conversations[npc_name]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
+        self.game.conversation_engine.active_conversation = self.game.npc_manager.conversations[
+            npc_name
+        ]
 
         # Get initial coherence
-        initial_coherence = self.game.coherence
+        initial_coherence = self.game.player_manager.coherence
 
         # Answer first question correctly (need to find correct answer index)
-        question = self.game.active_conversation.get_current_question()
+        question = self.game.conversation_engine.active_conversation.get_current_question()
         if question and question.question_type == QuestionType.MULTIPLE_CHOICE:
             # Find correct answer
             correct_idx = next(i for i, ans in enumerate(question.answers) if ans.correct)
@@ -42,18 +44,20 @@ class TestGameConversations(unittest.TestCase):
             correct, response = self.game.answer_question(correct_idx)
 
             self.assertTrue(correct)
-            self.assertGreater(self.game.coherence, initial_coherence)
+            self.assertGreater(self.game.player_manager.coherence, initial_coherence)
 
     def test_answer_question_wrong_decreases_coherence(self):
         """Test that wrong answer decreases coherence."""
         # Start a conversation
-        npc_name = list(self.game.npc_conversations.keys())[0]
-        self.game.active_conversation = self.game.npc_conversations[npc_name]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
+        self.game.conversation_engine.active_conversation = self.game.npc_manager.conversations[
+            npc_name
+        ]
 
-        initial_coherence = self.game.coherence
+        initial_coherence = self.game.player_manager.coherence
 
         # Answer incorrectly
-        question = self.game.active_conversation.get_current_question()
+        question = self.game.conversation_engine.active_conversation.get_current_question()
         if question and question.question_type == QuestionType.MULTIPLE_CHOICE:
             # Find wrong answer
             wrong_idx = next(i for i, ans in enumerate(question.answers) if not ans.correct)
@@ -61,7 +65,7 @@ class TestGameConversations(unittest.TestCase):
             correct, response = self.game.answer_question(wrong_idx)
 
             self.assertFalse(correct)
-            self.assertLess(self.game.coherence, initial_coherence)
+            self.assertLess(self.game.player_manager.coherence, initial_coherence)
 
     def test_answer_text_question_correct(self):
         """Test answering short answer question correctly."""
@@ -82,14 +86,14 @@ class TestGameConversations(unittest.TestCase):
             npc_type=NPCType.SPECIALIST,
         )
 
-        self.game.active_conversation = conv
-        initial_coherence = self.game.coherence
+        self.game.conversation_engine.active_conversation = conv
+        initial_coherence = self.game.player_manager.coherence
 
         correct, response = self.game.answer_text_question("4")
 
         self.assertTrue(correct)
         self.assertIn("Correct", response)
-        self.assertGreater(self.game.coherence, initial_coherence)
+        self.assertGreater(self.game.player_manager.coherence, initial_coherence)
 
     def test_answer_text_question_wrong(self):
         """Test answering short answer question incorrectly."""
@@ -109,14 +113,14 @@ class TestGameConversations(unittest.TestCase):
             npc_type=NPCType.SPECIALIST,
         )
 
-        self.game.active_conversation = conv
-        initial_coherence = self.game.coherence
+        self.game.conversation_engine.active_conversation = conv
+        initial_coherence = self.game.player_manager.coherence
 
         correct, response = self.game.answer_text_question("5")
 
         self.assertFalse(correct)
         self.assertIn("Wrong", response)
-        self.assertLess(self.game.coherence, initial_coherence)
+        self.assertLess(self.game.player_manager.coherence, initial_coherence)
 
     def test_conversation_completes_after_all_questions(self):
         """Test that conversation completes after answering all questions."""
@@ -134,25 +138,27 @@ class TestGameConversations(unittest.TestCase):
             npc_type=NPCType.SPECIALIST,
         )
 
-        self.game.active_conversation = conv
+        self.game.conversation_engine.active_conversation = conv
 
         # Answer the question
         correct, response = self.game.answer_question(0)
 
         self.assertTrue(conv.completed)
-        self.assertIsNone(self.game.active_conversation)
+        self.assertIsNone(self.game.conversation_engine.active_conversation)
 
     def test_exit_conversation(self):
         """Test exiting a conversation."""
         # Start conversation
-        npc_name = list(self.game.npc_conversations.keys())[0]
-        self.game.active_conversation = self.game.npc_conversations[npc_name]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
+        self.game.conversation_engine.active_conversation = self.game.npc_manager.conversations[
+            npc_name
+        ]
 
         # Exit
         result = self.game.exit_conversation()
 
         self.assertTrue(result)
-        self.assertIsNone(self.game.active_conversation)
+        self.assertIsNone(self.game.conversation_engine.active_conversation)
 
 
 class TestGameInteractions(unittest.TestCase):
@@ -174,8 +180,8 @@ class TestGameInteractions(unittest.TestCase):
     def test_interact_starts_conversation(self):
         """Test that interacting with NPC starts conversation."""
         # Find an NPC and move player adjacent
-        if self.game.npcs:
-            npc = self.game.npcs[0]
+        if self.game.npc_manager.npcs:
+            npc = self.game.npc_manager.npcs[0]
             # Place player next to NPC
             self.game.player.x = npc.x + 1
             self.game.player.y = npc.y
@@ -208,13 +214,13 @@ class TestFloorProgression(unittest.TestCase):
             self.game.player.x = stairs.x
             self.game.player.y = stairs.y
 
-            initial_floor = self.game.current_floor
+            initial_floor = self.game.floor_manager.current_floor
 
             self.game.use_stairs()
 
             # Should fail if floor not complete
             if not self.game.is_floor_complete():
-                self.assertEqual(self.game.current_floor, initial_floor)
+                self.assertEqual(self.game.floor_manager.current_floor, initial_floor)
 
 
 class TestSaveLoad(unittest.TestCase):
@@ -236,8 +242,8 @@ class TestSaveLoad(unittest.TestCase):
     def test_save_game_contains_correct_data(self):
         """Test that saved game contains all necessary data."""
         game = Game(seed=42, random_npcs=False)
-        game.coherence = 75
-        game.current_floor = 2
+        game.player_manager.coherence = 75
+        game.floor_manager.current_floor = 2
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "test_save.json"
@@ -258,8 +264,8 @@ class TestSaveLoad(unittest.TestCase):
         """Test that load_game restores game state correctly."""
         # Create and save a game
         game1 = Game(seed=42, random_npcs=False)
-        game1.coherence = 60
-        game1.current_floor = 1
+        game1.player_manager.coherence = 60
+        game1.floor_manager.current_floor = 1
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "test_save.json"
@@ -271,8 +277,8 @@ class TestSaveLoad(unittest.TestCase):
 
             self.assertIsNotNone(game2)
             assert game2 is not None  # Type narrowing for mypy
-            self.assertEqual(game2.coherence, 60)
-            self.assertEqual(game2.current_floor, 1)
+            self.assertEqual(game2.player_manager.coherence, 60)
+            self.assertEqual(game2.floor_manager.current_floor, 1)
             self.assertEqual(game2.seed, 42)
 
     def test_load_nonexistent_file_returns_none(self):
@@ -284,9 +290,9 @@ class TestSaveLoad(unittest.TestCase):
     def test_round_trip_save_load(self):
         """Test complete save/load round trip preserves game state."""
         game1 = Game(seed=99, random_npcs=False)
-        game1.coherence = 85
-        game1.questions_answered = 5
-        game1.questions_correct = 4
+        game1.player_manager.coherence = 85
+        game1.stats_tracker.questions_answered = 5
+        game1.stats_tracker.questions_correct = 4
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "round_trip.json"
@@ -302,9 +308,9 @@ class TestSaveLoad(unittest.TestCase):
             assert game2 is not None  # Type narrowing for mypy
 
             # Verify state
-            self.assertEqual(game2.coherence, 85)
-            self.assertEqual(game2.questions_answered, 5)
-            self.assertEqual(game2.questions_correct, 4)
+            self.assertEqual(game2.player_manager.coherence, 85)
+            self.assertEqual(game2.stats_tracker.questions_answered, 5)
+            self.assertEqual(game2.stats_tracker.questions_correct, 4)
             self.assertEqual(game2.seed, 99)
 
     def test_load_rewires_managers_into_collaborators(self):
@@ -348,7 +354,7 @@ class TestSaveLoad(unittest.TestCase):
 
         npc_name = next(
             name
-            for name, conv in game.npc_conversations.items()
+            for name, conv in game.npc_manager.conversations.items()
             if conv.questions and not conv.completed
         )
         game.state_manager.start_conversation(npc_name)
@@ -366,7 +372,7 @@ class TestSaveLoad(unittest.TestCase):
         positions and produced a floor with no NPCs at all.
         """
         game1 = Game(seed=42, random_npcs=False)
-        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npcs)
+        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npc_manager.npcs)
         self.assertTrue(saved_npcs, "precondition: the fresh game should have NPCs")
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -375,17 +381,19 @@ class TestSaveLoad(unittest.TestCase):
             game2 = Game.load_game(str(save_path))
 
         assert game2 is not None  # Type narrowing for mypy
-        self.assertEqual(game2.current_floor, 1)
-        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game2.npcs), saved_npcs)
+        self.assertEqual(game2.floor_manager.current_floor, 1)
+        self.assertEqual(
+            sorted((npc.name, npc.x, npc.y) for npc in game2.npc_manager.npcs), saved_npcs
+        )
 
     def test_generating_a_floor_twice_places_the_same_npcs(self):
         """Floor generation must not consume the level data it reads from."""
         game = Game(seed=42, random_npcs=False)
-        first = sorted((npc.name, npc.x, npc.y) for npc in game.npcs)
+        first = sorted((npc.name, npc.x, npc.y) for npc in game.npc_manager.npcs)
 
         game._generate_floor()
 
-        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game.npcs), first)
+        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game.npc_manager.npcs), first)
 
     def test_loading_a_deeper_save_restores_that_floors_map(self):
         """A save from floor 2 must come back with floor 2's map, not floor 1's.
@@ -397,7 +405,7 @@ class TestSaveLoad(unittest.TestCase):
         game1 = Game(seed=42, random_npcs=False)
         game1.floor_manager.move_to_next_floor(game1.player)
         game1._generate_floor()
-        self.assertEqual(game1.current_floor, 2)
+        self.assertEqual(game1.floor_manager.current_floor, 2)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "floor_two.json"
@@ -405,7 +413,7 @@ class TestSaveLoad(unittest.TestCase):
             game2 = Game.load_game(str(save_path))
 
         assert game2 is not None  # Type narrowing for mypy
-        self.assertEqual(game2.current_floor, 2)
+        self.assertEqual(game2.floor_manager.current_floor, 2)
         self.assertEqual(game2.game_map, game1.game_map)
         self.assertNotEqual(game2.game_map, Game(seed=42, random_npcs=False).game_map)
 
@@ -418,7 +426,7 @@ class TestSaveLoad(unittest.TestCase):
         """
         game1 = Game(seed=42, random_npcs=True)
         saved_items = sorted((item.x, item.y) for item in game1.item_pickups)
-        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npcs)
+        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npc_manager.npcs)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "random_placement.json"
@@ -427,7 +435,9 @@ class TestSaveLoad(unittest.TestCase):
 
         assert game2 is not None  # Type narrowing for mypy
         self.assertEqual(sorted((item.x, item.y) for item in game2.item_pickups), saved_items)
-        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game2.npcs), saved_npcs)
+        self.assertEqual(
+            sorted((npc.name, npc.x, npc.y) for npc in game2.npc_manager.npcs), saved_npcs
+        )
 
 
 class TestGameStatistics(unittest.TestCase):
@@ -447,8 +457,8 @@ class TestGameStatistics(unittest.TestCase):
     def test_final_stats_calculates_accuracy(self):
         """Test that accuracy is calculated correctly."""
         game = Game(seed=42)
-        game.questions_answered = 10
-        game.questions_correct = 7
+        game.stats_tracker.questions_answered = 10
+        game.stats_tracker.questions_correct = 7
 
         stats = game.get_final_stats()
 
@@ -457,8 +467,8 @@ class TestGameStatistics(unittest.TestCase):
     def test_final_stats_handles_no_questions(self):
         """Test stats when no questions have been answered."""
         game = Game(seed=42)
-        game.questions_answered = 0
-        game.questions_correct = 0
+        game.stats_tracker.questions_answered = 0
+        game.stats_tracker.questions_correct = 0
 
         stats = game.get_final_stats()
 

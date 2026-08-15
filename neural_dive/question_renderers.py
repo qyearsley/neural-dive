@@ -9,8 +9,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 import unicodedata
 
-from neural_dive.conversation import wrap_text
 from neural_dive.question_types import QuestionType
+from neural_dive.render_helpers import draw_wrapped_text
 
 if TYPE_CHECKING:
     from neural_dive.backends import RenderBackend
@@ -100,45 +100,51 @@ class MultipleChoiceRenderer:
         """Render multiple choice question with numbered answers."""
         # Question text
         q_text = f"Q{question_number}/{total_questions}: {question.question_text}"
-        lines = wrap_text(q_text, overlay_width - 4)
-        for line in lines:
-            if current_y < start_y + overlay_height - 4:
-                print(term.move_xy(start_x + 2, current_y) + term.bold_black(line), end="")
-                current_y += 1
+        current_y = draw_wrapped_text(
+            term,
+            q_text,
+            start_x + 2,
+            current_y,
+            start_y + overlay_height - 4,
+            overlay_width - 4,
+            color="black",
+            bold=True,
+        )
 
         current_y += 1
 
         # Show numbered answers (skip eliminated ones)
-        eliminated = game.eliminated_answers
+        eliminated = game.conversation_engine.eliminated_answers
+        answers_max_y = start_y + overlay_height - 2
         for i, answer in enumerate(question.answers):
             # Skip eliminated answers
             if i in eliminated:
                 continue
 
-            if current_y < start_y + overlay_height - 2:
-                choice_text = f"{i + 1}. {answer.text}"
-                lines = wrap_text(choice_text, overlay_width - 4)
-                for line in lines:
-                    if current_y < start_y + overlay_height - 2:
-                        print(
-                            term.move_xy(start_x + 2, current_y) + term.blue(line),
-                            end="",
-                        )
-                        current_y += 1
+            current_y = draw_wrapped_text(
+                term,
+                f"{i + 1}. {answer.text}",
+                start_x + 2,
+                current_y,
+                answers_max_y,
+                overlay_width - 4,
+                color="blue",
+            )
 
         # Instructions at bottom - show hint option if available
         from neural_dive.items import ItemType
 
         has_hints = game.player_manager.has_item_type(ItemType.HINT_TOKEN)
         has_snippets = game.player_manager.has_item_type(ItemType.CODE_SNIPPET)
-        error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
 
         hint_text = " | H: Use Hint" if has_hints else ""
         snippet_text = " | S: View Snippet" if has_snippets else ""
-        print(
-            term.move_xy(start_x + 2, start_y + overlay_height - 2)
-            + error_color(f"Press 1-4 to answer{hint_text}{snippet_text} | ESC/Q to exit"),
-            end="",
+        term.draw_text(
+            start_x + 2,
+            start_y + overlay_height - 2,
+            f"Press 1-4 to answer{hint_text}{snippet_text} | ESC/Q to exit",
+            colors.ui_error,
+            bold=True,
         )
 
 
@@ -159,11 +165,16 @@ class TextInputRenderer:
     ) -> int:
         """Render question text and return new current_y position."""
         q_text = f"Q{question_number}/{total_questions}: {question.question_text}"
-        lines = wrap_text(q_text, overlay_width - 4)
-        for line in lines:
-            if current_y < start_y + overlay_height - 4:
-                print(term.move_xy(start_x + 2, current_y) + term.bold_black(line), end="")
-                current_y += 1
+        current_y = draw_wrapped_text(
+            term,
+            q_text,
+            start_x + 2,
+            current_y,
+            start_y + overlay_height - 4,
+            overlay_width - 4,
+            color="black",
+            bold=True,
+        )
         return current_y + 2  # Add spacing
 
     def _render_text_input_box(
@@ -177,16 +188,16 @@ class TextInputRenderer:
     ) -> int:
         """Render text input box and return new current_y position."""
         # Input prompt
-        print(term.move_xy(start_x + 2, current_y) + term.bold_black(prompt_text), end="")
+        term.draw_text(start_x + 2, current_y, prompt_text, "black", bold=True)
         current_y += 1
 
         # Input box top
-        input_box = "┌" + "─" * (overlay_width - 6) + "┓"
-        print(term.move_xy(start_x + 2, current_y) + term.blue(input_box), end="")
+        term.draw_text(start_x + 2, current_y, "┌" + "─" * (overlay_width - 6) + "┓", "blue")
         current_y += 1
 
-        # Input area with user's typed text
-        # Calculate max display width (accounting for wide characters)
+        # Input area with user's typed text. The row is three segments -- the left
+        # border, the text, then padding and the right border -- so each is drawn
+        # at its own x rather than concatenated into one coloured string.
         max_display_width = overlay_width - 10
 
         # Truncate text to fit display width (accounting for wide chars)
@@ -194,22 +205,18 @@ class TextInputRenderer:
         while get_display_width(display_text) > max_display_width:
             display_text = display_text[:-1]
 
-        # Calculate padding based on actual display width
         text_display_width = get_display_width(display_text)
         padding_width = overlay_width - 8 - text_display_width
 
-        print(
-            term.move_xy(start_x + 2, current_y)
-            + term.blue("│ ")
-            + term.black(display_text)
-            + term.blue(" " * padding_width + " │"),
-            end="",
+        term.draw_text(start_x + 2, current_y, "│ ", "blue")
+        term.draw_text(start_x + 4, current_y, display_text, "black")
+        term.draw_text(
+            start_x + 4 + text_display_width, current_y, " " * padding_width + " │", "blue"
         )
         current_y += 1
 
         # Input box bottom
-        input_box_bottom = "└" + "─" * (overlay_width - 6) + "┘"
-        print(term.move_xy(start_x + 2, current_y) + term.blue(input_box_bottom), end="")
+        term.draw_text(start_x + 2, current_y, "└" + "─" * (overlay_width - 6) + "┘", "blue")
         current_y += 1
 
         return current_y
@@ -247,17 +254,18 @@ class ShortAnswerRenderer(TextInputRenderer):
         )
 
         # Render text input box
-        text_buffer = getattr(game, "text_input_buffer", "")
+        text_buffer = game.conversation_engine.text_input_buffer
         current_y = self._render_text_input_box(
             term, "Your answer:", text_buffer, start_x, current_y, overlay_width
         )
 
         # Instructions at bottom
-        error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
-        instruction_text = "Type your answer and press ENTER | ESC/Q to exit"
-        print(
-            term.move_xy(start_x + 2, start_y + overlay_height - 2) + error_color(instruction_text),
-            end="",
+        term.draw_text(
+            start_x + 2,
+            start_y + overlay_height - 2,
+            "Type your answer and press ENTER | ESC/Q to exit",
+            colors.ui_error,
+            bold=True,
         )
 
 
@@ -293,17 +301,18 @@ class YesNoRenderer(TextInputRenderer):
         )
 
         # Render text input box
-        text_buffer = getattr(game, "text_input_buffer", "")
+        text_buffer = game.conversation_engine.text_input_buffer
         current_y = self._render_text_input_box(
             term, "Answer (yes/no):", text_buffer, start_x, current_y, overlay_width
         )
 
         # Instructions at bottom
-        error_color = getattr(term, f"bold_{colors.ui_error}", term.bold_red)
-        instruction_text = "Press Y/N or type answer and press ENTER | ESC/Q to exit"
-        print(
-            term.move_xy(start_x + 2, start_y + overlay_height - 2) + error_color(instruction_text),
-            end="",
+        term.draw_text(
+            start_x + 2,
+            start_y + overlay_height - 2,
+            "Press Y/N or type answer and press ENTER | ESC/Q to exit",
+            colors.ui_error,
+            bold=True,
         )
 
 

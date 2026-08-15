@@ -60,8 +60,8 @@ class TestNPCManagerInitialization(unittest.TestCase):
         )
 
         self.assertEqual(len(manager.npcs), 0)  # No NPCs generated yet
-        self.assertEqual(len(manager.all_npcs), 0)
-        self.assertEqual(len(manager.npc_opinions), 0)
+        self.assertEqual(len(manager.spawner.all_npcs), 0)
+        self.assertEqual(len(manager.relationships.opinions), 0)
         self.assertIsInstance(manager.conversations, dict)
 
     def test_conversations_initialized(self):
@@ -485,7 +485,7 @@ class TestNPCManagerSerialization(unittest.TestCase):
 
         # Add an NPC
         npc = Entity(5, 5, "T", "cyan", "TEST_NPC", npc_type="specialist")
-        manager.all_npcs.append(npc)
+        manager.spawner.all_npcs.append(npc)
 
         data = manager.to_dict()
 
@@ -514,7 +514,7 @@ class TestNPCManagerSerialization(unittest.TestCase):
 
         # Set up some state
         npc = Entity(5, 5, "T", "cyan", "TEST_NPC", npc_type="specialist")
-        manager1.all_npcs.append(npc)
+        manager1.spawner.all_npcs.append(npc)
         manager1.update_opinion("TEST_NPC", 15)
 
         # Serialize
@@ -526,8 +526,8 @@ class TestNPCManagerSerialization(unittest.TestCase):
         )
 
         # Verify state is preserved
-        self.assertEqual(len(manager2.all_npcs), 1)
-        self.assertEqual(manager2.all_npcs[0].name, "TEST_NPC")
+        self.assertEqual(len(manager2.spawner.all_npcs), 1)
+        self.assertEqual(manager2.spawner.all_npcs[0].name, "TEST_NPC")
         self.assertEqual(manager2.get_opinion("TEST_NPC"), 15)
 
 

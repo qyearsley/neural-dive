@@ -23,7 +23,7 @@ class TestGameBuilder(unittest.TestCase):
 
         self.assertEqual(game.map_width, DEFAULT_MAP_WIDTH)
         self.assertEqual(game.map_height, DEFAULT_MAP_HEIGHT)
-        self.assertEqual(game.max_floors, MAX_FLOORS)
+        self.assertEqual(game.floor_manager.max_floors, MAX_FLOORS)
         self.assertEqual(game.difficulty, DifficultyLevel.NORMAL)
         self.assertIsNone(game.seed)
         self.assertTrue(game.random_npcs)
@@ -44,7 +44,7 @@ class TestGameBuilder(unittest.TestCase):
         """Test setting custom floor count."""
         game = GameBuilder().with_floors(5).build()
 
-        self.assertEqual(game.max_floors, 5)
+        self.assertEqual(game.floor_manager.max_floors, 5)
 
     def test_with_difficulty(self):
         """Test setting difficulty level."""
@@ -90,7 +90,7 @@ class TestGameBuilder(unittest.TestCase):
         )
 
         # Verify all settings applied (those that aren't overridden)
-        self.assertEqual(game.max_floors, 5)
+        self.assertEqual(game.floor_manager.max_floors, 5)
         self.assertEqual(game.difficulty, DifficultyLevel.NORMAL)
         self.assertEqual(game.seed, 42)
         self.assertEqual(game.content_set, "algorithms")
@@ -150,7 +150,7 @@ class TestGameBuilder(unittest.TestCase):
         self.assertEqual(game.seed, 42)
         self.assertFalse(game.random_npcs)
         # Map dimensions may be overridden by FloorManager/level_data
-        self.assertEqual(game.max_floors, 3)
+        self.assertEqual(game.floor_manager.max_floors, 3)
 
 
 if __name__ == "__main__":

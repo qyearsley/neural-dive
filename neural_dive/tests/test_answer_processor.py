@@ -15,6 +15,7 @@ from neural_dive.difficulty import DIFFICULTY_CONFIGS, DifficultyLevel
 from neural_dive.enums import NPCType
 from neural_dive.managers.answer_processor import AnswerProcessor
 from neural_dive.managers.conversation_engine import ConversationEngine
+from neural_dive.managers.npc_relationships import NPCRelationships
 from neural_dive.managers.player_manager import PlayerManager
 from neural_dive.managers.quest_manager import QuestManager
 from neural_dive.managers.stats_tracker import StatsTracker
@@ -58,7 +59,13 @@ class AnswerProcessorTestBase(unittest.TestCase):
     def setUp(self) -> None:
         self.player_manager = PlayerManager(coherence=80, max_coherence=100)
         self.npc_manager = Mock()
-        self.npc_manager.npc_opinions = {}
+        # Opinion tracking is a small real unit, so let the mock delegate to it
+        # rather than returning Mocks -- the tests below assert on the resulting
+        # opinion, not just that a call happened.
+        self.relationships = NPCRelationships()
+        self.npc_manager.relationships = self.relationships
+        self.npc_manager.get_opinion.side_effect = self.relationships.get_opinion
+        self.npc_manager.update_opinion.side_effect = self.relationships.update_opinion
         self.conversation_engine = ConversationEngine()
         self.stats_tracker = StatsTracker()
         self.quest_manager = QuestManager()
@@ -113,7 +120,7 @@ class TestMultipleChoiceCorrect(AnswerProcessorTestBase):
             answer_idx=2, npcs_completed=set(), is_final_floor=False
         )
 
-        self.assertEqual(self.npc_manager.npc_opinions["ALGO_SPIRIT"], 1)
+        self.assertEqual(self.npc_manager.get_opinion("ALGO_SPIRIT"), 1)
 
     def test_correct_answer_records_in_stats(self):
         self.start_conversation([_mc_question(correct_idx=0)])
@@ -186,7 +193,7 @@ class TestMultipleChoiceWrong(AnswerProcessorTestBase):
             answer_idx=2, npcs_completed=set(), is_final_floor=False
         )
 
-        self.assertEqual(self.npc_manager.npc_opinions["ALGO_SPIRIT"], -1)
+        self.assertEqual(self.npc_manager.get_opinion("ALGO_SPIRIT"), -1)
 
     def test_invalid_answer_index_returns_error(self):
         self.start_conversation([_mc_question()])

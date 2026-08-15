@@ -36,10 +36,6 @@ def run_interactive(game: Game, chars, colors):
     backend = BlessedBackend(term)
     first_draw = True
 
-    # Initialize text input buffer on game object
-    if not hasattr(game, "text_input_buffer"):
-        game.text_input_buffer = ""
-
     # Initialize input handlers
     end_game_handler = EndGameHandler()
     overlay_handler = OverlayHandler()
@@ -63,7 +59,7 @@ def run_interactive(game: Game, chars, colors):
                     continue
 
                 # Check for game over
-                if game.coherence <= 0:
+                if game.player_manager.coherence <= 0:
                     draw_game(backend, game, chars, colors, redraw_all=first_draw)
                     print(
                         term.move_xy(0, term.height // 2)
@@ -94,12 +90,17 @@ def run_interactive(game: Game, chars, colors):
 
                 # Try handlers in priority order
                 # 1. Check overlay mode (inventory, snippets, terminals)
-                if game.active_inventory or game.active_snippet or game.active_terminal:
+                if (
+                    game.conversation_engine.active_inventory
+                    or game.conversation_engine.active_snippet
+                    or game.conversation_engine.active_terminal
+                ):
                     result = overlay_handler.handle(key, game, term)
 
                 # 2. Check conversation mode
-                elif game.active_conversation or (
-                    hasattr(game, "last_answer_response") and game.last_answer_response
+                elif (
+                    game.conversation_engine.active_conversation
+                    or game.conversation_engine.last_answer_response
                 ):
                     result = conversation_handler.handle(key, game, term)
 

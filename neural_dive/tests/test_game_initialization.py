@@ -19,11 +19,11 @@ class TestGameInitialization(unittest.TestCase):
         """Test that game initializes with expected default values."""
         game = Game()
 
-        self.assertEqual(game.coherence, STARTING_COHERENCE)
-        self.assertEqual(game.current_floor, 1)
-        self.assertEqual(game.max_floors, MAX_FLOORS)
+        self.assertEqual(game.player_manager.coherence, STARTING_COHERENCE)
+        self.assertEqual(game.floor_manager.current_floor, 1)
+        self.assertEqual(game.floor_manager.max_floors, MAX_FLOORS)
         self.assertIsNotNone(game.player)
-        self.assertEqual(len(game.knowledge_modules), 0)
+        self.assertEqual(len(game.player_manager.knowledge_modules), 0)
 
     def test_game_map_is_valid(self):
         """Test that generated game map is valid."""
@@ -52,7 +52,7 @@ class TestGameInitialization(unittest.TestCase):
 
         # Note: NPCs list may be empty initially if using level-based placement
         # all_npcs includes all NPCs defined for the floor
-        self.assertGreaterEqual(len(game.npc_manager.all_npcs), 0, "Should track NPCs")
+        self.assertGreaterEqual(len(game.npc_manager.spawner.all_npcs), 0, "Should track NPCs")
         # The game should have loaded NPC data
         self.assertIsNotNone(game.npc_data)
 
@@ -193,9 +193,9 @@ class TestGameState(unittest.TestCase):
         game = Game()
 
         # Manually set coherence to 0 (simulating many wrong answers)
-        game.coherence = 0
+        game.player_manager.coherence = 0
 
-        self.assertTrue(game.coherence <= 0)
+        self.assertTrue(game.player_manager.coherence <= 0)
         # Note: game.game_over flag is set by the game loop, not automatically
         # This tests the condition, not the automatic flag setting
 

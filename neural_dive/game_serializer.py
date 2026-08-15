@@ -114,8 +114,8 @@ class GameSerializer:
             "content_set": game.content_set,
             "map_width": game.map_width,
             "map_height": game.map_height,
-            "max_floors": game.max_floors,
-            "current_floor": game.current_floor,
+            "max_floors": game.floor_manager.max_floors,
+            "current_floor": game.floor_manager.current_floor,
             "random_npcs": game.random_npcs,
             # Player state (delegated to PlayerManager)
             "player_manager": game.player_manager.to_dict(),
@@ -131,10 +131,10 @@ class GameSerializer:
             # Quest state (delegated to QuestManager)
             "quest_manager": game.quest_manager.to_dict(),
             # Legacy statistics (kept for backward compatibility with old saves)
-            "start_time": game.start_time,
-            "questions_answered": game.questions_answered,
-            "questions_correct": game.questions_correct,
-            "questions_wrong": game.questions_wrong,
+            "start_time": game.stats_tracker.start_time,
+            "questions_answered": game.stats_tracker.questions_answered,
+            "questions_correct": game.stats_tracker.questions_correct,
+            "questions_wrong": game.stats_tracker.questions_wrong,
             # Other game state
             "npcs_completed": list(game.npcs_completed),
             "game_won": game.game_won,

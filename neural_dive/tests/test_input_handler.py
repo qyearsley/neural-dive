@@ -12,6 +12,7 @@ from neural_dive.input_handler import (
     NormalModeHandler,
     OverlayHandler,
 )
+from neural_dive.managers.conversation_engine import ConversationEngine
 from neural_dive.question_types import QuestionType
 
 
@@ -45,6 +46,7 @@ class TestEndGameHandler(unittest.TestCase):
         """Set up test fixtures."""
         self.handler = EndGameHandler()
         self.game = Mock()
+        self.game.conversation_engine = ConversationEngine()
         self.term = Mock()
 
     def test_quit_on_q_key(self):
@@ -85,13 +87,14 @@ class TestOverlayHandler(unittest.TestCase):
         """Set up test fixtures."""
         self.handler = OverlayHandler()
         self.game = Mock()
+        self.game.conversation_engine = ConversationEngine()
         self.term = Mock()
 
     def test_close_inventory_with_v_key(self):
         """Test closing inventory with 'v' key."""
-        self.game.active_inventory = True
-        self.game.active_snippet = None
-        self.game.active_terminal = None
+        self.game.conversation_engine.active_inventory = True
+        self.game.conversation_engine.active_snippet = None
+        self.game.conversation_engine.active_terminal = None
 
         key = Mock()
         key.lower.return_value = "v"
@@ -101,13 +104,13 @@ class TestOverlayHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertFalse(self.game.active_inventory)
+        self.assertFalse(self.game.conversation_engine.active_inventory)
 
     def test_close_inventory_with_escape(self):
         """Test closing inventory with ESC key."""
-        self.game.active_inventory = True
-        self.game.active_snippet = None
-        self.game.active_terminal = None
+        self.game.conversation_engine.active_inventory = True
+        self.game.conversation_engine.active_snippet = None
+        self.game.conversation_engine.active_terminal = None
 
         key = Mock()
         key.name = "KEY_ESCAPE"
@@ -116,13 +119,13 @@ class TestOverlayHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertFalse(self.game.active_inventory)
+        self.assertFalse(self.game.conversation_engine.active_inventory)
 
     def test_close_snippet_with_s_key(self):
         """Test closing snippet with 's' key."""
-        self.game.active_inventory = False
-        self.game.active_snippet = "test_snippet"
-        self.game.active_terminal = None
+        self.game.conversation_engine.active_inventory = False
+        self.game.conversation_engine.active_snippet = "test_snippet"
+        self.game.conversation_engine.active_terminal = None
 
         key = Mock()
         key.lower.return_value = "s"
@@ -131,13 +134,13 @@ class TestOverlayHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertIsNone(self.game.active_snippet)
+        self.assertIsNone(self.game.conversation_engine.active_snippet)
 
     def test_close_terminal_with_any_key(self):
         """Test closing terminal with any key."""
-        self.game.active_inventory = False
-        self.game.active_snippet = None
-        self.game.active_terminal = "test_terminal"
+        self.game.conversation_engine.active_inventory = False
+        self.game.conversation_engine.active_snippet = None
+        self.game.conversation_engine.active_terminal = "test_terminal"
 
         key = Mock()
         key.lower.return_value = "x"
@@ -146,13 +149,13 @@ class TestOverlayHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertIsNone(self.game.active_terminal)
+        self.assertIsNone(self.game.conversation_engine.active_terminal)
 
     def test_no_overlay_active_returns_not_handled(self):
         """Test that handler returns not handled when no overlay active."""
-        self.game.active_inventory = False
-        self.game.active_snippet = None
-        self.game.active_terminal = None
+        self.game.conversation_engine.active_inventory = False
+        self.game.conversation_engine.active_snippet = None
+        self.game.conversation_engine.active_terminal = None
 
         key = Mock()
 
@@ -168,12 +171,13 @@ class TestConversationHandler(unittest.TestCase):
         """Set up test fixtures."""
         self.handler = ConversationHandler()
         self.game = Mock()
+        self.game.conversation_engine = ConversationEngine()
         self.term = Mock()
 
     def test_no_conversation_returns_not_handled(self):
         """Test handler returns not handled when no conversation active."""
-        self.game.active_conversation = None
-        self.game.last_answer_response = None
+        self.game.conversation_engine.active_conversation = None
+        self.game.conversation_engine.last_answer_response = None
 
         key = Mock()
 
@@ -183,8 +187,8 @@ class TestConversationHandler(unittest.TestCase):
 
     def test_cleans_up_lingering_response_state(self):
         """Test that handler cleans up lingering response without active conversation."""
-        self.game.active_conversation = None
-        self.game.last_answer_response = "Old response"
+        self.game.conversation_engine.active_conversation = None
+        self.game.conversation_engine.last_answer_response = "Old response"
 
         key = Mock()
 
@@ -192,36 +196,36 @@ class TestConversationHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertIsNone(self.game.last_answer_response)
+        self.assertIsNone(self.game.conversation_engine.last_answer_response)
 
     def test_greeting_dismissal_any_key(self):
         """Test that any key dismisses greeting."""
-        self.game.active_conversation = Mock()
-        self.game.show_greeting = True
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = Mock()
+        self.game.conversation_engine.show_greeting = True
+        self.game.conversation_engine.text_input_buffer = ""
 
         key = Mock()
 
         result = self.handler.handle(key, self.game, self.term)
 
         self.assertTrue(result.handled)
-        self.assertFalse(self.game.show_greeting)
-        self.assertEqual(self.game.text_input_buffer, "")
+        self.assertFalse(self.game.conversation_engine.show_greeting)
+        self.assertEqual(self.game.conversation_engine.text_input_buffer, "")
 
     def test_response_dismissal_any_key(self):
         """Test that any key dismisses response."""
-        self.game.active_conversation = Mock()
-        self.game.show_greeting = False
-        self.game.last_answer_response = "Test response"
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = Mock()
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = "Test response"
+        self.game.conversation_engine.text_input_buffer = ""
 
         key = Mock()
 
         result = self.handler.handle(key, self.game, self.term)
 
         self.assertTrue(result.handled)
-        self.assertIsNone(self.game.last_answer_response)
-        self.assertEqual(self.game.text_input_buffer, "")
+        self.assertIsNone(self.game.conversation_engine.last_answer_response)
+        self.assertEqual(self.game.conversation_engine.text_input_buffer, "")
 
     def test_yes_no_question_y_answer(self):
         """Test answering yes/no question with 'y'."""
@@ -231,10 +235,10 @@ class TestConversationHandler(unittest.TestCase):
         conversation = Mock()
         conversation.get_current_question.return_value = question
 
-        self.game.active_conversation = conversation
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
         self.game.answer_text_question.return_value = (True, "Correct!")
 
         key = Mock()
@@ -245,7 +249,7 @@ class TestConversationHandler(unittest.TestCase):
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
         self.game.answer_text_question.assert_called_once_with("yes")
-        self.assertEqual(self.game.last_answer_response, "Correct!")
+        self.assertEqual(self.game.conversation_engine.last_answer_response, "Correct!")
 
     def test_yes_no_question_n_answer(self):
         """Test answering yes/no question with 'n'."""
@@ -255,10 +259,10 @@ class TestConversationHandler(unittest.TestCase):
         conversation = Mock()
         conversation.get_current_question.return_value = question
 
-        self.game.active_conversation = conversation
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
         self.game.answer_text_question.return_value = (False, "Incorrect!")
 
         key = Mock()
@@ -269,7 +273,7 @@ class TestConversationHandler(unittest.TestCase):
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
         self.game.answer_text_question.assert_called_once_with("no")
-        self.assertEqual(self.game.last_answer_response, "Incorrect!")
+        self.assertEqual(self.game.conversation_engine.last_answer_response, "Incorrect!")
 
     def test_multiple_choice_answer_selection(self):
         """Test answering multiple choice question with number key."""
@@ -279,10 +283,10 @@ class TestConversationHandler(unittest.TestCase):
         conversation = Mock()
         conversation.get_current_question.return_value = question
 
-        self.game.active_conversation = conversation
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
         self.game.answer_question.return_value = (True, "Correct!")
 
         # Use a string "1" directly instead of Mock
@@ -293,7 +297,7 @@ class TestConversationHandler(unittest.TestCase):
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
         self.game.answer_question.assert_called_once_with(0)
-        self.assertEqual(self.game.last_answer_response, "Correct!")
+        self.assertEqual(self.game.conversation_engine.last_answer_response, "Correct!")
 
     def test_multiple_choice_hint_usage(self):
         """Test using hint in multiple choice question."""
@@ -303,9 +307,9 @@ class TestConversationHandler(unittest.TestCase):
         conversation = Mock()
         conversation.get_current_question.return_value = question
 
-        self.game.active_conversation = conversation
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
         self.game.use_hint.return_value = (True, "Hint: Look for Big O notation")
 
         key = Mock()
@@ -326,10 +330,10 @@ class TestConversationHandler(unittest.TestCase):
         conversation = Mock()
         conversation.get_current_question.return_value = question
 
-        self.game.active_conversation = conversation
-        self.game.show_greeting = False
-        self.game.last_answer_response = None
-        self.game.text_input_buffer = ""
+        self.game.conversation_engine.active_conversation = conversation
+        self.game.conversation_engine.show_greeting = False
+        self.game.conversation_engine.last_answer_response = None
+        self.game.conversation_engine.text_input_buffer = ""
 
         key = Mock()
         key.name = "KEY_ESCAPE"
@@ -349,6 +353,7 @@ class TestNormalModeHandler(unittest.TestCase):
         """Set up test fixtures."""
         self.handler = NormalModeHandler()
         self.game = Mock()
+        self.game.conversation_engine = ConversationEngine()
         self.term = Mock()
 
     def test_quit_with_q_key(self):
@@ -424,7 +429,7 @@ class TestNormalModeHandler(unittest.TestCase):
 
     def test_toggle_inventory(self):
         """Test toggling inventory."""
-        self.game.active_inventory = False
+        self.game.conversation_engine.active_inventory = False
 
         key = Mock()
         key.lower.return_value = "v"
@@ -433,7 +438,7 @@ class TestNormalModeHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.assertTrue(result.needs_redraw)
-        self.assertTrue(self.game.active_inventory)
+        self.assertTrue(self.game.conversation_engine.active_inventory)
 
     def test_move_up(self):
         """Test moving player up."""
@@ -492,7 +497,7 @@ class TestNormalModeHandler(unittest.TestCase):
     def test_interact_starts_conversation(self):
         """Test that interaction starts conversation."""
         self.game.interact.return_value = True
-        self.game.active_conversation = Mock()
+        self.game.conversation_engine.active_conversation = Mock()
 
         key = Mock()
         key.lower.return_value = "i"
@@ -503,13 +508,13 @@ class TestNormalModeHandler(unittest.TestCase):
 
         self.assertTrue(result.handled)
         self.game.interact.assert_called_once()
-        self.assertTrue(self.game.show_greeting)
-        self.assertIsNone(self.game.last_answer_response)
+        self.assertTrue(self.game.conversation_engine.show_greeting)
+        self.assertIsNone(self.game.conversation_engine.last_answer_response)
 
     def test_interact_with_space_key(self):
         """Test interaction with space key."""
         self.game.interact.return_value = True
-        self.game.active_conversation = Mock()
+        self.game.conversation_engine.active_conversation = Mock()
 
         key = Mock()
         key.lower.return_value = " "

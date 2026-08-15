@@ -92,11 +92,11 @@ class TestStateManager(unittest.TestCase):
 
     def test_change_coherence_increase(self):
         """Test increasing coherence."""
-        old = self.game.coherence
+        old = self.game.player_manager.coherence
         actual = self.state_manager.change_coherence(10, "test")
 
         self.assertEqual(actual, 10)
-        self.assertEqual(self.game.coherence, old + 10)
+        self.assertEqual(self.game.player_manager.coherence, old + 10)
 
         # Check event
         coherence_events = [e for e in self.events if isinstance(e, CoherenceChanged)]
@@ -108,31 +108,31 @@ class TestStateManager(unittest.TestCase):
 
     def test_change_coherence_decrease(self):
         """Test decreasing coherence."""
-        old = self.game.coherence
+        old = self.game.player_manager.coherence
         actual = self.state_manager.change_coherence(-10, "penalty")
 
         self.assertEqual(actual, -10)
-        self.assertEqual(self.game.coherence, old - 10)
+        self.assertEqual(self.game.player_manager.coherence, old - 10)
 
     def test_change_coherence_capped_at_max(self):
         """Test coherence capped at maximum."""
-        old = self.game.coherence
-        max_coh = self.game.max_coherence
+        old = self.game.player_manager.coherence
+        max_coh = self.game.player_manager.max_coherence
 
         # Try to add more than maximum
         actual = self.state_manager.change_coherence(1000, "test")
 
-        self.assertEqual(self.game.coherence, max_coh)
+        self.assertEqual(self.game.player_manager.coherence, max_coh)
         self.assertEqual(actual, max_coh - old)
 
     def test_change_coherence_capped_at_zero(self):
         """Test coherence capped at zero."""
         # Reduce coherence to near zero
-        self.game.coherence = 5
+        self.game.player_manager.coherence = 5
 
         actual = self.state_manager.change_coherence(-10, "test")
 
-        self.assertEqual(self.game.coherence, 0)
+        self.assertEqual(self.game.player_manager.coherence, 0)
         self.assertEqual(actual, -5)
 
         # Check for GameOver event
@@ -143,16 +143,16 @@ class TestStateManager(unittest.TestCase):
     def test_start_conversation(self):
         """Test starting conversation."""
         # Find an NPC
-        if not self.game.npc_conversations:
+        if not self.game.npc_manager.conversations:
             self.skipTest("No conversations available")
 
-        npc_name = list(self.game.npc_conversations.keys())[0]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
         success = self.state_manager.start_conversation(npc_name)
 
         self.assertTrue(success)
-        assert self.game.active_conversation is not None
-        self.assertEqual(self.game.active_conversation.npc_name, npc_name)
-        self.assertTrue(self.game.show_greeting)
+        assert self.game.conversation_engine.active_conversation is not None
+        self.assertEqual(self.game.conversation_engine.active_conversation.npc_name, npc_name)
+        self.assertTrue(self.game.conversation_engine.show_greeting)
 
         # Check event
         conv_events = [e for e in self.events if isinstance(e, ConversationStateChanged)]
@@ -162,33 +162,33 @@ class TestStateManager(unittest.TestCase):
 
     def test_start_conversation_already_completed(self):
         """Test cannot start conversation with completed NPC."""
-        if not self.game.npc_conversations:
+        if not self.game.npc_manager.conversations:
             self.skipTest("No conversations available")
 
-        npc_name = list(self.game.npc_conversations.keys())[0]
-        conversation = self.game.npc_conversations[npc_name]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
+        conversation = self.game.npc_manager.conversations[npc_name]
         conversation.completed = True
 
         success = self.state_manager.start_conversation(npc_name)
 
         self.assertFalse(success)
-        self.assertIsNone(self.game.active_conversation)
+        self.assertIsNone(self.game.conversation_engine.active_conversation)
 
     def test_end_conversation(self):
         """Test ending conversation."""
         # Start conversation first
-        if not self.game.npc_conversations:
+        if not self.game.npc_manager.conversations:
             self.skipTest("No conversations available")
 
-        npc_name = list(self.game.npc_conversations.keys())[0]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
         self.state_manager.start_conversation(npc_name)
         self.events.clear()  # Clear start event
 
         success = self.state_manager.end_conversation()
 
         self.assertTrue(success)
-        self.assertIsNone(self.game.active_conversation)
-        self.assertFalse(self.game.show_greeting)
+        self.assertIsNone(self.game.conversation_engine.active_conversation)
+        self.assertFalse(self.game.conversation_engine.show_greeting)
 
         # Check event
         conv_events = [e for e in self.events if isinstance(e, ConversationStateChanged)]
@@ -203,10 +203,10 @@ class TestStateManager(unittest.TestCase):
 
     def test_complete_conversation(self):
         """Test completing conversation emits NPC defeated event."""
-        if not self.game.npc_conversations:
+        if not self.game.npc_manager.conversations:
             self.skipTest("No conversations available")
 
-        npc_name = list(self.game.npc_conversations.keys())[0]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
 
         self.state_manager.complete_conversation(npc_name, 2, 3)
 
@@ -220,33 +220,35 @@ class TestStateManager(unittest.TestCase):
 
     def test_toggle_inventory(self):
         """Test toggling inventory."""
-        old_state = self.game.active_inventory
+        old_state = self.game.conversation_engine.active_inventory
 
         self.state_manager.toggle_inventory()
-        self.assertEqual(self.game.active_inventory, not old_state)
+        self.assertEqual(self.game.conversation_engine.active_inventory, not old_state)
 
         self.state_manager.toggle_inventory()
-        self.assertEqual(self.game.active_inventory, old_state)
+        self.assertEqual(self.game.conversation_engine.active_inventory, old_state)
 
     def test_close_all_overlays(self):
         """Test closing all overlays."""
-        self.game.active_inventory = True
-        self.game.active_terminal = InfoTerminal(1, 1, "Test Terminal", ["Line 1"])
-        self.game.active_snippet = {"name": "Test Snippet", "content": ["code"]}
+        self.game.conversation_engine.active_inventory = True
+        self.game.conversation_engine.active_terminal = InfoTerminal(
+            1, 1, "Test Terminal", ["Line 1"]
+        )
+        self.game.conversation_engine.active_snippet = {"name": "Test Snippet", "content": ["code"]}
 
         self.state_manager.close_all_overlays()
 
-        self.assertFalse(self.game.active_inventory)
-        self.assertIsNone(self.game.active_terminal)
-        self.assertIsNone(self.game.active_snippet)
+        self.assertFalse(self.game.conversation_engine.active_inventory)
+        self.assertIsNone(self.game.conversation_engine.active_terminal)
+        self.assertIsNone(self.game.conversation_engine.active_snippet)
 
     def test_change_floor(self):
         """Test changing floor."""
-        old_floor = self.game.current_floor
+        old_floor = self.game.floor_manager.current_floor
 
         self.state_manager.change_floor(old_floor + 1, "down")
 
-        self.assertEqual(self.game.current_floor, old_floor + 1)
+        self.assertEqual(self.game.floor_manager.current_floor, old_floor + 1)
 
         # Check event
         floor_events = [e for e in self.events if isinstance(e, FloorChanged)]
@@ -323,10 +325,10 @@ class TestStateManager(unittest.TestCase):
         """Test checking conversation state."""
         self.assertFalse(self.state_manager.is_in_conversation())
 
-        if not self.game.npc_conversations:
+        if not self.game.npc_manager.conversations:
             self.skipTest("No conversations available")
 
-        npc_name = list(self.game.npc_conversations.keys())[0]
+        npc_name = list(self.game.npc_manager.conversations.keys())[0]
         self.state_manager.start_conversation(npc_name)
 
         self.assertTrue(self.state_manager.is_in_conversation())
@@ -335,23 +337,25 @@ class TestStateManager(unittest.TestCase):
         """Test checking overlay state."""
         self.assertFalse(self.state_manager.is_overlay_active())
 
-        self.game.active_inventory = True
+        self.game.conversation_engine.active_inventory = True
         self.assertTrue(self.state_manager.is_overlay_active())
 
-        self.game.active_inventory = False
-        self.game.active_terminal = InfoTerminal(1, 1, "Test Terminal", ["Line 1"])
+        self.game.conversation_engine.active_inventory = False
+        self.game.conversation_engine.active_terminal = InfoTerminal(
+            1, 1, "Test Terminal", ["Line 1"]
+        )
         self.assertTrue(self.state_manager.is_overlay_active())
 
     def test_can_move(self):
         """Test checking if player can move."""
         self.assertTrue(self.state_manager.can_move())
 
-        self.game.active_inventory = True
+        self.game.conversation_engine.active_inventory = True
         self.assertFalse(self.state_manager.can_move())
 
-        self.game.active_inventory = False
-        if self.game.npc_conversations:
-            npc_name = list(self.game.npc_conversations.keys())[0]
+        self.game.conversation_engine.active_inventory = False
+        if self.game.npc_manager.conversations:
+            npc_name = list(self.game.npc_manager.conversations.keys())[0]
             self.state_manager.start_conversation(npc_name)
             self.assertFalse(self.state_manager.can_move())
 

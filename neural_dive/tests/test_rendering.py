@@ -23,7 +23,8 @@ from neural_dive.entity_renderers import (
     TerminalRenderer,
     get_entity_renderer,
 )
-from neural_dive.rendering import OverlayRenderer, _is_position_occupied
+from neural_dive.map_renderer import _is_position_occupied
+from neural_dive.overlay_renderer import OverlayRenderer
 from neural_dive.themes import CharacterSet, ColorScheme
 
 
@@ -139,7 +140,7 @@ class TestOverlayRenderer(unittest.TestCase):
         # Verify dimensions match overlay height
         self.assertEqual(len(draw_calls), renderer.height)
 
-    @patch("neural_dive.rendering.print")
+    @patch("neural_dive.overlay_renderer.print")
     def test_overlay_renderer_draw_border(self, mock_print):
         """Test drawing overlay border."""
         renderer = OverlayRenderer(
@@ -327,7 +328,7 @@ class TestPositionOccupancy(unittest.TestCase):
         npc2 = MagicMock()
         npc2.x = 15
         npc2.y = 15
-        self.game.npcs = [npc1, npc2]
+        self.game.npc_manager.npcs = [npc1, npc2]
 
         # Mock terminals
         terminal = MagicMock()

@@ -40,7 +40,7 @@ The Makefile and the hooks set `UV_FROZEN=1` to prevent that, so use `make test`
 ```
 neural_dive/
 ├── __main__.py              # Entry point, game loop
-├── game.py                  # Game class — facade over the managers below
+├── game.py                  # Game class — owns the managers below
 ├── game_builder.py          # Constructs Game and its managers
 ├── game_serializer.py       # Save/load state
 ├── data_loader.py           # Loads questions, NPCs, levels, snippets
@@ -65,7 +65,11 @@ neural_dive/
 │   ├── backend.py           # RenderBackend protocol
 │   ├── blessed_backend.py   # Real terminal backend
 │   └── test_backend.py      # Captures draw calls for tests
-├── rendering.py             # Map/UI/overlay drawing (long; see tech-debt)
+├── rendering.py             # Frame composition — draw order, re-exports
+├── map_renderer.py          # Tiles, entities, erasing what moved
+├── ui_renderer.py           # Bottom status panel
+├── overlay_renderer.py      # Modal panels + victory screen
+├── render_helpers.py        # Shared colour / wrapped-text primitives
 ├── question_renderers.py    # Strategy per QuestionType
 ├── entity_renderers.py      # Strategy per EntityType
 ├── models.py                # Question, Answer, Conversation dataclasses
@@ -75,10 +79,24 @@ neural_dive/
 
 ## Architecture notes
 
-**Game as facade.** `Game` exposes 21 forwarding properties to the underlying
-managers (`game.coherence` → `player_manager.coherence`, etc.). New code should
-prefer reaching the manager directly when feasible; the property layer is on
-the cleanup list (`docs/tech-debt.md`).
+**Game owns managers, not their state.** `Game` has no forwarding properties.
+Read and write state on the manager that owns it:
+
+| State | Owner |
+| --- | --- |
+| `current_floor`, `max_floors` | `floor_manager` |
+| `coherence`, `max_coherence`, `knowledge_modules` | `player_manager` |
+| `questions_answered/correct/wrong`, `start_time` | `stats_tracker` |
+| `npcs`, `conversations` | `npc_manager` |
+| `quest_active`, `completed_npcs` | `quest_manager` |
+| `active_conversation`, `active_terminal`, `active_inventory`, `active_snippet`, `show_greeting`, `last_answer_response`, `text_input_buffer`, `eliminated_answers` | `conversation_engine` |
+
+Within `NPCManager`, go one level further: `npc_manager.movement.old_positions`,
+`npc_manager.spawner.all_npcs`, `npc_manager.relationships`.
+
+Don't add a property back. The point is that there is one place each piece of
+state lives, so a manager swap or a stale reference can't leave two copies
+disagreeing.
 
 **State changes flow through `StateManager` and emit events** on the
 `EventBus`. This is how features like analytics, achievements, and replay are

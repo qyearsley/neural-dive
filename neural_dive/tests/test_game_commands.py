@@ -218,7 +218,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_answer_question_with_number_1(self):
         """Test answering question with '1' command."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("1")
 
@@ -228,7 +228,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_answer_question_with_number_2(self):
         """Test answering question with '2' command."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("2")
 
@@ -238,7 +238,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_answer_question_with_number_3(self):
         """Test answering question with '3' command."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("3")
 
@@ -247,7 +247,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_answer_question_with_number_4(self):
         """Test answering question with '4' command."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("4")
 
@@ -256,7 +256,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_number_command_without_active_conversation(self):
         """Test that number commands don't work without conversation."""
-        self.game.active_conversation = None
+        self.game.conversation_engine.active_conversation = None
 
         success, message = self.game.process_command("1")
 
@@ -266,7 +266,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_exit_conversation_command(self):
         """Test 'exit' command exits conversation."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("exit")
 
@@ -276,7 +276,7 @@ class TestGameConversationCommands(unittest.TestCase):
 
     def test_exit_conversation_with_esc(self):
         """Test 'esc' command (alternative) exits conversation."""
-        self.game.active_conversation = self.conversation
+        self.game.conversation_engine.active_conversation = self.conversation
 
         success, message = self.game.process_command("esc")
 
@@ -322,7 +322,7 @@ class TestGameInvalidCommands(unittest.TestCase):
 
     def test_number_out_of_range(self):
         """Test that numbers outside 1-4 are treated as invalid."""
-        self.game.active_conversation = None
+        self.game.conversation_engine.active_conversation = None
 
         for num in ["0", "5", "99", "-1"]:
             success, message = self.game.process_command(num)

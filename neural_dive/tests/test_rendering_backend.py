@@ -71,10 +71,10 @@ class TestRenderingBackendIntegration(unittest.TestCase):
     @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_npc_rendering(self):
         """Test that NPCs are rendered."""
-        if not self.game.npcs:
+        if not self.game.npc_manager.npcs:
             self.skipTest("No NPCs in game")
 
-        npc = self.game.npcs[0]
+        npc = self.game.npc_manager.npcs[0]
         draw_game(self.backend, self.game, self.chars, self.colors)
 
         # Find NPC draw call

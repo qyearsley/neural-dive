@@ -109,10 +109,7 @@ class AnswerProcessor:
 
         answer = question.answers[answer_idx]
 
-        # Track NPC opinion
         npc_name = conv.npc_name
-        if npc_name not in self.npc_manager.npc_opinions:
-            self.npc_manager.npc_opinions[npc_name] = 0
 
         if answer.correct:
             return self._handle_correct_answer(
@@ -157,10 +154,7 @@ class AnswerProcessor:
             case_sensitive=question.case_sensitive,
         )
 
-        # Track NPC opinion
         npc_name = conv.npc_name
-        if npc_name not in self.npc_manager.npc_opinions:
-            self.npc_manager.npc_opinions[npc_name] = 0
 
         if is_correct:
             # Create a temporary Answer object for correct response
@@ -240,7 +234,7 @@ class AnswerProcessor:
         # Update stats
         coherence_gain = self.difficulty_settings.correct_answer_gain
         self.player_manager.gain_coherence(coherence_gain)
-        self.npc_manager.npc_opinions[npc_name] += 1
+        self.npc_manager.update_opinion(npc_name, 1)
 
         # Track score
         self.stats_tracker.record_correct_answer()
@@ -314,7 +308,7 @@ class AnswerProcessor:
 
         # Update stats
         self.player_manager.lose_coherence(penalty)
-        self.npc_manager.npc_opinions[npc_name] -= 1
+        self.npc_manager.update_opinion(npc_name, -1)
 
         # Track score
         self.stats_tracker.record_wrong_answer()

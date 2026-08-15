@@ -9,53 +9,8 @@ Last audited: 2026-08-15.
 
 ## Highest Impact
 
-### `Game` class is a forwarding facade
-**File:** `neural_dive/game.py:201-390`
-
-The `Game` class wraps 12 managers behind 21 backward-compatibility properties
-that just forward to manager state. Every manager mutation flows through `Game`,
-making it a God Object. Mocking is painful and new contributors have to trace
-through the property layer to find where state actually lives.
-
-**Direction:** stop forwarding. Have callers reach into the appropriate manager
-directly (e.g., `game.player_manager.coherence` rather than `game.coherence`).
-Remove the property layer once call sites are updated.
-
----
-
-### `npc_manager.py` mixes concerns
-**File:** `neural_dive/managers/npc_manager.py` (550 lines)
-
-One manager handles generation, placement, movement AI, conversations, and
-opinion tracking. Pathfinding changes risk breaking conversations.
-
-**Direction:** split into focused units (e.g., `NPCSpawner`, `NPCMovement`,
-`NPCRelationships`) so each concern is independently testable.
-
----
-
-### `rendering.py` is monolithic
-**File:** `neural_dive/rendering.py` (962 lines, 26 functions)
-
-Map drawing, UI drawing, and overlay drawing are intermingled in one module.
-
-**Direction:** split into `map_renderer.py`, `ui_renderer.py`,
-`overlay_renderer.py`.
-
----
-
-### Question renderers bypass the shared wrapping helpers
-**File:** `neural_dive/question_renderers.py:103,120,162`
-
-`rendering.py` has `_draw_wrapped_lines` and the `_draw_text_block`
-wrap-then-draw wrapper, but the question renderers call `wrap_text` directly and
-`print()` their own lines. That's why `tests/test_question_renderers.py` has to
-capture stdout instead of using `TestBackend`.
-
-**Direction:** route the question renderers through the backend and the shared
-wrapping helpers, then convert their tests to assert on recorded draw calls.
-
----
+Nothing open. The five items tracked here as of 2026-08-15 are all in Resolved
+below; what remains is under "Open, low priority".
 
 ## Notes
 
@@ -81,6 +36,63 @@ wrapping helpers, then convert their tests to assert on recorded draw calls.
   `movement_controller`. Either publish it from `StateManager` or drop the event.
 
 ## Resolved
+
+- **`Game` was a forwarding facade** — 21 properties and 16 setters forwarding to
+  manager state, so every mutation flowed through `Game` and a reader had to trace
+  the property layer to find where state actually lived. All of them are gone;
+  call sites now reach the owning manager directly. 235 call sites were migrated
+  across 16 production modules and the test suite, driven by mypy: with the
+  properties deleted, every typed access became an `attr-defined` error naming the
+  attribute, and the remaining Mock-based test fixtures surfaced as test failures.
+
+  Two things a regex sweep would have missed. `Game`'s own methods assigned
+  `self.active_conversation` / `active_terminal` / `active_snippet`, which after
+  the removal would have silently created shadowing instance attributes on `Game`
+  — writes landing there instead of on `ConversationEngine`, leaving two copies of
+  the conversation state to disagree. And five dynamic accesses
+  (`getattr(game, "text_input_buffer", "")` in the question renderers, three
+  `hasattr(game, ...)` guards in `__main__` and `input_handler`) would have kept
+  working while quietly returning the default: the typed answer would never have
+  displayed and the response-dismissal branch would never have run. The guards
+  were vestigial anyway — those attributes always exist on the engine — so they
+  are now direct reads.
+
+- **`npc_manager.py` mixed concerns** — 558 lines covering generation, placement,
+  movement AI, conversations, and opinion tracking. Split into
+  `npc_spawning.NPCSpawner` (places NPCs per floor, owns `all_npcs`),
+  `npc_movement.NPCMovement` (wandering AI, owns `old_positions`), and
+  `npc_relationships.NPCRelationships` (opinions). `NPCManager` is now a 268-line
+  composition root that owns the save format and the current floor's `npcs`.
+  Call sites reach the owning unit (`manager.movement.old_positions`,
+  `manager.spawner.all_npcs`) rather than going through forwarding properties.
+  `AnswerProcessor` no longer pokes the opinion dict directly — six raw accesses
+  including two "seed the key to 0" blocks became two `update_opinion` calls,
+  since that method starts an unknown NPC from neutral. New
+  `tests/test_npc_units.py` covers the three units without building a Game
+  (19 tests: layout vs random placement, the level-data copy, movement staying on
+  walkable tiles and off the player and other NPCs, returning home, opinion
+  accumulation).
+
+- **Question renderers bypassed the shared wrapping helpers** — they called
+  `wrap_text` directly and `print()`ed their own lines, so their tests had to
+  capture stdout. They now draw through `backend.draw_text` via a new
+  `render_helpers.draw_wrapped_text`, which takes a colour *name* rather than a
+  colour *function* so `TestBackend` records each line as a `DrawCall`. The three
+  `getattr(term, f"bold_{colors.ui_error}", term.bold_red)` lookups are gone, and
+  the text-input box now draws its border, text, and padding as three positioned
+  segments instead of one concatenated coloured string.
+  `tests/test_question_renderers.py` asserts on recorded draw calls and gained
+  coverage that stdout capture couldn't express: colour and bold per element,
+  the footer's pinned row, that answers stop at the overlay bottom, and that
+  overlong typed input is truncated to the box width.
+
+- **`rendering.py` was monolithic** — 962 lines and 26 functions covering map,
+  UI, and overlay drawing. Split into `map_renderer.py` (tiles, entities, erasing
+  what moved), `ui_renderer.py` (status panel), `overlay_renderer.py` (modal
+  panels and the victory screen), and `render_helpers.py` (colour lookup and
+  wrapped-text primitives, previously private to `rendering.py`). `rendering.py`
+  is now 99 lines: `draw_game` owns the frame's draw order and re-exports the
+  overlay entry points that callers and tests reach for through it.
 
 - **Loading a save constructed a `Game` and then mutated it into shape** —
   `_deserialize_game_state` used to call `Game(...)`, which built every manager
