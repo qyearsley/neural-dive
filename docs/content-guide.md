@@ -2,14 +2,19 @@
 
 This guide explains how to create new learning content sets for Neural Dive.
 
+> **Status:** the loader takes a content-set ID (`Game(content_set="...")`), but
+> nothing selects one at runtime — `__main__.py` hardcodes `"algorithms"` and
+> `data_loader.get_default_content_set()` returns it unconditionally. There is
+> no content registry file and no CLI flag. To play a second set today you have
+> to change that hardcoded value or construct `Game` yourself. Sections below
+> flag the pieces that are not wired up.
+
 ## What is a Content Set?
 
 A **content set** is a self-contained collection of:
-- **Questions** - educational questions with multiple choice or short answer formats
+- **Questions** - educational questions with multiple choice, short answer, or yes/no formats
 - **NPCs** - characters that present questions to the player
-- **Terminals** - information displays with reference material
-- **Levels** - floor layouts defining entity positions
-- **Metadata** - description and configuration
+- **Levels** - floor layouts defining entity positions, plus terminal content
 
 Content sets allow Neural Dive to teach any subject - from computer science to languages to geography!
 
@@ -19,14 +24,15 @@ Each content set lives in its own directory under `neural_dive/data/content/`:
 
 ```
 neural_dive/data/content/
-├── content_registry.json          # Registry of all content sets
 └── your-content-name/
-    ├── content.json               # Metadata
-    ├── questions.json             # Question database
-    ├── npcs.json                  # NPC definitions
-    ├── terminals.json             # Info terminal content
-    └── levels.py                  # Level layouts (optional)
+    ├── content.json              # Metadata (not read by the game; see below)
+    ├── questions.json            # Question database
+    ├── npcs.json                 # NPC definitions
+    └── levels.py                 # Level layouts + ZONE_TERMINALS (optional)
 ```
+
+Code snippets are **not** per content set — they live in
+`neural_dive/data/snippets.json` and are shared by every set.
 
 ## Step-by-Step Guide
 
@@ -54,19 +60,22 @@ Create `content.json`:
   ],
   "difficulty_range": "beginner to advanced",
   "question_count": 15,
-  "floors": 5
+  "floors": 3
 }
 ```
 
 **Fields:**
 - `id` - Unique identifier (use lowercase with hyphens)
-- `name` - Display name shown in menus
+- `name` - Display name
 - `description` - Brief description (1-2 sentences)
 - `version` - Version number (semantic versioning)
 - `topics` - List of topics covered
 - `difficulty_range` - Overall difficulty level
 - `question_count` - Total number of questions
-- `floors` - Number of floors/levels (typically 3-5)
+- `floors` - Number of floors (`MAX_FLOORS` in `config.py` is 3)
+
+**Not read by the game:** no code loads `content.json`. It is a manifest for
+humans — keep it accurate, but changing it has no runtime effect.
 
 ### 3. Create Questions
 
@@ -120,9 +129,12 @@ See [question-guide.md](question-guide.md) for detailed question formatting.
 ```
 
 **Question Types:**
-- `multiple_choice` (default) - 2-4 answer options
-- `short_answer` - Free text input, exact match
+- `multiple_choice` (default) - up to 4 answer options; the in-game keys are `1`-`4`
+- `short_answer` - Free text input, matched per `match_type`
 - `yes_no` - Simple yes/no question
+
+Set the type with a `"type"` field. Any JSON key the `Question` dataclass doesn't
+define (for example `difficulty`) is silently ignored.
 
 **Tips:**
 - Write 10-20 questions minimum
@@ -153,10 +165,10 @@ Create `npcs.json` to define characters that present questions:
     "questions": ["question_id_3", "question_id_4"]
   },
   "BOSS_NPC": {
-    "char": "!",
+    "char": "Z",
     "color": "red",
-    "floor": 5,
-    "npc_type": "enemy",
+    "floor": 3,
+    "npc_type": "boss",
     "greeting": "Face me in the final challenge! Only masters may pass!",
     "questions": ["question_id_7", "question_id_8", "question_id_9"]
   }
@@ -164,25 +176,59 @@ Create `npcs.json` to define characters that present questions:
 ```
 
 **NPC Fields:**
-- `char` - Single character displayed on map
+- `char` - Single **letter** shown on the map. `parse_level` only treats
+  single letters surrounded by non-letters as NPCs, so punctuation like `!`
+  will never be placed. Letters may repeat across different floors.
 - `color` - Color name (cyan, green, yellow, red, magenta, blue, white)
-- `floor` - Which floor this NPC appears on (1-5)
-- `npc_type` - Type of NPC:
-  - `specialist` - Standard knowledge test
-  - `helper` - Gives bonus rewards
-  - `enemy` - Harder questions, higher penalties
+- `floor` - Which floor this NPC appears on (1-3; `MAX_FLOORS` is 3)
+- `npc_type` - One of five values:
+  - `specialist` - Standard knowledge test. **Required** to clear its floor.
+  - `enemy` - Harder penalties on wrong answers. **Required** to clear its floor.
+  - `boss` - Like a specialist but gets `boss_questions` (4) questions. Optional.
+  - `helper` - No questions; restores coherence once, then has nothing more to say. Optional.
+  - `quest` - No questions; activates the main quest on first interaction. Optional.
 - `greeting` - Message shown when conversation starts
 - `questions` - List of question IDs this NPC asks
 
+Floor completion is computed by `data_loader.compute_floor_requirements`: only
+`specialist` and `enemy` NPCs block the stairs down. Winning requires completing
+a boss named in `VICTORY_BOSS_NAMES` (`config.py`) on the final floor.
+
 **NPC Distribution Guidelines:**
-- **Floor 1-2**: Easy questions, friendly NPCs (specialists/helpers)
-- **Floor 3-4**: Medium difficulty, mixed types
-- **Floor 5**: Boss fight, enemy type, hardest questions
-- **Typical setup**: 3-5 NPCs per floor, 2-4 questions per NPC
+- **Floor 1**: Easy questions, mostly specialists
+- **Floor 2**: Medium difficulty
+- **Floor 3**: Bosses, hardest questions
+- **Typical setup**: 4-6 NPCs per floor, 2-3 questions per NPC (`questions_per_npc`)
 
 ### 5. Create Information Terminals
 
-Create `terminals.json` for reference material:
+Terminal content comes from a `ZONE_TERMINALS` dict in `levels.py`, keyed by
+floor and then by zone label, and positioned by the `terminal_positions` parsed
+out of each floor layout:
+
+```python
+ZONE_TERMINALS = {
+    1: {
+        "ENTRY": {
+            "title": "Welcome to Your Content",
+            "content": [
+                "Welcome! This content set teaches...",
+                "",
+                "Read terminals like this for helpful information.",
+            ],
+        },
+    },
+}
+```
+
+**Not wired up:** a `terminals.json` file is read by nothing — the algorithms set
+ships one, but `floor_entity_generator` imports `ZONE_TERMINALS` from
+`neural_dive.data.levels` instead. That shim re-exports the algorithms set's
+`levels.py`, so terminal content is currently fixed to the algorithms set no
+matter which content set is loaded.
+
+<details>
+<summary>Older <code>terminals.json</code> shape (unused)</summary>
 
 ```json
 {
@@ -221,11 +267,12 @@ Create `terminals.json` for reference material:
 }
 ```
 
+</details>
+
 **Terminal Tips:**
 - Use box drawing characters for visual appeal
 - Keep content concise (10-20 lines max)
 - Provide helpful reference information
-- Use ASCII art for visual interest
 - Create 2-4 terminals per content set
 
 ### 6. Create Level Layouts (Optional)
@@ -238,51 +285,40 @@ cp ../algorithms/levels.py .
 
 Then customize NPC positions and terminal placements for each floor.
 
-**Simple approach:** Let the game randomize positions (no levels.py needed)
+**Simple approach:** omit `levels.py`. `data_loader.load_levels` falls back to
+`neural_dive.data.levels.PARSED_LEVELS` (the algorithms layouts), and the game
+places your NPCs randomly.
 
-**Custom approach:** Define exact positions in levels.py for curated experience
+**Custom approach:** define exact positions in `levels.py` for a curated
+experience. Remember that `ZONE_TERMINALS` is read from the shim rather than your
+file (see step 5).
 
-### 7. Register Content Set
+### 7. Select Your Content Set
 
-Add your content to `neural_dive/data/content_registry.json`:
+There is no registry file and no CLI flag. The content set is chosen in two
+hardcoded places:
 
-```json
-{
-  "content_sets": [
-    {
-      "id": "algorithms",
-      "path": "content/algorithms",
-      "enabled": true,
-      "default": true
-    },
-    {
-      "id": "your-content-name",
-      "path": "content/your-content-name",
-      "enabled": true,
-      "default": false
-    }
-  ],
-  "version": "1.0.0"
-}
+- `neural_dive/__main__.py` sets `content_set = "algorithms"` before building the
+  `Game`.
+- `data_loader.get_default_content_set()` returns `"algorithms"` without
+  consulting the filesystem.
+
+To load your set, either edit `__main__.py` or construct the game directly:
+
+```python
+from neural_dive.game import Game
+
+game = Game(content_set="your-content-name", seed=42)
 ```
-
-**Fields:**
-- `id` - Must match your content's metadata id
-- `path` - Relative path from data/ directory
-- `enabled` - Whether this content appears in menus
-- `default` - Whether this is the default content (only one should be true)
 
 ### 8. Test Your Content
 
 ```bash
-# List all content to verify registration
-./ndive --list-content
+# Confirm every NPC question reference resolves
+make validate
 
-# Play your content
-./ndive --content your-content-name
-
-# Test with fixed seed for reproducibility
-./ndive --content your-content-name --seed 42 --fixed
+# Play, after pointing __main__.py at your content set
+./ndive --seed 42 --fixed
 ```
 
 **Testing Checklist:**
@@ -291,16 +327,13 @@ Add your content to `neural_dive/data/content_registry.json`:
 - [ ] Conversations work properly
 - [ ] Terminals display correctly
 - [ ] Knowledge rewards work
-- [ ] Content appears in --list-content
-- [ ] Save/load preserves content selection
+- [ ] `make validate` passes
+- [ ] Save/load works (the content set ID is saved and restored)
 
-## Example Content Sets
+## Example Content Set
 
-Study these examples in `neural_dive/data/content/`:
-
-- **algorithms/** - Computer science (default, complex)
-- **chinese-hsk6/** - Language learning (simple, sample)
-- **geography/** - World knowledge (simple, sample)
+There is currently only one: **algorithms/** — computer science, 140 questions,
+15 NPCs across 3 floors. Read it alongside this guide.
 
 ## Best Practices
 
@@ -314,17 +347,17 @@ Study these examples in `neural_dive/data/content/`:
 ### NPC Design
 - Give each NPC a personality through greetings
 - Match difficulty to floor number
-- Use boss NPCs sparingly (1-2 per content set)
+- Use boss NPCs sparingly (the algorithms set has 3, all on the final floor)
 - Distribute questions evenly across NPCs
 
 ### Content Organization
-- Start easy, end hard (floor 1 → floor 5)
+- Start easy, end hard (floor 1 → floor 3)
 - Group related questions by topic
 - Provide reference materials in terminals
 - Use consistent naming conventions
 
 ### Visual Design
-- Choose distinct NPC characters
+- Choose distinct NPC letters
 - Use colors meaningfully
 - Create attractive terminal displays
 - Consider accessibility (color blind users)
@@ -341,48 +374,45 @@ Want to share your content set with others?
 
 ## Troubleshooting
 
-### Content Not Appearing in Menu
-- Check `content_registry.json` for correct ID and path
-- Verify `enabled: true` in registry
-- Ensure `content.json` exists with valid JSON
+### Content Not Loading
+- Confirm the directory name matches the ID you pass to `Game(content_set=...)`
+- Ensure `questions.json` and `npcs.json` exist and parse as JSON
+- Remember `__main__.py` hardcodes `"algorithms"` — a new set won't load until
+  you change it
 
 ### Questions Not Loading
 - Validate JSON syntax in `questions.json`
-- Check question IDs match NPC references
+- Check question IDs match NPC references (`make validate`)
 - Verify all required fields present
 
 ### NPCs Not Spawning
-- Check floor numbers (1-5)
+- Check floor numbers (1-3)
 - Verify `npcs.json` syntax
-- Ensure NPC type is valid (specialist/helper/enemy)
+- Ensure `npc_type` is one of specialist/enemy/boss/helper/quest
+- Ensure `char` is a single letter, and that it appears in the floor layout
+  surrounded by non-letters
 
 ### Save/Load Issues
-- Content set must be in registry
-- Old saves may not have content_set field
+- Old saves may not have a `content_set` field
 - Delete `~/.neural_dive/save.json` to reset
 
 ## Advanced Topics
 
 ### Custom Question Types
-See [question-guide.md](question-guide.md) for advanced question formats.
+See [question-guide.md](question-guide.md) for the three supported formats.
 
 ### Dynamic Content
 Content is loaded at game start. For dynamic content, modify `data_loader.py`.
 
 ### Localization
-Create multiple content sets for different languages:
-- `french-grammar/`
-- `spanish-vocab/`
-- `german-basics/`
-
-### Collaborative Content
-Multiple authors can create complementary content sets that work together.
+Nothing in the loader is English-specific, so a translated set is just another
+content directory — but see step 7 about selecting it.
 
 ## Need Help?
 
-- Check existing content sets for examples
+- Read the algorithms content set for a working example
 - Read [question-guide.md](question-guide.md) for question formats
 - Review game code in `neural_dive/data_loader.py`
 - Open an issue on GitHub with questions
 
-Happy content creating! 🎓
+Happy content creating!

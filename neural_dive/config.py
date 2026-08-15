@@ -39,10 +39,6 @@ STAIRS_UP_DEFAULT_Y = 5
 NPC_MIN_DISTANCE_FROM_PLAYER = 5
 NPC_PLACEMENT_ATTEMPTS = 100
 
-# Terminal placement
-TERMINAL_PLACEMENT_ATTEMPTS = 50
-TERMINAL_X_OFFSET = 3
-TERMINAL_Y_OFFSET = 3
 
 # Rendering
 OVERLAY_MAX_WIDTH = 80  # Increased from 60 for better readability
@@ -53,7 +49,6 @@ INVENTORY_OVERLAY_MAX_HEIGHT = 25  # Height for inventory overlays
 VICTORY_SCREEN_MAX_WIDTH = 70  # Maximum width for victory screen
 VICTORY_SCREEN_MAX_HEIGHT = 20  # Maximum height for victory screen
 UI_BOTTOM_OFFSET = 4
-TERMINAL_UI_RESERVED_LINES = 6  # Lines reserved for UI at terminal bottom
 
 # Overlay layout offsets (in character cells)
 OVERLAY_SCREEN_MARGIN = 4  # Clearance subtracted from screen w/h when sizing an overlay

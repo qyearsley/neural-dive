@@ -14,15 +14,26 @@ make hooks         # Install the git pre-commit hooks (run once)
 make ci            # check + test -- run this before pushing
 make check         # Lint + format-check + typecheck
 make test          # Run all tests (ARGS="-k name" to filter)
+make validate      # Check NPC -> question references resolve
 make fix           # Auto-fix lint and format
+make relock        # Regenerate uv.lock after a dependency change
 
 make run           # Launch the game
 make run-debug     # Launch with a fixed seed (42) for reproducible debugging
 ```
 
 There is no CI for this repo. `make ci` and the pre-commit hooks are the only
-automatic checks, and they run the same commands — see
-`.pre-commit-config.yaml`.
+automatic checks. They run the same ruff/mypy/pytest commands; the hooks also
+run whitespace and JSON fixers plus `scripts/check-lockfile-index.sh`, which
+fails if `uv.lock` references a non-public index.
+
+**Never run bare `uv run` in this repo.** Every `uv run`/`uv sync` re-resolves and
+rewrites `uv.lock` with whatever index `UV_INDEX_URL`/`UV_DEFAULT_INDEX` points
+at, which dirties the tree and can leak an internal mirror into this public repo.
+The Makefile and the hooks set `UV_FROZEN=1` to prevent that, so use `make test` /
+`make check` rather than calling uv directly. For one-off commands, prefix them:
+`UV_FROZEN=1 uv run python -c ...`. After changing dependencies in
+`pyproject.toml`, run `make relock`.
 
 ## Layout
 
@@ -49,6 +60,7 @@ neural_dive/
 │   ├── state_manager.py         # Centralised mutations + EventBus integration
 │   └── stats_tracker.py         # Score, accuracy, time
 ├── events.py                # EventBus + typed event dataclasses
+├── input_handler.py         # Keyboard handling, one handler per game mode
 ├── backends/
 │   ├── backend.py           # RenderBackend protocol
 │   ├── blessed_backend.py   # Real terminal backend
@@ -63,7 +75,7 @@ neural_dive/
 
 ## Architecture notes
 
-**Game as facade.** `Game` exposes ~24 forwarding properties to the underlying
+**Game as facade.** `Game` exposes 21 forwarding properties to the underlying
 managers (`game.coherence` → `player_manager.coherence`, etc.). New code should
 prefer reaching the manager directly when feasible; the property layer is on
 the cleanup list (`docs/tech-debt.md`).
@@ -80,7 +92,24 @@ imports — edit `data/content/algorithms/levels.py` instead.
 
 **Floor requirements are dynamic**, computed by
 `data_loader.compute_floor_requirements` from each NPC's `floor` and
-`npc_type`. There is no static `FLOOR_REQUIRED_NPCS` config.
+`npc_type`. There is no static `FLOOR_REQUIRED_NPCS` config. NPCs typed
+`specialist` or `enemy` are required; `helper`, `quest`, and `boss` are optional.
+
+**Save/load builds a Game in one pass.** `GameContext.create` (in
+`game_builder.py`) builds the settings, content, floor manager, and player —
+everything a manager needs — and positions the floor manager on the floor being
+restored. `GameSerializer` then builds the restored managers against that context
+and calls `Game.from_context(ctx, managers)`, which assembles the game once.
+
+Do not construct a `Game` and then replace a manager on it. `AnswerProcessor`
+and `InteractionHandler` capture managers at construction time, so a swap leaves
+them mutating discarded instances — that was the "Not in a conversation" bug.
+`Game._wire_manager_dependencies()` is a private construction detail, called
+from `_assemble` once the managers are final. If you add another collaborator
+that stores a manager reference, construct it there.
+
+`_assemble` also generates floor entities exactly once, at the end. Generating a
+floor twice used to drop every NPC on floor 1 and shift randomly placed items.
 
 ## Common patterns
 
@@ -92,13 +121,16 @@ questions, npcs, levels, snippets = load_all_game_data()
 ```
 
 ### Creating a conversation
+`NPCManager` builds every conversation up front from the template that
+`data_loader` attaches to each NPC. To randomize one yourself, pass the
+`Conversation` object — not the raw NPC data:
 ```python
 from neural_dive.conversation import create_randomized_conversation
 
 conv = create_randomized_conversation(
-    npc_name="ALGO_SPIRIT",
-    npc_data=npc_data["ALGO_SPIRIT"],
-    questions=all_questions,
+    npc_data["ALGO_SPIRIT"]["conversation"],
+    randomize_question_order=True,
+    randomize_answer_order=True,
     seed=42,
     num_questions=3,
 )
@@ -128,13 +160,13 @@ values.
    `neural_dive/data/content/algorithms/levels.py`. NPC chars must be single
    letters surrounded by non-letters (a run of two letters is parsed as a text
    label, not an NPC).
-3. Run `uv run validate_questions.py` to confirm question references resolve.
+3. Run `make validate` to confirm question references resolve.
 
 ### A new question
 1. Edit `neural_dive/data/content/algorithms/questions.json` following the
    schema in `docs/question-guide.md`.
 2. Reference its ID from one or more NPCs in `npcs.json`.
-3. Run `uv run validate_questions.py`.
+3. Run `make validate`.
 
 ### A new question type
 1. Add the variant to `QuestionType` in `question_types.py`.

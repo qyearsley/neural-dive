@@ -4,15 +4,27 @@
   "description": "Learn fundamental algorithms, data structures, and CS concepts while navigating a cyberpunk neural network.",
   "version": "1.0.0",
   "topics": [
+    "ai_ml",
     "algorithms",
+    "architecture",
     "data_structures",
-    "complexity",
-    "sorting",
-    "searching",
-    "graphs",
-    "trees"
+    "databases",
+    "design_patterns",
+    "devops",
+    "distributed_systems",
+    "machine_learning",
+    "networking",
+    "programming_fundamentals",
+    "security",
+    "software_engineering",
+    "system_design",
+    "systems",
+    "testing",
+    "theory",
+    "version_control",
+    "web_development"
   ],
   "difficulty_range": "beginner to expert",
-  "question_count": 45,
-  "floors": 5
+  "question_count": 140,
+  "floors": 3
 }

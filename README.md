@@ -14,9 +14,8 @@
 
 - **Computer Science learning content** - 140 questions across algorithms, systems, web, ML, and more
 - **Roguelike gameplay** with wandering NPCs and procedural maps
-- **Cyberpunk theme** with Unicode graphics (light/dark mode support)
+- **Cyberpunk theme** with Unicode graphics
 - **Save/Load system** - save your progress and continue later
-- **Highly configurable** themes and difficulty
 
 ---
 
@@ -36,9 +35,12 @@ neural-dive
 ```bash
 git clone https://github.com/qyearsley/neural-dive.git
 cd neural-dive
-pip3 install blessed
 ./ndive
 ```
+
+The `./ndive` launcher runs via `uv` and declares its own dependencies inline,
+so it installs `blessed` on first run. If you'd rather use pip directly:
+`pip3 install blessed && python3 -m neural_dive`.
 
 ---
 
@@ -62,17 +64,18 @@ pip3 install blessed
 
 **Objective:** Descend through neural layers, answer questions, gain knowledge, defeat challenging NPCs.
 
-**Layers:**
-- **Layer 1**: Introduction - learn the basics and meet friendly NPCs
-- **Layer 2**: Intermediate challenges - test your growing knowledge
-- **Layer 3**: Deep Core - face the final challenges and achieve victory!
+**Layers:** (3 total, set by `MAX_FLOORS` in `config.py`)
+- **Layer 1**: Introduction - 5 NPCs covering the basics, including one enemy
+- **Layer 2**: Intermediate challenges - 6 specialists testing your growing knowledge
+- **Layer 3**: Deep Core - three bosses; defeat one to win
 
 **Mechanics:**
-- **Coherence** = health (80/100 start, +8 correct, -30 wrong, -45 from enemies)
+- **Coherence** = health (80/100 start, +10 correct, -25 wrong, -40 from enemies)
 - **Knowledge Modules** = rewards from correct answers
-- **Score** = correct answers + NPCs defeated + knowledge + remaining coherence
+- **Score** = 100 per correct answer + 50 per knowledge module + 200 per NPC
+  completed + 10 per remaining coherence point
 
-Required NPCs glow brighter than optional ones.
+Required NPCs (specialists and enemies) glow brighter than optional ones.
 
 ---
 
@@ -102,7 +105,7 @@ Want to create your own learning content? See **[Content Guide](docs/content-gui
 
 1. Edit `neural_dive/data/content/algorithms/questions.json` (see [Question Guide](docs/question-guide.md))
 2. Reference the new question's ID from one or more NPCs in `npcs.json`
-3. Run `uv run validate_questions.py` to confirm every reference resolves
+3. Run `make validate` to confirm every reference resolves
 4. Test with `./ndive --seed 42`
 
 ---
@@ -118,39 +121,49 @@ make hooks         # Install git pre-commit hooks
 make run           # Play game
 make test          # Run tests (ARGS="-k name" to filter)
 make check         # Lint + format check + typecheck
+make validate      # Check NPC -> question references resolve
 make ci            # check + test -- run before pushing
 make fix           # Auto-fix lint and format
+make relock        # Regenerate uv.lock after a dependency change
 make clean         # Remove artifacts
 ```
 
 This repo has no CI. `make ci` and the pre-commit hooks are the only automatic
-checks, and both run the same commands.
+checks. They run the same linters, type check, and tests; the hooks add
+whitespace/JSON fixers and a check that `uv.lock` only references public PyPI.
+
+Use the make targets rather than calling `uv run` directly: they set
+`UV_FROZEN=1`, which stops uv from re-resolving and rewriting `uv.lock` on every
+invocation.
 
 **Project Structure:**
 ```
 neural_dive/
 ├── data/
 │   ├── content/              # Content sets
-│   │   └── algorithms/       # CS content (default)
+│   │   └── algorithms/       # CS content (default, and currently the only one)
 │   │       ├── content.json
 │   │       ├── questions.json
 │   │       ├── npcs.json
-│   │       ├── terminals.json
+│   │       ├── terminals.json   # unused; terminal text lives in levels.py
 │   │       └── levels.py
-│   └── levels.py             # Legacy level definitions
+│   ├── snippets.json         # Code snippets awarded by specialists
+│   └── levels.py             # Re-export shim for content/algorithms/levels.py
 ├── managers/                 # Game state managers
 │   ├── player_manager.py
 │   ├── npc_manager.py
 │   ├── floor_manager.py
 │   └── conversation_engine.py
 ├── game.py                   # Core game logic
+├── input_handler.py          # Keyboard input, per game mode
 ├── rendering.py              # Terminal UI
 ├── data_loader.py            # Load content sets
-├── themes.py                 # Visual themes
+├── themes.py                 # Visual theme (cyberpunk dark)
 ├── tests/                    # pytest suite
 └── ...
 scripts/
-└── README.md                 # Content-inspection one-liners
+├── README.md                 # Content-inspection one-liners
+└── check-lockfile-index.sh   # Pre-commit: keep uv.lock on public PyPI
 validate_questions.py         # Check NPC → question references resolve
 ndive                         # Launcher
 ```
@@ -170,7 +183,10 @@ ndive                         # Launcher
 ## Topics Covered
 
 ### Computer Science (algorithms content)
-140 questions covering algorithms, data structures, systems programming, networking, databases, security, web development, distributed systems, machine learning, design patterns, testing, DevOps, compilers, version control, and software architecture.
+140 questions covering AI/ML, DevOps, algorithms, systems programming, web
+development, databases, design patterns, security, software engineering, system
+design, data structures, testing, networking, distributed systems, programming
+fundamentals, version control, architecture, and computability theory.
 
 ---
 

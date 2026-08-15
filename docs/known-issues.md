@@ -3,7 +3,7 @@
 Runtime bugs in Neural Dive. Architectural debt lives in
 [`tech-debt.md`](tech-debt.md).
 
-Last reviewed: 2026-08-14.
+Last reviewed: 2026-08-15.
 
 ## Active Issues
 
@@ -19,6 +19,75 @@ Please report at <https://github.com/qyearsley/neural-dive/issues> and include:
 - Any error message or screenshot
 
 ## Resolved
+
+### Loading a save from floor 2 or deeper restored floor 1's map
+
+**Affected:** every save taken below floor 1.
+
+The loaded game reported the right floor number and placed that floor's NPCs and
+entities, but the walls were floor 1's. NPCs and stairs ended up in places the
+layout didn't allow.
+
+The deserializer assigned `game.current_floor`, which forwards to
+`FloorManager.current_floor` — a plain attribute that updates the number without
+rebuilding the map. `FloorManager.from_dict` did regenerate the map, but the
+serializer never called it. Fixed by having `GameContext.create` position the
+floor manager with `generate_floor(start_floor, player)` before any entity
+generation, so the map, the player's start position, and the floor number are
+established together.
+
+Covered by `test_loading_a_deeper_save_restores_that_floors_map` in
+`tests/test_game_core.py`.
+
+### Randomly placed items moved when a save was loaded
+
+**Affected:** saves taken with random placement (`random_npcs=True`, the default).
+
+Item pickups came back on different tiles than the save recorded, because the
+deserializer generated the floor twice and each pass drew from the game's RNG.
+Fixed by assembling a loaded game in one pass, so floor entities are generated
+exactly once.
+
+Covered by `test_loading_preserves_randomly_placed_entities` in
+`tests/test_game_core.py`.
+
+### Loading a floor-1 save produced a map with no NPCs
+
+**Affected:** `Game.load_game` / `GameSerializer` for saves made on floor 1.
+
+Loading a save taken on floor 1 restored a map with zero NPCs, so there was
+nobody to talk to and the floor could never be completed. Saves from floor 2
+and deeper were unaffected, which is why it went unnoticed.
+
+`NPCManager._generate_from_level_data` placed NPCs by popping positions off
+`level_data["npc_positions"]`, mutating the long-lived level data rather than a
+copy. The deserializer regenerates the saved floor after `Game.__init__` has
+already generated floor 1, so floor 1 got generated twice — and the second pass
+found the position lists empty and placed nothing. Fixed by copying the
+per-character position lists before consuming them, which makes floor
+generation repeatable.
+
+Covered by `test_loading_a_floor_one_save_keeps_the_npcs` and
+`test_generating_a_floor_twice_places_the_same_npcs` in
+`tests/test_game_core.py`.
+
+### Answering any question in a loaded game said "Not in a conversation"
+
+**Affected:** every game restored from a save (`L` in-game or `--load`).
+
+After loading, talking to an NPC showed the greeting and the first question
+normally, but any answer came back as "Not in a conversation." — the conversation
+could never progress.
+
+`GameSerializer` replaces the managers on the freshly built `Game`, but
+`AnswerProcessor` had already captured the originals, so it validated against an
+empty `ConversationEngine` while the renderer and input handler read the restored
+one. The same staleness silently applied coherence, stats, and quest updates to
+discarded managers. Fixed in 6eae393 by extracting
+`Game.wire_manager_dependencies()` and calling it from the deserializer.
+
+Covered by `test_load_rewires_managers_into_collaborators` and
+`test_can_answer_questions_after_load` in `tests/test_game_core.py`.
 
 ### Phantom walls on level transition
 

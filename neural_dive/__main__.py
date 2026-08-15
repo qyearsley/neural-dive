@@ -211,7 +211,7 @@ Save Location:
 
     # Always use algorithms content set and cyberpunk dark theme
     content_set = "algorithms"
-    chars, colors = get_theme("cyberpunk", "dark")
+    chars, colors = get_theme()
 
     if args.test:
         run_test_mode()

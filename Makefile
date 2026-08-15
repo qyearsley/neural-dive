@@ -1,5 +1,13 @@
 .PHONY: help install dev-install hooks lint format check typecheck fix \
-        test test-verbose test-cov ci run run-debug clean
+        validate test test-verbose test-cov ci run run-debug relock clean
+
+# Every `uv run` and `uv sync` re-resolves and rewrites uv.lock, baking in
+# whichever index the environment points at (UV_INDEX_URL / UV_DEFAULT_INDEX).
+# Behind an internal mirror that leaks private hostnames into this public repo --
+# see scripts/check-lockfile-index.sh. UV_FROZEN tells uv to use uv.lock as-is
+# and never write it, so running tests can't dirty the tree. Use `make relock`
+# after changing dependencies in pyproject.toml.
+export UV_FROZEN = 1
 
 # Pass extra pytest arguments through, e.g.
 #   make test ARGS="-k conversation"
@@ -27,7 +35,11 @@ help:
 	@echo "  make typecheck     Type check (mypy)"
 	@echo "  make fix           Auto-fix lint + format"
 	@echo "  make check         lint + format check + typecheck"
+	@echo "  make validate      Check NPC -> question references resolve"
 	@echo "  make ci            check + test -- everything, run before pushing"
+	@echo ""
+	@echo "Dependencies:"
+	@echo "  make relock        Regenerate uv.lock against public PyPI"
 	@echo ""
 	@echo "Running:"
 	@echo "  make run           Run the game"
@@ -63,6 +75,17 @@ typecheck:
 fix:
 	uv run ruff check --fix neural_dive/
 	uv run ruff format neural_dive/
+
+# Content validation. Exits non-zero if an NPC references a missing question.
+validate:
+	uv run validate_questions.py
+
+# Regenerate uv.lock after a dependency change, against public PyPI so the
+# lockfile stays shareable. Needs UV_FROZEN cleared to let uv write the file.
+relock:
+	UV_FROZEN= UV_INDEX_URL=https://pypi.org/simple \
+	    UV_DEFAULT_INDEX=https://pypi.org/simple uv lock
+	scripts/check-lockfile-index.sh
 
 # Testing. Paths come from `testpaths` in pyproject.toml.
 test:

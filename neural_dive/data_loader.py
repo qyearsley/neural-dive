@@ -36,34 +36,9 @@ def get_content_dir(content_set: str = "algorithms") -> Path:
     return get_data_dir() / "content" / content_set
 
 
-def list_content_sets() -> list[dict]:
-    """List available content sets (hardcoded to algorithms only)."""
-    return [{"id": "algorithms", "path": "content/algorithms", "enabled": True, "default": True}]
-
-
 def get_default_content_set() -> str:
     """Get the default content set ID (always algorithms)."""
     return "algorithms"
-
-
-def load_content_metadata(content_set: str) -> dict:
-    """Load metadata for a specific content set.
-
-    Args:
-        content_set: ID of the content set to load metadata for
-
-    Returns:
-        Dictionary containing content set metadata from content.json
-
-    Raises:
-        FileNotFoundError: If content set directory or content.json not found
-    """
-    metadata_file = get_content_dir(content_set) / "content.json"
-    if not metadata_file.exists():
-        raise FileNotFoundError(f"Content set '{content_set}' not found")
-    with open(metadata_file) as f:
-        result: dict = json.load(f)
-        return result
 
 
 def load_questions(content_set: str = "algorithms") -> dict[str, Question]:

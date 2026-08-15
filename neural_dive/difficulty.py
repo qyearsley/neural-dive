@@ -114,12 +114,3 @@ def get_difficulty_from_string(difficulty_str: str) -> DifficultyLevel:
         f"Unknown difficulty: {difficulty_str}. "
         f"Valid options: {', '.join(level.value for level in DifficultyLevel)}"
     )
-
-
-def get_all_difficulties() -> list[tuple[DifficultyLevel, DifficultySettings]]:
-    """Get all available difficulties (only NORMAL).
-
-    Returns:
-        List with single entry: [(DifficultyLevel.NORMAL, settings)]
-    """
-    return [(DifficultyLevel.NORMAL, DIFFICULTY_CONFIGS[DifficultyLevel.NORMAL])]

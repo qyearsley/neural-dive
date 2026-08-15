@@ -164,7 +164,14 @@ class NPCManager:
 
     def _generate_from_level_data(self, floor_npcs: list[tuple[str, dict]], level_data: dict):
         """Generate NPCs using positions from level data."""
-        npc_positions_by_char = level_data["npc_positions"]
+        # Copy each char's position list. The loop below pops from these to give
+        # two NPCs sharing a char different spots, and level_data is long-lived
+        # and shared -- popping from it directly would drain the floor's
+        # positions permanently, so generating the same floor a second time
+        # (which is what loading a save does) would place no NPCs at all.
+        npc_positions_by_char = {
+            char: list(positions) for char, positions in level_data["npc_positions"].items()
+        }
 
         for npc_name, npc_info in floor_npcs:
             npc_char = npc_info["char"]

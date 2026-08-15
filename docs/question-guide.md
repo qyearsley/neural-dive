@@ -8,28 +8,23 @@ This guide will help you create high-quality educational questions for Neural Di
 3. [Question Structure](#question-structure)
 4. [Best Practices](#best-practices)
 5. [Common Pitfalls](#common-pitfalls)
-6. [Difficulty Ratings](#difficulty-ratings)
+6. [Difficulty Guidance](#difficulty-guidance)
 7. [Examples](#examples)
 
 ---
 
 ## Quick Start
 
-Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Neural Dive currently supports **multiple choice** questions, with two additional types planned:
+Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Neural Dive supports three question types, all fully playable:
 - **Multiple Choice** (4 options) - Best for teaching through wrong answers
 - **Short Answer** (type-in) - Best for interview prep, complexity questions
 - **Yes/No** (true/false) - Best for quick knowledge checks
 
-*Short Answer and Yes/No types have code scaffolding in place but are not yet fully integrated into gameplay.*
+### Current Question Type Mix
 
-### Question Type Distribution
-
-Target distribution once all types are implemented:
-- ~60% Multiple Choice
-- ~30% Short Answer
-- ~10% Yes/No
-
-Advanced difficulty modes have more short-answer questions (like real interviews).
+The algorithms set is currently 124 multiple choice, 11 yes/no, and 5 short
+answer. Multiple choice dominates; adding short-answer and yes/no questions is
+the easiest way to add variety.
 
 **Minimal Multiple Choice Example:**
 ```json
@@ -76,7 +71,7 @@ Advanced difficulty modes have more short-answer questions (like real interviews
 
 ## Question Types
 
-### 1. Multiple Choice (60% of questions)
+### 1. Multiple Choice (124 of 140 questions)
 
 **Best for:**
 - Teaching through wrong answers
@@ -95,7 +90,7 @@ Advanced difficulty modes have more short-answer questions (like real interviews
 - Multiple concepts could be confused
 - Beginner to medium difficulty
 
-### 2. Short Answer (30% of questions)
+### 2. Short Answer (5 of 140 questions)
 
 **Best for:**
 - Big-O complexity (most common in interviews!)
@@ -123,7 +118,7 @@ Accept ALL correct variations that show understanding:
 - Interview-style questions
 - Medium to hard difficulty
 
-### 3. Yes/No (10% of questions)
+### 3. Yes/No (11 of 140 questions)
 
 **Best for:**
 - True/false facts
@@ -178,26 +173,36 @@ Accept ALL correct variations that show understanding:
 
 ### Topic Categories
 
-Choose from existing topics or create new ones:
-- `algorithms` - Algorithm analysis, complexity
-- `data_structures` - Arrays, trees, graphs, etc.
-- `systems` - Operating systems, memory, processes
-- `networking` - Protocols, HTTP, TCP/IP
-- `databases` - SQL, NoSQL, transactions
-- `security` - Cryptography, auth, vulnerabilities
-- `web_development` - HTTP, REST, APIs
-- `distributed_systems` - CAP, consensus, replication
-- `machine_learning` - ML concepts, models
-- `design_patterns` - Software design patterns
-- `testing` - Test strategies, TDD
-- `devops` - CI/CD, deployment, monitoring
-- `programming_fundamentals` - Basics, paradigms
-- `software_engineering` - SOLID, refactoring
-- `theory` - Computability, complexity theory
+The `topic` field is free text — nothing validates it — so reuse an existing
+value rather than inventing a near-duplicate. Topics currently in use, with
+question counts:
+
+- `ai_ml` (19) - ML and AI concepts, models
+- `devops` (12) - CI/CD, deployment, monitoring
+- `algorithms` (10) - Algorithm analysis, complexity
+- `systems` (9) - Operating systems, memory, processes
+- `web_development` (9) - HTTP, REST, APIs
+- `databases` (8) - SQL, NoSQL, transactions
+- `design_patterns` (8) - Software design patterns
+- `security` (8) - Cryptography, auth, vulnerabilities
+- `software_engineering` (8) - SOLID, refactoring
+- `system_design` (8) - Scaling, caching, trade-offs
+- `data_structures` (7) - Arrays, trees, graphs, etc.
+- `testing` (7) - Test strategies, TDD
+- `networking` (6) - Protocols, HTTP, TCP/IP
+- `distributed_systems` (5) - CAP, consensus, replication
+- `programming_fundamentals` (5) - Basics, paradigms
+- `version_control` (4) - Git, branching, history
+- `architecture` (3) - System and software architecture
+- `theory` (3) - Computability, complexity theory
+- `machine_learning` (1) - Overlaps `ai_ml`; prefer `ai_ml`
 
 ### Answers
 
-Each question must have **exactly 4 answers**.
+Multiple choice questions use an `answers` list; short answer and yes/no use
+`correct_answer` instead. Every multiple choice question in the set has
+**exactly 4 answers**, and the in-game keys are only `1`-`4`, so don't exceed
+four.
 
 #### Correct Answer
 ```json
@@ -368,20 +373,17 @@ Make wrong answers tempting but not misleading:
 
 ---
 
-## Difficulty Ratings (Optional)
+## Difficulty Guidance
 
-You can add an optional `difficulty` field:
+There is no `difficulty` field. `data_loader` reads only the fields on the
+`Question` dataclass (`question_text`, `topic`, `type`, `answers`,
+`correct_answer`, `correct_response`, `incorrect_response`, `reward_knowledge`,
+`match_type`, `case_sensitive`); anything else in the JSON is silently ignored,
+and no question in the set carries a difficulty rating today.
 
-```json
-{
-  "question_text": "...",
-  "topic": "algorithms",
-  "difficulty": "medium",  // Optional: easy, medium, hard
-  "answers": [...]
-}
-```
-
-### Difficulty Guidelines
+Difficulty is instead expressed by which NPC and floor a question is assigned to
+(floor 1 easiest, floor 3 bosses hardest). Use these characterizations to decide
+where a question belongs:
 
 **Easy:**
 - Basic definitions
@@ -389,7 +391,7 @@ You can add an optional `difficulty` field:
 - Common knowledge
 - Example: "What does HTTP stand for?"
 
-**Medium (default):**
+**Medium:**
 - Requires understanding
 - Application of concepts
 - Common patterns
@@ -410,7 +412,6 @@ You can add an optional `difficulty` field:
 "mutex_purpose": {
   "question_text": "What is the primary purpose of a mutex?",
   "topic": "systems",
-  "difficulty": "easy",
   "answers": [
     {
       "text": "Prevent race conditions",
@@ -442,7 +443,7 @@ You can add an optional `difficulty` field:
 - One unambiguous correct answer
 - Plausible wrong answers (common misconceptions)
 - Helpful, educational responses
-- Appropriate difficulty rating
+- Scoped to one concept, so it suits an early floor
 
 ### ❌ Poor Question
 ```json
@@ -496,7 +497,7 @@ To add questions:
 2. Follow this guide
 3. Ensure unique question IDs
 4. Reference each new ID from one or more NPCs in `npcs.json`
-5. Run `uv run validate_questions.py` to confirm every reference resolves
+5. Run `make validate` to confirm every reference resolves
 6. Test in-game with `./ndive --seed 42`
 
 For major additions (10+ questions), consider:

@@ -11,6 +11,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from neural_dive.game import Game
+    from neural_dive.game_builder import GameContext
+    from neural_dive.managers.conversation_engine import ConversationEngine
+    from neural_dive.managers.npc_manager import NPCManager
+    from neural_dive.managers.player_manager import PlayerManager
+    from neural_dive.managers.quest_manager import QuestManager
+    from neural_dive.managers.stats_tracker import StatsTracker
 
 
 class GameSerializer:
@@ -140,105 +146,126 @@ class GameSerializer:
     def _deserialize_game_state(cls, save_data: dict) -> Game:
         """Deserialize game state from dictionary.
 
+        Builds the restored managers first, then assembles the Game once via
+        :meth:`Game.from_context`. Constructing a default Game and replacing its
+        managers afterwards left collaborators holding discarded instances and
+        generated the floor twice.
+
         Args:
             save_data: Dictionary containing game state
 
         Returns:
             Restored Game instance
         """
-        import time
-
         from neural_dive.difficulty import DifficultyLevel
         from neural_dive.game import Game
-        from neural_dive.managers.conversation_engine import ConversationEngine
-        from neural_dive.managers.npc_manager import NPCManager
-        from neural_dive.managers.player_manager import PlayerManager
-        from neural_dive.managers.quest_manager import QuestManager
-        from neural_dive.managers.stats_tracker import StatsTracker
+        from neural_dive.game_builder import GameContext, GameManagers
 
-        # Create new game with saved settings
-        difficulty = DifficultyLevel(save_data["difficulty"])
-        game = Game(
+        # Built on the saved floor, so the map and the player's start position
+        # belong to that floor rather than to floor 1.
+        ctx = GameContext.create(
             map_width=save_data["map_width"],
             map_height=save_data["map_height"],
             random_npcs=save_data["random_npcs"],
             seed=save_data["seed"],
             max_floors=save_data["max_floors"],
-            difficulty=difficulty,
+            difficulty=DifficultyLevel(save_data["difficulty"]),
             content_set=save_data.get("content_set"),
+            start_floor=save_data["current_floor"],
         )
 
-        # Restore game state
-        game.current_floor = save_data["current_floor"]
+        npc_manager = cls._restore_npc_manager(save_data, ctx)
+        managers = GameManagers(
+            npc_manager=npc_manager,
+            conversation_engine=cls._restore_conversation_engine(save_data, npc_manager),
+            player_manager=cls._restore_player_manager(save_data),
+            stats_tracker=cls._restore_stats_tracker(save_data),
+            quest_manager=cls._restore_quest_manager(save_data),
+        )
 
-        # Restore player state from PlayerManager
-        game.player_manager = PlayerManager.from_dict(save_data["player_manager"])
+        game = Game.from_context(
+            ctx,
+            managers,
+            npcs_completed=set(save_data["npcs_completed"]),
+            game_won=save_data["game_won"],
+            message=save_data["message"],
+        )
 
-        # Restore stats from StatsTracker (with backward compatibility for old saves)
-        if "stats_tracker" in save_data:
-            game.stats_tracker = StatsTracker.from_dict(save_data["stats_tracker"])
-        else:
-            # Backward compatibility: load from legacy fields
-            game.stats_tracker = StatsTracker(
-                questions_answered=save_data.get("questions_answered", 0),
-                questions_correct=save_data.get("questions_correct", 0),
-                questions_wrong=save_data.get("questions_wrong", 0),
-                start_time=save_data.get("start_time", time.time()),
-            )
-
-        # Restore player position
+        # The saved position, which overrides the floor's default start position.
         game.player.x = save_data["player_x"]
         game.player.y = save_data["player_y"]
 
-        # Restore NPC state from NPCManager
-        game.npc_manager = NPCManager.from_dict(
-            save_data["npc_manager"],
-            npc_data=game.npc_data,
-            questions=game.questions,
-            rng=game.rand,
-            difficulty_settings=game.difficulty_settings,
-            seed=game.seed,
-            level_data=game.level_data,
-        )
-
-        # Restore conversation state from ConversationEngine
-        game.conversation_engine = ConversationEngine.from_dict(
-            save_data["conversation_engine"], npc_conversations=game.npc_conversations
-        )
-
-        # Restore quest state from QuestManager (with backward compatibility)
-        if "quest_manager" in save_data:
-            game.quest_manager = QuestManager.from_dict(save_data["quest_manager"])
-        else:
-            # Backward compatibility: load from legacy fields or NPCManager
-            game.quest_manager = QuestManager()
-            game.quest_manager.quest_active = save_data.get("quest_active", False)
-            # Try to get quest_completed_npcs from npc_manager if available
-            if "npc_manager" in save_data:
-                npc_data = save_data["npc_manager"]
-                if "quest_completed_npcs" in npc_data:
-                    game.quest_manager.completed_npcs = set(npc_data["quest_completed_npcs"])
-
-        # Restore other game state
-        game.npcs_completed = set(save_data["npcs_completed"])
-        game.game_won = save_data["game_won"]
-
-        # Restore message
-        game.message = save_data["message"]
-
-        # Recreate EventBus and StateManager (not serialized)
-        from neural_dive.game_builder import GameInitializer
-
-        game.event_bus = GameInitializer.create_event_bus()
-        game.state_manager = GameInitializer.create_state_manager(game, game.event_bus)
-
-        # Re-wire the collaborators that captured the managers replaced above.
-        # Without this, AnswerProcessor and InteractionHandler keep pointing at
-        # the instances built by Game.__init__ (e.g. an empty ConversationEngine,
-        # which makes every answer report "Not in a conversation").
-        game.wire_manager_dependencies()
-
-        # Regenerate the current floor (map and entities)
-        game._generate_floor()
-
         return game
+
+    @classmethod
+    def _restore_npc_manager(cls, save_data: dict, ctx: GameContext) -> NPCManager:
+        """Rebuild the NPCManager from a save."""
+        from neural_dive.managers.npc_manager import NPCManager
+
+        return NPCManager.from_dict(
+            save_data["npc_manager"],
+            npc_data=ctx.npc_data,
+            questions=ctx.questions,
+            rng=ctx.rand,
+            difficulty_settings=ctx.difficulty_settings,
+            seed=ctx.seed,
+            level_data=ctx.level_data,
+        )
+
+    @classmethod
+    def _restore_conversation_engine(
+        cls, save_data: dict, npc_manager: NPCManager
+    ) -> ConversationEngine:
+        """Rebuild the ConversationEngine from a save.
+
+        Takes the restored NPCManager so an in-progress conversation is restored
+        as the same object the NPCManager holds, not a separate copy.
+        """
+        from neural_dive.managers.conversation_engine import ConversationEngine
+
+        return ConversationEngine.from_dict(
+            save_data["conversation_engine"],
+            npc_conversations=npc_manager.conversations,
+        )
+
+    @classmethod
+    def _restore_player_manager(cls, save_data: dict) -> PlayerManager:
+        """Rebuild the PlayerManager from a save."""
+        from neural_dive.managers.player_manager import PlayerManager
+
+        return PlayerManager.from_dict(save_data["player_manager"])
+
+    @classmethod
+    def _restore_stats_tracker(cls, save_data: dict) -> StatsTracker:
+        """Rebuild the StatsTracker from a save, tolerating pre-StatsTracker saves."""
+        import time
+
+        from neural_dive.managers.stats_tracker import StatsTracker
+
+        if "stats_tracker" in save_data:
+            return StatsTracker.from_dict(save_data["stats_tracker"])
+
+        # Backward compatibility: older saves kept these as top-level fields.
+        return StatsTracker(
+            questions_answered=save_data.get("questions_answered", 0),
+            questions_correct=save_data.get("questions_correct", 0),
+            questions_wrong=save_data.get("questions_wrong", 0),
+            start_time=save_data.get("start_time", time.time()),
+        )
+
+    @classmethod
+    def _restore_quest_manager(cls, save_data: dict) -> QuestManager:
+        """Rebuild the QuestManager from a save, tolerating pre-QuestManager saves."""
+        from neural_dive.managers.quest_manager import QuestManager
+
+        if "quest_manager" in save_data:
+            return QuestManager.from_dict(save_data["quest_manager"])
+
+        # Backward compatibility: older saves kept quest state at the top level
+        # and the completed-NPC set inside the NPCManager blob.
+        manager = QuestManager()
+        manager.quest_active = save_data.get("quest_active", False)
+        npc_blob = save_data.get("npc_manager", {})
+        if "quest_completed_npcs" in npc_blob:
+            manager.completed_npcs = set(npc_blob["quest_completed_npcs"])
+        return manager

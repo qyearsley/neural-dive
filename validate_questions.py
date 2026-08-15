@@ -2,6 +2,7 @@
 """Validate that all NPC question references exist in questions.json."""
 
 import json
+import sys
 
 # Load data
 with open('neural_dive/data/content/algorithms/npcs.json') as f:
@@ -74,3 +75,8 @@ if not errors and not warnings:
     print("\n" + "=" * 70)
     print("VALIDATION PASSED - Ready to test!")
     print("=" * 70)
+
+# Exit non-zero on errors so this can gate a commit or a build. Warnings
+# (duplicate question references) are informational and don't fail.
+if errors:
+    sys.exit(1)

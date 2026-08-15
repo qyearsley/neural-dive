@@ -1,8 +1,28 @@
 # Helper Scripts
 
-Utility one-liners for inspecting Neural Dive's content. Add and edit questions
-directly in `neural_dive/data/content/algorithms/questions.json` — see the
+Utility one-liners for inspecting Neural Dive's content, plus one repo check.
+Add and edit questions directly in
+`neural_dive/data/content/algorithms/questions.json` — see the
 [Question Guide](../docs/question-guide.md).
+
+## check-lockfile-index.sh
+
+Fails if `uv.lock` references anything other than public PyPI. `uv run` and
+`uv sync` rewrite the lockfile using whatever index the environment points at, so
+an internal mirror can leak into this public repo. Runs as a pre-commit hook
+(`no-internal-index-in-lockfile`); run it directly with:
+
+```bash
+scripts/check-lockfile-index.sh
+```
+
+The Makefile and the hooks set `UV_FROZEN=1`, which stops uv writing `uv.lock` at
+all, so this should not trigger in normal use. If it does — usually from a bare
+`uv run` — regenerate with:
+
+```bash
+make relock
+```
 
 ## Common Tasks
 
@@ -67,10 +87,10 @@ for topic in sorted(by_topic.keys()):
 ### Validate NPC References
 From the repo root:
 ```bash
-uv run validate_questions.py
+make validate          # or: uv run validate_questions.py
 ```
 Reports total NPC/question counts per floor and flags any NPC that references a
-missing question.
+missing question. Exits non-zero on failure.
 
 ## See Also
 

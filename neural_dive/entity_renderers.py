@@ -13,17 +13,6 @@ if TYPE_CHECKING:
     from neural_dive.themes import CharacterSet, ColorScheme
 
 
-class Renderable(Protocol):
-    """Protocol for objects that can be rendered on the map.
-
-    Any object with x, y, and char attributes can be rendered.
-    """
-
-    x: int
-    y: int
-    char: str
-
-
 class EntityRenderer(Protocol):
     """Protocol for entity rendering strategies.
 

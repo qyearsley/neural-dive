@@ -1,8 +1,8 @@
 """
-Theme system for Neural Dive.
+Theme for Neural Dive.
 
-Defines visual themes with support for light and dark terminal backgrounds.
-Uses widely-supported Unicode characters for maximum compatibility.
+A single theme, cyberpunk-on-dark. Uses widely-supported Unicode characters for
+maximum compatibility.
 """
 
 from dataclasses import dataclass
@@ -76,16 +76,6 @@ class CharacterSet:
     separator: str
 
 
-@dataclass
-class Theme:
-    """Complete theme with characters and color schemes."""
-
-    name: str
-    characters: CharacterSet
-    dark_colors: ColorScheme
-    light_colors: ColorScheme
-
-
 # ============================================================================
 # CHARACTER SETS
 # ============================================================================
@@ -139,38 +129,9 @@ CYBERPUNK_DARK = ColorScheme(
     ui_success="green",
 )
 
-# Light mode - darker colors on light background
-CYBERPUNK_LIGHT = ColorScheme(
-    # Entities - darker but still vibrant
-    player="green",  # Rich green
-    npc_specialist="magenta",  # Deep magenta
-    npc_helper="blue",  # Deep blue for visibility
-    npc_enemy="red",  # Strong red
-    npc_quest="blue",  # Dark blue instead of yellow
-    # Environment - visible on light
-    wall="blue",  # Blue walls
-    floor="cyan",  # Subtle cyan floor
-    stairs="magenta",  # Visible stairs
-    terminal="blue",  # Info terminals
-    gate="magenta",  # Locked gates
-    # UI - readable on light (blue instead of black to avoid bold_black gray issue)
-    ui_primary="blue",
-    ui_secondary="cyan",
-    ui_accent="magenta",
-    ui_warning="red",  # Red instead of yellow for visibility
-    ui_error="red",
-    ui_success="green",
-)
 
-
-def get_theme(
-    theme_name: str = "cyberpunk", background: str = "dark"
-) -> tuple[CharacterSet, ColorScheme]:
-    """Get character set and color scheme (hardcoded to cyberpunk dark).
-
-    Args:
-        theme_name: Ignored (kept for compatibility)
-        background: Ignored (kept for compatibility)
+def get_theme() -> tuple[CharacterSet, ColorScheme]:
+    """Get the character set and color scheme.
 
     Returns:
         Tuple of (CYBERPUNK_CHARS, CYBERPUNK_DARK)

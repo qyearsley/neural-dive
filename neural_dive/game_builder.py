@@ -6,8 +6,8 @@ breaking down the complex Game.__init__ into focused, testable steps.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import random
-import time
 from typing import TYPE_CHECKING
 
 from neural_dive.config import PLAYER_START_X, PLAYER_START_Y
@@ -319,23 +319,6 @@ class GameInitializer:
         )
 
     @staticmethod
-    def initialize_stats() -> tuple[float, int, int, int, set[str], bool]:
-        """Initialize game statistics.
-
-        Returns:
-            Tuple of (start_time, questions_answered, questions_correct,
-                     questions_wrong, npcs_completed, game_won)
-        """
-        return (
-            time.time(),  # start_time
-            0,  # questions_answered
-            0,  # questions_correct
-            0,  # questions_wrong
-            set(),  # npcs_completed
-            False,  # game_won
-        )
-
-    @staticmethod
     def initialize_entities() -> tuple[list[Stairs], list[InfoTerminal], list[ItemPickup]]:
         """Initialize entity lists.
 
@@ -384,6 +367,139 @@ class GameInitializer:
         from neural_dive.managers.state_manager import StateManager
 
         return StateManager(game, event_bus)
+
+
+@dataclass
+class GameContext:
+    """The settings, content, and world state that a Game is built on top of.
+
+    Everything here is created before any manager exists, so managers (fresh or
+    restored from a save) can be constructed against it. Keeping this separate
+    is what lets a loaded game be assembled in one pass instead of being built
+    with default managers and then mutated into shape.
+    """
+
+    difficulty: DifficultyLevel
+    difficulty_settings: DifficultySettings
+    rand: random.Random
+    seed: int | None
+    random_npcs: bool
+    max_floors: int
+    content_set: str
+    questions: dict
+    npc_data: dict
+    level_data: dict
+    snippets: dict
+    floor_manager: FloorManager
+    player: Entity
+
+    @classmethod
+    def create(
+        cls,
+        map_width: int,
+        map_height: int,
+        random_npcs: bool,
+        seed: int | None,
+        max_floors: int,
+        difficulty: DifficultyLevel,
+        content_set: str | None,
+        start_floor: int = 1,
+    ) -> GameContext:
+        """Build the context for a game starting on ``start_floor``.
+
+        Args:
+            map_width: Map width in tiles (may be overridden by level data)
+            map_height: Map height in tiles (may be overridden by level data)
+            random_npcs: Whether to randomize NPC and entity positions
+            seed: Random seed for reproducibility (None for random)
+            max_floors: Maximum number of floors
+            difficulty: Difficulty level
+            content_set: Content set to use (None for default)
+            start_floor: Floor the game begins on. Anything other than 1 builds
+                that floor's map and moves the player to its start position,
+                which is how a save from a deeper floor is restored.
+
+        Returns:
+            A GameContext ready to have managers built against it
+        """
+        from neural_dive.data_loader import compute_floor_requirements
+
+        difficulty, difficulty_settings = GameInitializer.setup_difficulty(difficulty)
+        rand, seed = GameInitializer.setup_randomization(seed)
+        content_set, questions, npc_data, level_data, snippets = GameInitializer.load_content(
+            content_set
+        )
+
+        floor_manager = GameInitializer.create_floor_manager(
+            max_floors,
+            map_width,
+            map_height,
+            seed,
+            level_data,
+            compute_floor_requirements(npc_data),
+        )
+        player, _old_player_pos = GameInitializer.create_player(level_data)
+
+        # FloorManager starts on floor 1. Anything deeper needs that floor's map
+        # built and the player placed on it before entities are generated.
+        if start_floor != 1:
+            floor_manager.generate_floor(start_floor, player)
+
+        return cls(
+            difficulty=difficulty,
+            difficulty_settings=difficulty_settings,
+            rand=rand,
+            seed=seed,
+            random_npcs=random_npcs,
+            max_floors=max_floors,
+            content_set=content_set,
+            questions=questions,
+            npc_data=npc_data,
+            level_data=level_data,
+            snippets=snippets,
+            floor_manager=floor_manager,
+            player=player,
+        )
+
+
+@dataclass
+class GameManagers:
+    """The managers that own game state.
+
+    These are the pieces a save file restores. Bundling them means `Game` can be
+    assembled from either a fresh set or a restored set through one code path.
+    """
+
+    npc_manager: NPCManager
+    conversation_engine: ConversationEngine
+    player_manager: PlayerManager
+    stats_tracker: StatsTracker
+    quest_manager: QuestManager
+
+    @classmethod
+    def create_default(cls, ctx: GameContext) -> GameManagers:
+        """Build a fresh set of managers for a new game.
+
+        Args:
+            ctx: The context the managers are built against
+
+        Returns:
+            Managers for a game that has not been played yet
+        """
+        return cls(
+            npc_manager=GameInitializer.create_npc_manager(
+                ctx.npc_data,
+                ctx.questions,
+                ctx.rand,
+                ctx.difficulty_settings,
+                ctx.seed,
+                ctx.level_data,
+            ),
+            conversation_engine=GameInitializer.create_conversation_engine(),
+            player_manager=GameInitializer.create_player_manager(ctx.difficulty_settings),
+            stats_tracker=GameInitializer.create_stats_tracker(),
+            quest_manager=GameInitializer.create_quest_manager(),
+        )
 
 
 class GameBuilder:

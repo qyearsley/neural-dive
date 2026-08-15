@@ -7,6 +7,10 @@
 # The ruff, mypy, and pytest hooks deliberately shell out to the project's own
 # uv environment rather than using pinned mirror repos, so they check exactly
 # what `make ci` checks -- one definition of "clean" rather than two that drift.
+#
+# They all run under `env UV_FROZEN=1`, matching the Makefile: without it, uv
+# re-resolves and rewrites uv.lock on every invocation, which both dirties the
+# tree mid-commit and can leak an internal index URL into this public repo.
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -22,21 +26,21 @@ repos:
     hooks:
       - id: ruff-check
         name: ruff check
-        entry: uv run ruff check --fix neural_dive/
+        entry: env UV_FROZEN=1 uv run ruff check --fix neural_dive/
         language: system
         types: [python]
         pass_filenames: false
 
       - id: ruff-format
         name: ruff format
-        entry: uv run ruff format neural_dive/
+        entry: env UV_FROZEN=1 uv run ruff format neural_dive/
         language: system
         types: [python]
         pass_filenames: false
 
       - id: mypy
         name: mypy
-        entry: uv run mypy neural_dive/
+        entry: env UV_FROZEN=1 uv run mypy neural_dive/
         language: system
         types: [python]
         pass_filenames: false
@@ -45,15 +49,16 @@ repos:
       # it. This repo has no CI, so these hooks are the only automatic check.
       - id: pytest
         name: pytest
-        entry: uv run pytest -q
+        entry: env UV_FROZEN=1 uv run pytest -q
         language: system
         types: [python]
         pass_filenames: false
 
       # This is a public repo, and uv bakes whichever index it resolved against
       # into uv.lock. Running uv behind an internal mirror silently rewrites
-      # every URL to that mirror, which then leaks in the lockfile. Runs last,
-      # because the hooks above invoke `uv run` and can reintroduce it.
+      # every URL to that mirror, which then leaks in the lockfile. The hooks
+      # above pass UV_FROZEN=1 so they can no longer reintroduce it, but this
+      # stays as a backstop for uv invoked some other way.
       - id: no-internal-index-in-lockfile
         name: uv.lock uses public PyPI only
         entry: scripts/check-lockfile-index.sh

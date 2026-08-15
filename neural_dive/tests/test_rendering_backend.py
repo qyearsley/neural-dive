@@ -33,7 +33,7 @@ class TestRenderingBackendIntegration(unittest.TestCase):
             random_npcs=False,
             content_set="algorithms",
         )
-        self.chars, self.colors = get_theme("cyberpunk", "dark")
+        self.chars, self.colors = get_theme()
 
     @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_draw_game_with_test_backend(self):
@@ -164,8 +164,8 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.backend = TestBackend(width=80, height=30)
-        _, self.colors = get_theme("cyberpunk", "dark")
-        self.chars, _ = get_theme("cyberpunk", "dark")
+        _, self.colors = get_theme()
+        self.chars, _ = get_theme()
 
     @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
     def test_player_renderer_with_backend(self):

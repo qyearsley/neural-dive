@@ -3,16 +3,16 @@
 Architectural debt and maintainability issues identified for future cleanup.
 Distinct from `known-issues.md` (runtime bugs).
 
-Last audited: 2026-08-14.
+Last audited: 2026-08-15.
 
 ---
 
 ## Highest Impact
 
 ### `Game` class is a forwarding facade
-**File:** `neural_dive/game.py:187-375`
+**File:** `neural_dive/game.py:201-390`
 
-The `Game` class wraps 8+ managers behind 21 backward-compatibility properties
+The `Game` class wraps 12 managers behind 21 backward-compatibility properties
 that just forward to manager state. Every manager mutation flows through `Game`,
 making it a God Object. Mocking is painful and new contributors have to trace
 through the property layer to find where state actually lives.
@@ -62,12 +62,55 @@ wrapping helpers, then convert their tests to assert on recorded draw calls.
 - Pruning of stale NPCs/questions completed 2026-05-21 (15 NPCs, 140 questions).
 - Stale `data/npcs.json` and `data/questions.json` deleted; canonical lives at
   `data/content/algorithms/`.
-- `data/levels.py` is now a thin re-export shim.
+- `data/levels.py` is described as a re-export shim, but it is load-bearing:
+  `floor_entity_generator` imports `ZONE_TERMINALS` from it and `data_loader`
+  falls back to its `PARSED_LEVELS`. Both hardcode the algorithms set, so terminal
+  content and the level fallback ignore `content_set`.
 - One-time migration scripts (`generate_questions.py`, `redistribute_questions.py`)
   removed.
 
+## Open, low priority
+
+- **`terminals.json` is authored but unwired.** Each content set ships a
+  `terminals.json` with 10 reference entries (Big-O guide, SOLID, TCP, design
+  patterns). No code reads it — terminal content comes from `ZONE_TERMINALS` in
+  `levels.py`, which holds zone lore instead. Either wire the JSON up as a second
+  terminal source or delete it; leaving both invites editing the wrong one.
+- **`ItemPickedUp` is never published.** The event is defined in `events.py` and
+  covered by tests, but no code emits it even though item pickup happens in
+  `movement_controller`. Either publish it from `StateManager` or drop the event.
+
 ## Resolved
 
+- **Loading a save constructed a `Game` and then mutated it into shape** —
+  `_deserialize_game_state` used to call `Game(...)`, which built every manager
+  and generated floor 1, then overwrite `current_floor`, replace five managers,
+  rebuild the `EventBus` and `StateManager`, repair the collaborators that had
+  captured the discarded managers, and regenerate the floor. Correctness depended
+  on ordering that nothing enforced, and it caused three bugs (see
+  `known-issues.md`): the "Not in a conversation" staleness, floor-1 saves losing
+  every NPC, and floor-2+ saves coming back with floor 1's map.
+
+  Construction is now one pass. `GameContext.create` builds the settings,
+  content, floor manager, and player — positioned on the floor being restored —
+  and `GameManagers` bundles the five managers a save restores.
+  `Game.from_context(ctx, managers)` assembles from either a fresh or a restored
+  set through the same `_assemble` path, wires the collaborators once the managers
+  are final, and generates floor entities exactly once at the end.
+  `wire_manager_dependencies` is private again, and `GameInitializer.initialize_stats`
+  is gone (the stats it returned live in `StatsTracker`).
+
+- **Dead code swept** — deleted `data_loader.list_content_sets` /
+  `load_content_metadata`, `difficulty.get_all_difficulties`, the unused
+  `Renderable` protocol, `themes.CYBERPUNK_LIGHT` and the `Theme` dataclass, and
+  four unused `TERMINAL_*` constants in `config.py`. `get_theme()` no longer takes
+  the two arguments it ignored. `content.json` metadata corrected (45 → 140
+  questions, 5 → 3 floors, real topic list) — it is not read by any code.
+- **`uv.lock` churn** — `uv run` re-resolved on every invocation and rewrote every
+  URL to whatever index the environment pointed at, so running tests dirtied the
+  tree and could leak an internal mirror into this public repo. The Makefile now
+  exports `UV_FROZEN=1` and the pre-commit hooks prefix `env UV_FROZEN=1`;
+  `make relock` regenerates against public PyPI when dependencies change.
 - **Type errors in test files** — `make check` is now clean across all 70 files.
   `assertIsNotNone` / `assertIsInstance` don't narrow `Optional` or union types
   for mypy, so the affected call sites use plain `assert x is not None` /

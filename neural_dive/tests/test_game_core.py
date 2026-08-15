@@ -357,6 +357,78 @@ class TestSaveLoad(unittest.TestCase):
 
         self.assertNotIn("Not in a conversation", message)
 
+    def test_loading_a_floor_one_save_keeps_the_npcs(self):
+        """A loaded save must still have its NPCs on the map.
+
+        The deserializer regenerates the saved floor after ``Game.__init__`` has
+        already generated floor 1, so floor 1 gets generated twice. NPC placement
+        used to consume the shared level data, which left the second pass with no
+        positions and produced a floor with no NPCs at all.
+        """
+        game1 = Game(seed=42, random_npcs=False)
+        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npcs)
+        self.assertTrue(saved_npcs, "precondition: the fresh game should have NPCs")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "floor_one.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(game2.current_floor, 1)
+        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game2.npcs), saved_npcs)
+
+    def test_generating_a_floor_twice_places_the_same_npcs(self):
+        """Floor generation must not consume the level data it reads from."""
+        game = Game(seed=42, random_npcs=False)
+        first = sorted((npc.name, npc.x, npc.y) for npc in game.npcs)
+
+        game._generate_floor()
+
+        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game.npcs), first)
+
+    def test_loading_a_deeper_save_restores_that_floors_map(self):
+        """A save from floor 2 must come back with floor 2's map, not floor 1's.
+
+        The deserializer used to assign ``current_floor``, which only updates the
+        number -- the map was still the one built for floor 1, so floor 2's NPCs
+        and entities were placed on floor 1's walls.
+        """
+        game1 = Game(seed=42, random_npcs=False)
+        game1.floor_manager.move_to_next_floor(game1.player)
+        game1._generate_floor()
+        self.assertEqual(game1.current_floor, 2)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "floor_two.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(game2.current_floor, 2)
+        self.assertEqual(game2.game_map, game1.game_map)
+        self.assertNotEqual(game2.game_map, Game(seed=42, random_npcs=False).game_map)
+
+    def test_loading_preserves_randomly_placed_entities(self):
+        """Randomly placed entities must land where they were saved.
+
+        With ``random_npcs=True`` placement draws from the game's RNG, so
+        generating the floor twice during a load moved entities to different
+        tiles than the save recorded.
+        """
+        game1 = Game(seed=42, random_npcs=True)
+        saved_items = sorted((item.x, item.y) for item in game1.item_pickups)
+        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npcs)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "random_placement.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(sorted((item.x, item.y) for item in game2.item_pickups), saved_items)
+        self.assertEqual(sorted((npc.name, npc.x, npc.y) for npc in game2.npcs), saved_npcs)
+
 
 class TestGameStatistics(unittest.TestCase):
     """Test game statistics and scoring."""

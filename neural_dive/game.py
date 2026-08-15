@@ -26,6 +26,7 @@ from neural_dive.models import Conversation
 if TYPE_CHECKING:
     import random
 
+    from neural_dive.game_builder import GameContext, GameManagers
     from neural_dive.managers.conversation_engine import ConversationEngine
     from neural_dive.managers.floor_manager import FloorManager
     from neural_dive.managers.npc_manager import NPCManager
@@ -61,119 +62,135 @@ class Game:
             difficulty: Difficulty level determining game balance
             content_set: Content set to use (None for default)
         """
+        from neural_dive.game_builder import GameContext, GameManagers
+
+        ctx = GameContext.create(
+            map_width=map_width,
+            map_height=map_height,
+            random_npcs=random_npcs,
+            seed=seed,
+            max_floors=max_floors,
+            difficulty=difficulty,
+            content_set=content_set,
+        )
+        self._assemble(ctx, GameManagers.create_default(ctx))
+
+    @classmethod
+    def from_context(
+        cls,
+        ctx: GameContext,
+        managers: GameManagers,
+        *,
+        npcs_completed: set[str] | None = None,
+        game_won: bool = False,
+        message: str | None = None,
+    ) -> Game:
+        """Build a Game from an existing context and a specific set of managers.
+
+        This is how a save is restored: the caller builds the restored managers
+        against ``ctx`` and hands them over, so the game is assembled in one pass.
+        Constructing a default game and then replacing its managers would leave
+        the collaborators in :meth:`_wire_manager_dependencies` pointing at
+        instances that had already been discarded.
+
+        Args:
+            ctx: Settings, content, and world state to build on
+            managers: The managers this game should own
+            npcs_completed: Names of NPCs already completed (None for none)
+            game_won: Whether the game has already been won
+            message: UI message to show (None for the welcome message)
+
+        Returns:
+            A fully assembled Game
+        """
+        game = cls.__new__(cls)
+        game._assemble(
+            ctx,
+            managers,
+            npcs_completed=npcs_completed,
+            game_won=game_won,
+            message=message,
+        )
+        return game
+
+    def _assemble(
+        self,
+        ctx: GameContext,
+        managers: GameManagers,
+        *,
+        npcs_completed: set[str] | None = None,
+        game_won: bool = False,
+        message: str | None = None,
+    ) -> None:
+        """Assemble the game from a context and its managers.
+
+        The single construction path for both a new game and a restored one.
+        Order matters: the managers are installed before anything that captures
+        them, and floor entities are generated last and exactly once.
+        """
         from neural_dive.game_builder import GameInitializer
 
-        # Set up difficulty settings
-        self.difficulty: DifficultyLevel
-        self.difficulty_settings: DifficultySettings
-        self.difficulty, self.difficulty_settings = GameInitializer.setup_difficulty(difficulty)
+        # Settings and content
+        self.difficulty: DifficultyLevel = ctx.difficulty
+        self.difficulty_settings: DifficultySettings = ctx.difficulty_settings
+        self.rand: random.Random = ctx.rand
+        self.seed: int | None = ctx.seed
+        self.random_npcs = ctx.random_npcs
+        self.content_set = ctx.content_set
+        self.questions = ctx.questions
+        self.npc_data = ctx.npc_data
+        self.level_data = ctx.level_data
+        self.snippets = ctx.snippets
 
-        # Set up randomization
-        self.rand: random.Random
-        self.seed: int | None
-        self.rand, self.seed = GameInitializer.setup_randomization(seed)
-
-        # Game dimensions and settings
-        self.random_npcs = random_npcs
-
-        # Load all game data
-        (
-            self.content_set,
-            self.questions,
-            self.npc_data,
-            self.level_data,
-            self.snippets,
-        ) = GameInitializer.load_content(content_set)
-
-        # Compute floor requirements based on loaded NPCs
-        from neural_dive.data_loader import compute_floor_requirements
-
-        floor_requirements = compute_floor_requirements(self.npc_data)
-
-        # Initialize Floor Manager
-        self.floor_manager: FloorManager = GameInitializer.create_floor_manager(
-            max_floors, map_width, map_height, seed, self.level_data, floor_requirements
-        )
-
-        # Get map and dimensions from floor manager
+        # World state. The context has already put the floor manager on the
+        # right floor, so the map and dimensions here match that floor.
+        self.floor_manager: FloorManager = ctx.floor_manager
         self.game_map = self.floor_manager.game_map
         self.map_width = self.floor_manager.map_width
         self.map_height = self.floor_manager.map_height
-
-        # Create player entity
-        self.player, self.old_player_pos = GameInitializer.create_player(self.level_data)
-
-        # Initialize entity lists
+        self.player = ctx.player
+        self.old_player_pos: tuple[int, int] | None = None
         self.stairs, self.terminals, self.item_pickups = GameInitializer.initialize_entities()
 
-        # Initialize NPC Manager
-        self.npc_manager: NPCManager = GameInitializer.create_npc_manager(
-            self.npc_data,
-            self.questions,
-            self.rand,
-            self.difficulty_settings,
-            seed,
-            self.level_data,
-        )
+        # Managers own the game's mutable state
+        self.npc_manager: NPCManager = managers.npc_manager
+        self.conversation_engine: ConversationEngine = managers.conversation_engine
+        self.player_manager: PlayerManager = managers.player_manager
+        self.stats_tracker = managers.stats_tracker
+        self.quest_manager = managers.quest_manager
 
-        # Initialize Conversation Engine
-        self.conversation_engine: ConversationEngine = GameInitializer.create_conversation_engine()
+        # Collaborators that capture the managers above. Built after the managers
+        # are final, so they cannot end up holding a discarded instance.
+        self._wire_manager_dependencies()
 
-        # Initialize Player Manager
-        self.player_manager: PlayerManager = GameInitializer.create_player_manager(
-            self.difficulty_settings
-        )
-
-        # Initialize Stats Tracker
-        self.stats_tracker = GameInitializer.create_stats_tracker()
-
-        # Initialize Quest Manager
-        self.quest_manager = GameInitializer.create_quest_manager()
-
-        # Initialize the collaborators that hold references to the managers above
-        self.wire_manager_dependencies()
-
-        # Initialize Floor Entity Generator (handles non-NPC entity generation)
         self.floor_entity_generator = GameInitializer.create_floor_entity_generator(
             level_data=self.level_data,
             snippets=self.snippets,
             rand=self.rand,
         )
-
-        # Initialize Movement Controller (handles player movement and collision)
         self.movement_controller = GameInitializer.create_movement_controller()
-
-        # Initialize EventBus (for event-driven architecture)
         self.event_bus = GameInitializer.create_event_bus()
-
-        # Initialize StateManager (for centralized state mutations)
         self.state_manager = GameInitializer.create_state_manager(self, self.event_bus)
 
-        # Initialize legacy statistics (kept for save/load compatibility)
-        (
-            self.start_time,
-            self.questions_answered,
-            self.questions_correct,
-            self.questions_wrong,
-            self.npcs_completed,
-            self.game_won,
-        ) = GameInitializer.initialize_stats()
+        # State that isn't owned by a manager
+        self.npcs_completed: set[str] = set() if npcs_completed is None else npcs_completed
+        self.game_won = game_won
+        self.message = (
+            GameInitializer.create_welcome_message(ctx.max_floors) if message is None else message
+        )
 
-        # UI message
-        self.message = GameInitializer.create_welcome_message(max_floors)
-
-        # Generate the first floor entities
+        # Floor entities, generated exactly once
         self._generate_floor()
 
-    def wire_manager_dependencies(self) -> None:
-        """(Re)create the collaborators that capture manager instances.
+    def _wire_manager_dependencies(self) -> None:
+        """Create the collaborators that capture manager instances.
 
         ``AnswerProcessor`` and ``InteractionHandler`` hold direct references to
         ``player_manager``, ``npc_manager``, ``conversation_engine``,
-        ``stats_tracker`` and ``quest_manager``. Anything that swaps one of those
-        managers on the Game — notably ``GameSerializer`` when restoring a save —
-        must call this afterwards, or the collaborators keep reading and mutating
-        the discarded manager instances.
+        ``stats_tracker`` and ``quest_manager``. That makes them a construction
+        detail: they are built in :meth:`_assemble` once the managers are final.
+        Nothing outside construction should swap a manager on the Game -- restore
+        a save with :meth:`from_context` instead, which builds the managers first.
         """
         from neural_dive.game_builder import GameInitializer
 
