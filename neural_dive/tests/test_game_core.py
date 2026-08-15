@@ -307,6 +307,56 @@ class TestSaveLoad(unittest.TestCase):
             self.assertEqual(game2.questions_correct, 4)
             self.assertEqual(game2.seed, 99)
 
+    def test_load_rewires_managers_into_collaborators(self):
+        """A loaded game's collaborators must use the restored manager instances.
+
+        The deserializer replaces managers on the Game after __init__ has already
+        injected the originals into AnswerProcessor/InteractionHandler.
+        """
+        game1 = Game(seed=42, random_npcs=False)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "rewire.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        self.assertIsNotNone(game2)
+        assert game2 is not None  # Type narrowing for mypy
+
+        processor = game2.answer_processor
+        self.assertIs(processor.conversation_engine, game2.conversation_engine)
+        self.assertIs(processor.player_manager, game2.player_manager)
+        self.assertIs(processor.npc_manager, game2.npc_manager)
+        self.assertIs(processor.stats_tracker, game2.stats_tracker)
+        self.assertIs(processor.quest_manager, game2.quest_manager)
+
+        handler = game2.interaction_handler
+        self.assertIs(handler.conversation_engine, game2.conversation_engine)
+        self.assertIs(handler.player_manager, game2.player_manager)
+        self.assertIs(handler.quest_manager, game2.quest_manager)
+
+    def test_can_answer_questions_after_load(self):
+        """Answering a question in a loaded game must not report "not in a conversation"."""
+        game1 = Game(seed=42, random_npcs=False)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "answer_after_load.json"
+            game1.save_game(str(save_path))
+            game = Game.load_game(str(save_path))
+
+        assert game is not None  # Type narrowing for mypy
+
+        npc_name = next(
+            name
+            for name, conv in game.npc_conversations.items()
+            if conv.questions and not conv.completed
+        )
+        game.state_manager.start_conversation(npc_name)
+
+        _correct, message = game.answer_question(0)
+
+        self.assertNotIn("Not in a conversation", message)
+
 
 class TestGameStatistics(unittest.TestCase):
     """Test game statistics and scoring."""

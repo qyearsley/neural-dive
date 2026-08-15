@@ -232,6 +232,12 @@ class GameSerializer:
         game.event_bus = GameInitializer.create_event_bus()
         game.state_manager = GameInitializer.create_state_manager(game, game.event_bus)
 
+        # Re-wire the collaborators that captured the managers replaced above.
+        # Without this, AnswerProcessor and InteractionHandler keep pointing at
+        # the instances built by Game.__init__ (e.g. an empty ConversationEngine,
+        # which makes every answer report "Not in a conversation").
+        game.wire_manager_dependencies()
+
         # Regenerate the current floor (map and entities)
         game._generate_floor()
 

@@ -130,17 +130,8 @@ class Game:
         # Initialize Quest Manager
         self.quest_manager = GameInitializer.create_quest_manager()
 
-        # Initialize Answer Processor (coordinates answer handling across managers)
-        self.answer_processor = GameInitializer.create_answer_processor(
-            player_manager=self.player_manager,
-            npc_manager=self.npc_manager,
-            conversation_engine=self.conversation_engine,
-            stats_tracker=self.stats_tracker,
-            quest_manager=self.quest_manager,
-            difficulty_settings=self.difficulty_settings,
-            snippets=self.snippets,
-            rand=self.rand,
-        )
+        # Initialize the collaborators that hold references to the managers above
+        self.wire_manager_dependencies()
 
         # Initialize Floor Entity Generator (handles non-NPC entity generation)
         self.floor_entity_generator = GameInitializer.create_floor_entity_generator(
@@ -151,15 +142,6 @@ class Game:
 
         # Initialize Movement Controller (handles player movement and collision)
         self.movement_controller = GameInitializer.create_movement_controller()
-
-        # Initialize Interaction Handler (handles entity interactions and floor transitions)
-        self.interaction_handler = GameInitializer.create_interaction_handler(
-            player_manager=self.player_manager,
-            conversation_engine=self.conversation_engine,
-            floor_manager=self.floor_manager,
-            quest_manager=self.quest_manager,
-            difficulty_settings=self.difficulty_settings,
-        )
 
         # Initialize EventBus (for event-driven architecture)
         self.event_bus = GameInitializer.create_event_bus()
@@ -182,6 +164,39 @@ class Game:
 
         # Generate the first floor entities
         self._generate_floor()
+
+    def wire_manager_dependencies(self) -> None:
+        """(Re)create the collaborators that capture manager instances.
+
+        ``AnswerProcessor`` and ``InteractionHandler`` hold direct references to
+        ``player_manager``, ``npc_manager``, ``conversation_engine``,
+        ``stats_tracker`` and ``quest_manager``. Anything that swaps one of those
+        managers on the Game — notably ``GameSerializer`` when restoring a save —
+        must call this afterwards, or the collaborators keep reading and mutating
+        the discarded manager instances.
+        """
+        from neural_dive.game_builder import GameInitializer
+
+        # Answer Processor coordinates answer handling across managers
+        self.answer_processor = GameInitializer.create_answer_processor(
+            player_manager=self.player_manager,
+            npc_manager=self.npc_manager,
+            conversation_engine=self.conversation_engine,
+            stats_tracker=self.stats_tracker,
+            quest_manager=self.quest_manager,
+            difficulty_settings=self.difficulty_settings,
+            snippets=self.snippets,
+            rand=self.rand,
+        )
+
+        # Interaction Handler handles entity interactions and floor transitions
+        self.interaction_handler = GameInitializer.create_interaction_handler(
+            player_manager=self.player_manager,
+            conversation_engine=self.conversation_engine,
+            floor_manager=self.floor_manager,
+            quest_manager=self.quest_manager,
+            difficulty_settings=self.difficulty_settings,
+        )
 
     # Backward compatibility properties for FloorManager
     @property
