@@ -3,14 +3,19 @@
 Architectural debt and maintainability issues identified for future cleanup.
 Distinct from `known-issues.md` (runtime bugs).
 
-Last audited: 2026-08-15.
+Last audited: 2026-08-18.
 
 ---
 
 ## Highest Impact
 
-Nothing open. The five items tracked here as of 2026-08-15 are all in Resolved
-below; what remains is under "Open, low priority".
+- **No CI.** 19k lines and 545 tests, with `make ci` and the pre-commit hooks as
+  the only gate — and the hooks only protect a machine that ran `make hooks`.
+  Nothing verifies a push. A GitHub Actions workflow running `make ci` on push
+  and pull request would close this; `UV_FROZEN=1` is already exported by the
+  Makefile, so `make ci` should work in Actions unchanged. Once it exists, drop
+  the "there is no CI for this repo" notes in `CLAUDE.md` and the `ci` target's
+  comment.
 
 ## Notes
 
@@ -26,11 +31,21 @@ below; what remains is under "Open, low priority".
 
 ## Open, low priority
 
+- **`CLAUDE.md` contradicts the `data/levels.py` note above.** Its Layout section
+  calls the file a "Re-export shim" and its Architecture notes say it is "a thin
+  re-export shim for legacy imports — edit `data/content/algorithms/levels.py`
+  instead." The Notes entry above is the accurate one: it is load-bearing, and
+  both of its consumers hardcode the algorithms set. Anyone trusting `CLAUDE.md`
+  would misjudge what touching that file affects.
 - **`terminals.json` is authored but unwired.** Each content set ships a
   `terminals.json` with 10 reference entries (Big-O guide, SOLID, TCP, design
   patterns). No code reads it — terminal content comes from `ZONE_TERMINALS` in
   `levels.py`, which holds zone lore instead. Either wire the JSON up as a second
   terminal source or delete it; leaving both invites editing the wrong one.
+  Note the carrying cost of leaving it: it is now documented as unused in
+  `README.md`, twice in `docs/content-guide.md`, and here, and
+  `data_loader.py`'s module docstring still claims it "Loads questions, NPCs,
+  and terminals from JSON files."
 - **`ItemPickedUp` is never published.** The event is defined in `events.py` and
   covered by tests, but no code emits it even though item pickup happens in
   `movement_controller`. Either publish it from `StateManager` or drop the event.
