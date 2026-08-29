@@ -133,6 +133,12 @@ See [question-guide.md](question-guide.md) for detailed question formatting.
 - `short_answer` - Free text input, matched per `match_type`
 - `yes_no` - Simple yes/no question
 
+The top-level key (`question_id_1` above) is more than a label: cross-run
+question history is recorded against it in `~/.neural_dive/profile.json`, per
+content set. Keys only need to be unique within your set, and renaming one
+discards players' history for that question — see
+[question-guide.md](question-guide.md#question-id).
+
 Set the type with a `"type"` field. Any JSON key the `Question` dataclass doesn't
 define (for example `difficulty`) is silently ignored.
 

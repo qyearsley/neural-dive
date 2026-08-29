@@ -580,6 +580,29 @@ def draw_snippet_overlay(backend: RenderBackend, game: Game, colors: ColorScheme
     )
 
 
+def _weak_areas_line(game: Game) -> str | None:
+    """Summarize the player's weakest topics from their cross-run history.
+
+    Args:
+        game: Game instance, which may or may not carry a profile
+
+    Returns:
+        A single line for the victory screen, or None when there is no history
+        to report -- in which case the screen looks exactly as it always did.
+    """
+    from neural_dive.player_profile import weakest_topics
+
+    profile = game.profile
+    if profile is None or profile.is_empty:
+        return None
+
+    topics = weakest_topics(profile, game.questions, limit=3)
+    if not topics:
+        return None
+
+    return "Weak areas: " + ", ".join(f"{topic} ({wrong} missed)" for topic, wrong, _ in topics)
+
+
 def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme):
     """Draw victory screen with final statistics"""
     stats = game.get_final_stats()
@@ -639,6 +662,10 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
         f"Time Played: {format_time(stats['time_played'])}",
         f"Deepest Layer: {stats['current_floor']}/{game.floor_manager.max_floors}",
     ]
+
+    weak_areas = _weak_areas_line(game)
+    if weak_areas:
+        stats_lines.extend(["", weak_areas])
 
     for line in stats_lines:
         if current_y < start_y + height - 2:

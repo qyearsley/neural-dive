@@ -42,7 +42,12 @@ def get_default_content_set() -> str:
 
 
 def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
-    """Load all questions from questions.json for a specific content set."""
+    """Load all questions from questions.json for a specific content set.
+
+    The dict key is copied onto each ``Question`` as ``question_id``: it is the
+    stable identity that :mod:`neural_dive.player_profile` records cross-run
+    history against.
+    """
     data_file = get_content_dir(content_set) / "questions.json"
 
     with open(data_file) as f:
@@ -73,6 +78,7 @@ def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
                 answers=answers,
                 topic=q_data["topic"],
                 question_type=question_type,
+                question_id=question_id,
             )
         else:
             # Short answer or yes/no question
@@ -80,6 +86,7 @@ def load_questions(content_set: str = "algorithms") -> dict[str, Question]:
                 question_text=q_data["question_text"],
                 topic=q_data["topic"],
                 question_type=question_type,
+                question_id=question_id,
                 correct_answer=q_data["correct_answer"],
                 correct_response=q_data["correct_response"],
                 incorrect_response=q_data["incorrect_response"],

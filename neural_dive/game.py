@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from neural_dive.managers.floor_manager import FloorManager
     from neural_dive.managers.npc_manager import NPCManager
     from neural_dive.managers.player_manager import PlayerManager
+    from neural_dive.player_profile import PlayerProfile
 
 
 class Game:
@@ -48,6 +49,7 @@ class Game:
         max_floors: int = MAX_FLOORS,
         difficulty: DifficultyLevel = DifficultyLevel.NORMAL,
         content_set: str | None = None,
+        profile: PlayerProfile | None = None,
     ):
         """Initialize a new game.
 
@@ -59,6 +61,9 @@ class Game:
             max_floors: Maximum number of floors/layers in the game
             difficulty: Difficulty level determining game balance
             content_set: Content set to use (None for default)
+            profile: Cross-run question history. None means this run neither
+                reads nor writes history, which is the behaviour every caller
+                had before profiles existed.
         """
         from neural_dive.game_builder import GameContext, GameManagers
 
@@ -70,6 +75,7 @@ class Game:
             max_floors=max_floors,
             difficulty=difficulty,
             content_set=content_set,
+            profile=profile,
         )
         self._assemble(ctx, GameManagers.create_default(ctx))
 
@@ -139,6 +145,7 @@ class Game:
         self.npc_data = ctx.npc_data
         self.level_data = ctx.level_data
         self.snippets = ctx.snippets
+        self.profile: PlayerProfile | None = ctx.profile
 
         # World state. The context has already put the floor manager on the
         # right floor, so the map and dimensions here match that floor.
@@ -202,6 +209,7 @@ class Game:
             difficulty_settings=self.difficulty_settings,
             snippets=self.snippets,
             rand=self.rand,
+            profile=self.profile,
         )
 
         # Interaction Handler handles entity interactions and floor transitions
@@ -603,15 +611,19 @@ class Game:
         return GameSerializer.save(self, filepath)
 
     @staticmethod
-    def load_game(filepath: str | Path | None = None) -> Game | None:
+    def load_game(
+        filepath: str | Path | None = None,
+        profile: PlayerProfile | None = None,
+    ) -> Game | None:
         """Load a saved game from a file.
 
         Args:
             filepath: Path to save file. If None, uses default location.
+            profile: Cross-run question history to attach to the restored game.
 
         Returns:
             Loaded Game instance, or None if load failed
         """
         from neural_dive.game_serializer import GameSerializer
 
-        return GameSerializer.load(filepath)
+        return GameSerializer.load(filepath, profile=profile)

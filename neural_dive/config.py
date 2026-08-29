@@ -70,6 +70,16 @@ ITEM_COLOR_CODE_SNIPPET = "cyan"
 # Floor requirements are computed dynamically from NPC data; see
 # neural_dive.data_loader.compute_floor_requirements.
 
+# Cross-run question history (neural_dive.player_profile).
+# Selection weight is QUESTION_WEIGHT_BASE + QUESTION_WEIGHT_MISS_BONUS * miss_rate,
+# so a question the player always misses is three times as likely to be picked as
+# a fresh one. A question answered correctly QUESTION_MASTERY_CORRECT_COUNT times
+# with no misses drops to QUESTION_WEIGHT_MASTERED instead.
+QUESTION_WEIGHT_BASE = 1.0
+QUESTION_WEIGHT_MISS_BONUS = 2.0
+QUESTION_WEIGHT_MASTERED = 0.5
+QUESTION_MASTERY_CORRECT_COUNT = 2
+
 # Quest system
 QUEST_TARGET_NPCS = {
     "TEST_ORACLE",

@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from neural_dive.managers.quest_manager import QuestManager
     from neural_dive.managers.stats_tracker import StatsTracker
     from neural_dive.models import Conversation, Question
+    from neural_dive.player_profile import PlayerProfile
 
 
 class AnswerProcessor:
@@ -48,6 +49,7 @@ class AnswerProcessor:
         conversation_engine: Manages conversation state
         stats_tracker: Tracks game statistics
         quest_manager: Tracks quest progress
+        profile: Cross-run question history (None to record nothing)
     """
 
     def __init__(
@@ -60,6 +62,7 @@ class AnswerProcessor:
         difficulty_settings: DifficultySettings,
         snippets: dict,
         rand: random.Random,
+        profile: PlayerProfile | None = None,
     ):
         """Initialize AnswerProcessor with manager dependencies.
 
@@ -72,6 +75,8 @@ class AnswerProcessor:
             difficulty_settings: Difficulty settings dict
             snippets: Code snippets dict
             rand: Random number generator
+            profile: Cross-run question history. None means outcomes are
+                tracked for this run only, as they were before profiles existed.
         """
         self.player_manager = player_manager
         self.npc_manager = npc_manager
@@ -81,6 +86,7 @@ class AnswerProcessor:
         self.difficulty_settings = difficulty_settings
         self.snippets = snippets
         self.rand = rand
+        self.profile = profile
 
     def answer_multiple_choice(
         self, answer_idx: int, npcs_completed: set[str], is_final_floor: bool
@@ -110,6 +116,8 @@ class AnswerProcessor:
         answer = question.answers[answer_idx]
 
         npc_name = conv.npc_name
+
+        self._record_outcome(question, answer.correct)
 
         if answer.correct:
             return self._handle_correct_answer(
@@ -156,6 +164,8 @@ class AnswerProcessor:
 
         npc_name = conv.npc_name
 
+        self._record_outcome(question, is_correct)
+
         if is_correct:
             # Create a temporary Answer object for correct response
             temp_answer = Answer(
@@ -179,6 +189,20 @@ class AnswerProcessor:
                 conv, temp_answer, npc_name, is_enemy
             )
             return success, message, game_was_won
+
+    def _record_outcome(self, question: Question, correct: bool) -> None:
+        """Record one answer against the cross-run profile.
+
+        A no-op without a profile, and for questions that carry no authored id
+        (built in code rather than loaded from a content set).
+
+        Args:
+            question: The question just answered
+            correct: Whether the player got it right
+        """
+        if self.profile is None or not question.question_id:
+            return
+        self.profile.record_answer(question.question_id, correct)
 
     def _validate_conversation_state(
         self,

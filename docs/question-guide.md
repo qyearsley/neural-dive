@@ -148,6 +148,20 @@ Accept ALL correct variations that show understanding:
 - Be descriptive but concise
 - Examples: `hash_table_lookup`, `rest_vs_graphql`, `mutex_deadlock`
 
+The ID is also the key for cross-run question history: `data_loader` copies it
+onto `Question.question_id`, and `neural_dive/player_profile.py` records each
+player's attempts against it in `~/.neural_dive/profile.json`. Two consequences
+for authors:
+
+- **Renaming an ID orphans its history.** Every player's record for that
+  question stops matching, so the question looks fresh again and drops back to
+  base selection weight. Rewording `question_text` is free; changing the key is
+  not. If you must rename one, treat it as deleting a question and adding a new
+  one.
+- **Deleting a question is safe.** Stale records are inert -- the weighting only
+  looks up IDs that still exist, and `ndive --stats` labels the strays rather
+  than crashing or dropping them.
+
 ### Question Text
 **✅ DO:**
 - Keep it under 100 characters when possible
@@ -379,7 +393,9 @@ There is no `difficulty` field. `data_loader` reads only the fields on the
 `Question` dataclass (`question_text`, `topic`, `type`, `answers`,
 `correct_answer`, `correct_response`, `incorrect_response`, `reward_knowledge`,
 `match_type`, `case_sensitive`); anything else in the JSON is silently ignored,
-and no question in the set carries a difficulty rating today.
+and no question in the set carries a difficulty rating today. (`question_id` is
+also on the dataclass, but it comes from the entry's key rather than a field
+inside it.)
 
 Difficulty is instead expressed by which NPC and floor a question is assigned to
 (floor 1 easiest, floor 3 bosses hardest). Use these characterizations to decide

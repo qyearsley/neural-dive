@@ -1,8 +1,9 @@
 """Tests for AnswerProcessor.
 
 Covers answer validation, coherence/knowledge rewards, NPC opinion tracking,
-victory detection on the final floor, and the early-exit branches in
-``_validate_conversation_state``.
+victory detection on the final floor, the early-exit branches in
+``_validate_conversation_state``, and recording outcomes to the cross-run
+player profile.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from neural_dive.managers.player_manager import PlayerManager
 from neural_dive.managers.quest_manager import QuestManager
 from neural_dive.managers.stats_tracker import StatsTracker
 from neural_dive.models import Answer, Conversation, Question
+from neural_dive.player_profile import PlayerProfile
 from neural_dive.question_types import QuestionType
 
 
@@ -293,6 +295,89 @@ class TestTextAnswers(AnswerProcessorTestBase):
 
         self.assertFalse(success)
         self.assertIn("multiple choice", message.lower())
+
+
+class TestQuestionHistoryRecording(AnswerProcessorTestBase):
+    """Test that answers are written to the cross-run profile."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.profile = PlayerProfile()
+        self.processor.profile = self.profile
+
+    def test_correct_answer_is_recorded(self):
+        question = _mc_question(correct_idx=1)
+        question.question_id = "mutex_purpose"
+        self.start_conversation([question])
+
+        self.processor.answer_multiple_choice(
+            answer_idx=1, npcs_completed=set(), is_final_floor=False
+        )
+
+        record = self.profile.get("mutex_purpose")
+        assert record is not None
+        self.assertEqual((record.seen, record.correct, record.wrong), (1, 1, 0))
+
+    def test_wrong_answer_is_recorded(self):
+        question = _mc_question(correct_idx=1)
+        question.question_id = "mutex_purpose"
+        self.start_conversation([question])
+
+        self.processor.answer_multiple_choice(
+            answer_idx=2, npcs_completed=set(), is_final_floor=False
+        )
+
+        record = self.profile.get("mutex_purpose")
+        assert record is not None
+        self.assertEqual((record.seen, record.correct, record.wrong), (1, 0, 1))
+
+    def test_text_answers_are_recorded(self):
+        question = _short_answer_question(correct="log n")
+        question.question_id = "binary_search_complexity"
+        self.start_conversation([question])
+
+        self.processor.answer_text_question(
+            user_answer="quadratic", npcs_completed=set(), is_final_floor=False
+        )
+
+        record = self.profile.get("binary_search_complexity")
+        assert record is not None
+        self.assertEqual(record.wrong, 1)
+
+    def test_question_without_an_id_is_not_recorded(self):
+        # Questions built in code rather than loaded from a content set have no
+        # stable identity, so there is nothing to attribute history to.
+        self.start_conversation([_mc_question(correct_idx=0)])
+
+        self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertTrue(self.profile.is_empty)
+
+    def test_an_invalid_answer_index_records_nothing(self):
+        question = _mc_question()
+        question.question_id = "mutex_purpose"
+        self.start_conversation([question])
+
+        self.processor.answer_multiple_choice(
+            answer_idx=99, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertTrue(self.profile.is_empty)
+
+    def test_without_a_profile_nothing_is_recorded_and_nothing_breaks(self):
+        self.processor.profile = None
+        question = _mc_question(correct_idx=1)
+        question.question_id = "mutex_purpose"
+        self.start_conversation([question])
+
+        success, _, _ = self.processor.answer_multiple_choice(
+            answer_idx=1, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertTrue(success)
+        self.assertTrue(self.profile.is_empty)
 
 
 if __name__ == "__main__":

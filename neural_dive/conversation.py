@@ -4,8 +4,53 @@ from __future__ import annotations
 
 import copy
 import random
+from typing import TYPE_CHECKING
 
 from neural_dive.models import Conversation, Question
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+# Floating-point weights can only get so small before a question would never be
+# drawn; the profile's lowest weight is 0.5, so this is only a guard.
+_MIN_WEIGHT = 1e-6
+
+
+def _weighted_sample(
+    questions: list[Question],
+    weight_of: Callable[[Question], float],
+    count: int,
+) -> list[Question]:
+    """Pick ``count`` questions without replacement, biased by weight.
+
+    Each round picks one question with probability proportional to its weight
+    among those still in the pool. Weights are clamped to a small positive
+    minimum so a question can never become unpickable.
+
+    Args:
+        questions: Questions to choose from
+        weight_of: Selection weight for a question; higher is likelier
+        count: How many to pick (capped at the pool size)
+
+    Returns:
+        The chosen questions, in the order they were drawn
+    """
+    pool = [(question, max(_MIN_WEIGHT, weight_of(question))) for question in questions]
+    chosen: list[Question] = []
+
+    for _ in range(min(count, len(pool))):
+        total = sum(weight for _, weight in pool)
+        target = random.random() * total
+        running = 0.0
+        index = len(pool) - 1
+        for i, (_, weight) in enumerate(pool):
+            running += weight
+            if target < running:
+                index = i
+                break
+        chosen.append(pool.pop(index)[0])
+
+    return chosen
 
 
 def randomize_answers(question: Question, seed: int | None = None) -> Question:
@@ -36,6 +81,7 @@ def create_randomized_conversation(
     randomize_answer_order: bool = True,
     seed: int | None = None,
     num_questions: int = 3,
+    question_weight: Callable[[Question], float] | None = None,
 ) -> Conversation:
     """
     Create a copy of a conversation with randomized questions and answers.
@@ -46,6 +92,10 @@ def create_randomized_conversation(
         randomize_answer_order: Whether to shuffle answers within questions
         seed: Optional random seed for reproducibility
         num_questions: Number of questions to select from available pool (default: 3)
+        question_weight: Optional selection weight per question, used to bias
+            the subset toward questions the player has missed before (see
+            :mod:`neural_dive.player_profile`). None keeps the plain uniform
+            sample, which is what a player with no history gets.
 
     Returns:
         New Conversation object with randomized content
@@ -55,9 +105,14 @@ def create_randomized_conversation(
 
     new_conv = copy.deepcopy(conversation)
 
-    # Select a random subset of questions if we have more than num_questions
+    # Select a subset of questions if we have more than num_questions
     if len(new_conv.questions) > num_questions:
-        new_conv.questions = random.sample(new_conv.questions, num_questions)
+        if question_weight is None:
+            new_conv.questions = random.sample(new_conv.questions, num_questions)
+        else:
+            new_conv.questions = _weighted_sample(
+                new_conv.questions, question_weight, num_questions
+            )
 
     # Randomize question order if requested
     if randomize_question_order and len(new_conv.questions) > 1:

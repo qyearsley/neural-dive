@@ -31,6 +31,15 @@ Last audited: 2026-08-18.
 
 ## Open, low priority
 
+- **The player profile assumes one game process at a time.**
+  `neural_dive/player_profile.py` reads `~/.neural_dive/profile.json` at
+  startup and rewrites the whole file after every answer. The write itself is
+  atomic (temp file plus `os.replace`), so the file is never half-written, but
+  two concurrent runs would still end with whichever finished last — the other
+  run's answers are lost. Fine for a single-player terminal game; worth knowing
+  before anything else starts writing that file. The per-answer write is also
+  deliberate: a run killed with Ctrl-C must not lose its history, and the file
+  is a couple of KB.
 - **`CLAUDE.md` contradicts the `data/levels.py` note above.** Its Layout section
   calls the file a "Re-export shim" and its Architecture notes say it is "a thin
   re-export shim for legacy imports — edit `data/content/algorithms/levels.py`

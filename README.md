@@ -16,6 +16,8 @@
 - **Roguelike gameplay** with wandering NPCs and procedural maps
 - **Cyberpunk theme** with Unicode graphics
 - **Save/Load system** - save your progress and continue later
+- **Question history** - results carry across runs, and questions you have
+  missed before are likelier to come up again
 
 ---
 
@@ -52,11 +54,32 @@ so it installs `blessed` on first run. If you'd rather use pip directly:
 
 # Other options
 ./ndive --help
-./ndive --seed 42    # Reproducible run
-./ndive --load       # Resume the saved game
+./ndive --seed 42      # Reproducible run
+./ndive --load         # Resume the saved game
+./ndive --stats        # Show your question history and exit
+./ndive --no-history   # Play without reading or writing question history
 ```
 
 **Controls:** Arrow keys to move • Space/Enter to interact • >/< for stairs • **S to Save** • **L to Load** • Q to quit
+
+---
+
+## Question History
+
+Per-question results accumulate in `~/.neural_dive/profile.json` across runs —
+separately from the save file, so deleting a save keeps your history. Each
+question is keyed by its id in `questions.json`.
+
+Selection is biased by a single formula: a question weighs
+`1 + 2 × (times wrong ÷ times seen)`, so one you always miss is three times as
+likely to be drawn as a fresh one, and one you have answered right twice with no
+misses drops to half weight. The bias only reorders preference *within* the pool
+of questions an NPC already owns, so floors and topics are unaffected.
+
+A first run with no profile plays exactly as it did before this existed, and a
+missing or unreadable profile file degrades to the same thing rather than
+failing. `--stats` prints your most-missed questions and weakest topics;
+`--no-history` skips the file entirely.
 
 ---
 
@@ -158,6 +181,7 @@ neural_dive/
 ├── input_handler.py          # Keyboard input, per game mode
 ├── rendering.py              # Frame composition (see *_renderer.py modules)
 ├── data_loader.py            # Load content sets
+├── player_profile.py         # Cross-run question history (~/.neural_dive/profile.json)
 ├── themes.py                 # Visual theme (cyberpunk dark)
 ├── tests/                    # pytest suite
 └── ...

@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from neural_dive.managers.quest_manager import QuestManager
     from neural_dive.managers.state_manager import StateManager
     from neural_dive.managers.stats_tracker import StatsTracker
+    from neural_dive.player_profile import PlayerProfile
 
 
 class GameInitializer:
@@ -141,6 +142,7 @@ class GameInitializer:
         difficulty_settings: DifficultySettings,
         seed: int | None,
         level_data: dict,
+        profile: PlayerProfile | None = None,
     ) -> NPCManager:
         """Create and initialize NPCManager.
 
@@ -151,6 +153,7 @@ class GameInitializer:
             difficulty_settings: Difficulty settings
             seed: Random seed
             level_data: Parsed level data
+            profile: Cross-run question history (None for none)
 
         Returns:
             Initialized NPCManager instance
@@ -164,6 +167,7 @@ class GameInitializer:
             difficulty_settings=difficulty_settings,
             seed=seed,
             level_data=level_data,
+            profile=profile,
         )
 
     @staticmethod
@@ -226,6 +230,7 @@ class GameInitializer:
         difficulty_settings: DifficultySettings,
         snippets: dict,
         rand: random.Random,
+        profile: PlayerProfile | None = None,
     ) -> AnswerProcessor:
         """Create an AnswerProcessor for handling question answers.
 
@@ -238,6 +243,7 @@ class GameInitializer:
             difficulty_settings: Difficulty settings
             snippets: Code snippets dictionary
             rand: Random number generator
+            profile: Cross-run question history (None for none)
 
         Returns:
             Initialized AnswerProcessor instance
@@ -253,6 +259,7 @@ class GameInitializer:
             difficulty_settings=difficulty_settings,
             snippets=snippets,
             rand=rand,
+            profile=profile,
         )
 
     @staticmethod
@@ -392,6 +399,7 @@ class GameContext:
     snippets: dict
     floor_manager: FloorManager
     player: Entity
+    profile: PlayerProfile | None = None
 
     @classmethod
     def create(
@@ -404,6 +412,7 @@ class GameContext:
         difficulty: DifficultyLevel,
         content_set: str | None,
         start_floor: int = 1,
+        profile: PlayerProfile | None = None,
     ) -> GameContext:
         """Build the context for a game starting on ``start_floor``.
 
@@ -418,6 +427,9 @@ class GameContext:
             start_floor: Floor the game begins on. Anything other than 1 builds
                 that floor's map and moves the player to its start position,
                 which is how a save from a deeper floor is restored.
+            profile: Cross-run question history. Passed in rather than loaded
+                here so that building a Game never touches the player's home
+                directory unless the caller asked for it.
 
         Returns:
             A GameContext ready to have managers built against it
@@ -459,6 +471,7 @@ class GameContext:
             snippets=snippets,
             floor_manager=floor_manager,
             player=player,
+            profile=profile,
         )
 
 
@@ -494,6 +507,7 @@ class GameManagers:
                 ctx.difficulty_settings,
                 ctx.seed,
                 ctx.level_data,
+                ctx.profile,
             ),
             conversation_engine=GameInitializer.create_conversation_engine(),
             player_manager=GameInitializer.create_player_manager(ctx.difficulty_settings),
@@ -529,6 +543,7 @@ class GameBuilder:
         self._seed: int | None = None
         self._content_set: str | None = None
         self._random_npcs = True
+        self._profile: PlayerProfile | None = None
 
     def with_map_size(self, width: int, height: int) -> GameBuilder:
         """Set map dimensions.
@@ -610,6 +625,18 @@ class GameBuilder:
         self._random_npcs = True
         return self
 
+    def with_profile(self, profile: PlayerProfile | None) -> GameBuilder:
+        """Attach cross-run question history.
+
+        Args:
+            profile: The player's profile, or None for no history
+
+        Returns:
+            Self for method chaining
+        """
+        self._profile = profile
+        return self
+
     def build(self) -> Game:
         """Build Game instance with configured settings.
 
@@ -627,4 +654,5 @@ class GameBuilder:
             max_floors=self._max_floors,
             difficulty=self._difficulty,
             content_set=self._content_set,
+            profile=self._profile,
         )

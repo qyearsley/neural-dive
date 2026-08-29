@@ -351,7 +351,9 @@ class NormalModeHandler:
             from neural_dive.game_serializer import GameSerializer
 
             save_path = GameSerializer.get_default_save_path()
-            loaded_game = GameClass.load_game()
+            # Carry the current run's profile across, so history keeps
+            # accumulating after a mid-run load.
+            loaded_game = GameClass.load_game(profile=game.profile)
             if loaded_game:
                 message = f"Game loaded from {save_path}"
                 return InputResult(

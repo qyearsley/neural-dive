@@ -12,6 +12,7 @@ import time
 from blessed import Terminal
 
 from neural_dive.backends import BlessedBackend
+from neural_dive.data_loader import load_questions
 from neural_dive.difficulty import DifficultyLevel
 from neural_dive.game import Game
 from neural_dive.input_handler import (
@@ -20,8 +21,26 @@ from neural_dive.input_handler import (
     NormalModeHandler,
     OverlayHandler,
 )
+from neural_dive.player_profile import PlayerProfile, format_profile_summary
 from neural_dive.rendering import draw_game, draw_victory_screen
 from neural_dive.themes import get_theme
+
+
+def print_history(content_set: str) -> None:
+    """Print the player's cross-run question history to stdout.
+
+    Args:
+        content_set: Content set whose history to show
+    """
+    profile = PlayerProfile.load(content_set)
+    try:
+        questions = load_questions(content_set)
+    except (OSError, ValueError, KeyError):
+        # Without the content set we can still show counts, just not text.
+        questions = {}
+
+    for line in format_profile_summary(profile, questions):
+        print(line)
 
 
 def run_interactive(game: Game, chars, colors):
@@ -170,6 +189,7 @@ Examples:
   %(prog)s --load            # Load saved game from ~/.neural_dive/save.json
   %(prog)s --load /path/to/save.json  # Load from specific file
   %(prog)s --fixed --seed 42  # Reproducible game for testing
+  %(prog)s --stats           # Show your cross-run question history and exit
 
 Controls:
   Arrow keys: Move  |  Space/Enter: Interact  |  >/< : Stairs
@@ -179,6 +199,11 @@ Save Location:
   Games are saved to ~/.neural_dive/save.json by default
   Use --load to resume a saved game at startup
   Press 'S' in-game to save, 'L' to load
+
+Question History:
+  Per-question results accumulate in ~/.neural_dive/profile.json across runs,
+  and questions you have missed before are likelier to come up again.
+  Use --stats to review them, or --no-history to neither read nor write them.
         """,
     )
 
@@ -204,6 +229,19 @@ Save Location:
         "--fixed", action="store_true", help="Use fixed NPC positions (for testing)"
     )
 
+    # Question history options
+    history = parser.add_argument_group("Question History")
+    history.add_argument(
+        "--stats",
+        action="store_true",
+        help="Print your cross-run question history and exit",
+    )
+    history.add_argument(
+        "--no-history",
+        action="store_true",
+        help="Do not read or write ~/.neural_dive/profile.json this run",
+    )
+
     # Developer options
     dev = parser.add_argument_group("Developer Options")
     dev.add_argument("--test", action="store_true", help="Test mode: read commands from stdin")
@@ -213,6 +251,15 @@ Save Location:
     # Always use algorithms content set and cyberpunk dark theme
     content_set = "algorithms"
     chars, colors = get_theme()
+
+    if args.stats:
+        print_history(content_set)
+        return
+
+    # Cross-run question history. Loading never raises: a missing or unreadable
+    # profile comes back empty, which leaves the game playing exactly as it did
+    # before profiles existed.
+    profile = None if args.no_history else PlayerProfile.load(content_set)
 
     if args.test:
         run_test_mode()
@@ -225,7 +272,7 @@ Save Location:
 
             # Load game from specified path or default location
             load_path = args.load if args.load else None
-            game = Game.load_game(load_path)
+            game = Game.load_game(load_path, profile=profile)
 
             if game:
                 actual_path = load_path if load_path else GameSerializer.get_default_save_path()
@@ -261,6 +308,7 @@ Save Location:
                 seed=args.seed,
                 difficulty=difficulty,
                 content_set=content_set,
+                profile=profile,
             )
 
         run_interactive(game, chars, colors)

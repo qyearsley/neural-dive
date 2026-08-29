@@ -28,11 +28,20 @@ class Question:
     - MULTIPLE_CHOICE: Traditional 4-option questions (answers list)
     - SHORT_ANSWER: Type-in answer (correct_answer field, match_type)
     - YES_NO: True/False questions (correct_answer is "yes" or "no")
+
+    ``question_id`` carries the authored key from ``questions.json`` so
+    cross-run history can be attributed to a question that outlives any one run.
     """
 
     question_text: str
     topic: str  # e.g., "vocabulary", "geography", "algorithms"
     question_type: QuestionType = QuestionType.MULTIPLE_CHOICE
+
+    # The authored key from questions.json, e.g. "mutex_purpose". Stable across
+    # rewordings, so it is what neural_dive.player_profile records history
+    # against. Empty for questions built in code rather than loaded from
+    # content, which are simply not recorded.
+    question_id: str = ""
 
     # For MULTIPLE_CHOICE questions.
     answers: list[Answer] = field(default_factory=list)

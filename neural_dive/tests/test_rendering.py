@@ -24,8 +24,58 @@ from neural_dive.entity_renderers import (
     get_entity_renderer,
 )
 from neural_dive.map_renderer import _is_position_occupied
-from neural_dive.overlay_renderer import OverlayRenderer
+from neural_dive.overlay_renderer import OverlayRenderer, _weak_areas_line
 from neural_dive.themes import CharacterSet, ColorScheme
+
+
+class TestVictoryScreenWeakAreas(unittest.TestCase):
+    """Test the weak-areas line added to the victory screen."""
+
+    def _game(self, profile):
+        from neural_dive.models import Question
+        from neural_dive.question_types import QuestionType
+
+        game = MagicMock()
+        game.profile = profile
+        game.questions = {
+            "a": Question(
+                question_text="A?",
+                topic="databases",
+                question_type=QuestionType.YES_NO,
+                question_id="a",
+            ),
+        }
+        return game
+
+    def test_no_profile_adds_no_line(self):
+        """Without history the victory screen is exactly what it always was."""
+        self.assertIsNone(_weak_areas_line(self._game(None)))
+
+    def test_empty_profile_adds_no_line(self):
+        from neural_dive.player_profile import PlayerProfile
+
+        self.assertIsNone(_weak_areas_line(self._game(PlayerProfile())))
+
+    def test_profile_with_no_misses_adds_no_line(self):
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+
+        profile = PlayerProfile(questions={"a": QuestionRecord(seen=2, correct=2, wrong=0)})
+
+        self.assertIsNone(_weak_areas_line(self._game(profile)))
+
+    def test_missed_topics_are_listed(self):
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+
+        profile = PlayerProfile(questions={"a": QuestionRecord(seen=3, correct=1, wrong=2)})
+
+        self.assertEqual(_weak_areas_line(self._game(profile)), "Weak areas: databases (2 missed)")
+
+    def test_questions_missing_from_the_content_set_are_skipped(self):
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+
+        profile = PlayerProfile(questions={"gone": QuestionRecord(seen=3, correct=0, wrong=3)})
+
+        self.assertIsNone(_weak_areas_line(self._game(profile)))
 
 
 class TestOverlayRenderer(unittest.TestCase):

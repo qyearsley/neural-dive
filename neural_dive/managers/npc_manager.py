@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     import random
 
     from neural_dive.difficulty import DifficultySettings
+    from neural_dive.player_profile import PlayerProfile
 
 
 class NPCManager:
@@ -40,6 +41,7 @@ class NPCManager:
         spawner: Creates NPCs and holds ``all_npcs``
         movement: Wandering AI, holds ``old_positions``
         relationships: Opinion tracking
+        profile: Cross-run question history used to bias question selection
     """
 
     def __init__(
@@ -50,6 +52,7 @@ class NPCManager:
         difficulty_settings: DifficultySettings,
         seed: int | None = None,
         level_data: dict | None = None,
+        profile: PlayerProfile | None = None,
     ):
         """
         Initialize NPCManager.
@@ -61,6 +64,9 @@ class NPCManager:
             difficulty_settings: Difficulty settings for question counts
             seed: Random seed for reproducibility
             level_data: Dictionary of parsed level data (PARSED_LEVELS)
+            profile: Cross-run question history. None -- or an empty profile --
+                leaves question selection uniform, exactly as it was before
+                history existed.
         """
         self.npc_data = npc_data
         self.questions = questions
@@ -68,6 +74,7 @@ class NPCManager:
         self.difficulty_settings = difficulty_settings
         self.seed = seed
         self.level_data = level_data if level_data is not None else {}
+        self.profile = profile
 
         self.spawner = NPCSpawner(npc_data, rng, self.level_data)
         self.movement = NPCMovement(rng)
@@ -80,7 +87,19 @@ class NPCManager:
         self.conversations: dict[str, Conversation] = self._build_conversations()
 
     def _build_conversations(self) -> dict[str, Conversation]:
-        """Build a randomized conversation for every NPC in the content set."""
+        """Build a randomized conversation for every NPC in the content set.
+
+        Which questions an NPC asks is drawn from that NPC's own pool, so the
+        floor and topic structure is unaffected. When the player has history,
+        the draw is weighted toward questions they have missed before.
+        """
+        # An empty profile is deliberately not passed through: it would produce
+        # all-equal weights but consume the RNG differently, so a first-time
+        # player's seeded run would no longer match previous builds.
+        question_weight = None
+        if self.profile is not None and not self.profile.is_empty:
+            question_weight = self.profile.question_weighter()
+
         conversations: dict[str, Conversation] = {}
         for npc_name, npc_info in self.npc_data.items():
             if npc_name in BOSS_NPCS:
@@ -94,6 +113,7 @@ class NPCManager:
                 randomize_question_order=True,
                 randomize_answer_order=True,
                 num_questions=num_questions,
+                question_weight=question_weight,
             )
         return conversations
 
@@ -219,6 +239,7 @@ class NPCManager:
         difficulty_settings: DifficultySettings,
         seed: int | None = None,
         level_data: dict | None = None,
+        profile: PlayerProfile | None = None,
     ) -> NPCManager:
         """
         Create NPCManager from serialized dictionary.
@@ -231,11 +252,12 @@ class NPCManager:
             difficulty_settings: Difficulty settings
             seed: Random seed
             level_data: Dictionary of parsed level data
+            profile: Cross-run question history (None for none)
 
         Returns:
             Restored NPCManager instance
         """
-        manager = cls(npc_data, questions, rng, difficulty_settings, seed, level_data)
+        manager = cls(npc_data, questions, rng, difficulty_settings, seed, level_data, profile)
 
         # Restore NPC state
         for saved in data.get("npcs", []):

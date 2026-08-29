@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from neural_dive.managers.player_manager import PlayerManager
     from neural_dive.managers.quest_manager import QuestManager
     from neural_dive.managers.stats_tracker import StatsTracker
+    from neural_dive.player_profile import PlayerProfile
 
 
 class GameSerializer:
@@ -72,11 +73,18 @@ class GameSerializer:
             return False, None
 
     @classmethod
-    def load(cls, filepath: str | Path | None = None) -> Game | None:
+    def load(
+        cls,
+        filepath: str | Path | None = None,
+        profile: PlayerProfile | None = None,
+    ) -> Game | None:
         """Load game state from a file.
 
         Args:
             filepath: Path to save file (None for default location)
+            profile: Cross-run question history to attach to the restored game
+                (None for none). The profile lives in its own file and is never
+                part of a save.
 
         Returns:
             Loaded Game instance, or None if load failed
@@ -93,7 +101,7 @@ class GameSerializer:
                 save_data = json.load(f)
 
             # Deserialize into game instance
-            return cls._deserialize_game_state(save_data)
+            return cls._deserialize_game_state(save_data, profile)
         except (OSError, json.JSONDecodeError, KeyError, ValueError) as e:
             print(f"Error loading game: {e}")
             return None
@@ -144,7 +152,7 @@ class GameSerializer:
         }
 
     @classmethod
-    def _deserialize_game_state(cls, save_data: dict) -> Game:
+    def _deserialize_game_state(cls, save_data: dict, profile: PlayerProfile | None = None) -> Game:
         """Deserialize game state from dictionary.
 
         Builds the restored managers first, then assembles the Game once via
@@ -154,6 +162,7 @@ class GameSerializer:
 
         Args:
             save_data: Dictionary containing game state
+            profile: Cross-run question history to attach (None for none)
 
         Returns:
             Restored Game instance
@@ -173,6 +182,7 @@ class GameSerializer:
             difficulty=DifficultyLevel(save_data["difficulty"]),
             content_set=save_data.get("content_set"),
             start_floor=save_data["current_floor"],
+            profile=profile,
         )
 
         npc_manager = cls._restore_npc_manager(save_data, ctx)
@@ -211,6 +221,7 @@ class GameSerializer:
             difficulty_settings=ctx.difficulty_settings,
             seed=ctx.seed,
             level_data=ctx.level_data,
+            profile=ctx.profile,
         )
 
     @classmethod

@@ -531,5 +531,112 @@ class TestNPCManagerSerialization(unittest.TestCase):
         self.assertEqual(manager2.get_opinion("TEST_NPC"), 15)
 
 
+class TestQuestionHistoryBias(unittest.TestCase):
+    """Test that a player profile biases which questions an NPC asks."""
+
+    def setUp(self):
+        """Build one NPC with a pool bigger than the questions it will ask."""
+        self.difficulty_settings = get_difficulty_settings(DifficultyLevel.NORMAL)
+        self.questions = {}
+        self.npc_data = {
+            "TEST_NPC": {
+                "char": "T",
+                "color": "cyan",
+                "floor": 1,
+                "npc_type": "specialist",
+                "conversation": Conversation(
+                    npc_name="TEST_NPC",
+                    greeting="Hello!",
+                    questions=[
+                        Question(
+                            question_text=f"Question {i}?",
+                            answers=[Answer("Yes", True, "Correct!")],
+                            topic="test",
+                            question_id=f"q{i}",
+                        )
+                        for i in range(8)
+                    ],
+                    npc_type=NPCType.SPECIALIST,
+                ),
+            }
+        }
+
+    def _manager(self, profile, seed=42):
+        return NPCManager(
+            self.npc_data,
+            self.questions,
+            random.Random(seed),
+            self.difficulty_settings,
+            seed=seed,
+            profile=profile,
+        )
+
+    def _asked(self, profile, seed):
+        """Question ids the NPC ends up asking, with the global RNG pinned.
+
+        ``create_randomized_conversation`` draws from the module-level
+        ``random``, so pinning it here makes the weighted and unweighted runs a
+        fair paired comparison rather than two samples of different streams.
+        """
+        random.seed(seed)
+        conversation = self._manager(profile, seed).conversations["TEST_NPC"]
+        return {q.question_id for q in conversation.questions}
+
+    def test_no_profile_and_empty_profile_pick_the_same_questions(self):
+        """A first-time player must get byte-identical selection to before."""
+        from neural_dive.player_profile import PlayerProfile
+
+        for seed in range(20):
+            self.assertEqual(
+                self._asked(None, seed),
+                self._asked(PlayerProfile(), seed),
+                f"diverged on seed {seed}",
+            )
+
+    def test_a_missed_question_comes_up_more_often(self):
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+
+        profile = PlayerProfile(questions={"q5": QuestionRecord(seen=4, correct=0, wrong=4)})
+
+        biased = sum(1 for seed in range(100) if "q5" in self._asked(profile, seed))
+        baseline = sum(1 for seed in range(100) if "q5" in self._asked(None, seed))
+
+        self.assertGreater(biased, baseline)
+
+    def test_a_mastered_question_loses_to_a_missed_one(self):
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+
+        # Everything mastered except q5, which the player keeps missing.
+        profile = PlayerProfile(
+            questions={
+                **{f"q{i}": QuestionRecord(seen=3, correct=3, wrong=0) for i in range(8)},
+                "q5": QuestionRecord(seen=3, correct=0, wrong=3),
+            }
+        )
+
+        missed = sum(1 for seed in range(100) if "q5" in self._asked(profile, seed))
+        mastered = sum(1 for seed in range(100) if "q0" in self._asked(profile, seed))
+
+        self.assertGreater(missed, mastered * 2)
+
+    def test_profile_survives_serialization_round_trip(self):
+        from neural_dive.player_profile import PlayerProfile
+
+        profile = PlayerProfile()
+        manager = self._manager(profile)
+
+        restored = NPCManager.from_dict(
+            manager.to_dict(),
+            self.npc_data,
+            self.questions,
+            random.Random(42),
+            self.difficulty_settings,
+            seed=42,
+            profile=profile,
+        )
+
+        self.assertIs(restored.profile, profile)
+
+
 if __name__ == "__main__":
     unittest.main()

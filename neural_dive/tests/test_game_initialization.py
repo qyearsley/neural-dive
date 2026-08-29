@@ -10,6 +10,41 @@ import unittest
 
 from neural_dive.config import MAX_FLOORS, STARTING_COHERENCE
 from neural_dive.game import Game
+from neural_dive.player_profile import PlayerProfile
+
+
+class TestGameQuestionHistory(unittest.TestCase):
+    """Test that a profile reaches the pieces that read and write it."""
+
+    def test_game_defaults_to_no_profile(self):
+        """Building a Game must never touch the player's home directory."""
+        game = Game(seed=42, random_npcs=False)
+
+        self.assertIsNone(game.profile)
+        self.assertIsNone(game.answer_processor.profile)
+        self.assertIsNone(game.npc_manager.profile)
+
+    def test_profile_reaches_the_answer_processor_and_npc_manager(self):
+        profile = PlayerProfile()
+
+        game = Game(seed=42, random_npcs=False, profile=profile)
+
+        self.assertIs(game.profile, profile)
+        self.assertIs(game.answer_processor.profile, profile)
+        self.assertIs(game.npc_manager.profile, profile)
+
+    def test_answering_a_content_question_writes_history(self):
+        profile = PlayerProfile()
+        game = Game(seed=42, random_npcs=False, profile=profile)
+
+        conv = next(c for c in game.npc_manager.conversations.values() if c.questions)
+        question = conv.questions[0]
+        game.conversation_engine.active_conversation = conv
+        game.answer_question(0)
+
+        record = profile.get(question.question_id)
+        assert record is not None
+        self.assertEqual(record.seen, 1)
 
 
 class TestGameInitialization(unittest.TestCase):

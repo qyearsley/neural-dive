@@ -43,6 +43,7 @@ neural_dive/
 ├── game.py                  # Game class — owns the managers below
 ├── game_builder.py          # Constructs Game and its managers
 ├── game_serializer.py       # Save/load state
+├── player_profile.py        # Cross-run question history (~/.neural_dive/profile.json)
 ├── data_loader.py           # Loads questions, NPCs, levels, snippets
 ├── data/
 │   ├── content/algorithms/  # Canonical content (questions, NPCs, levels)
@@ -129,6 +130,26 @@ that stores a manager reference, construct it there.
 `_assemble` also generates floor entities exactly once, at the end. Generating a
 floor twice used to drop every NPC on floor 1 and shift randomly placed items.
 
+**Question history is passed in, never loaded implicitly.** `PlayerProfile`
+(`player_profile.py`) accumulates per-question outcomes across runs in
+`~/.neural_dive/profile.json`, keyed by the authored id from `questions.json`
+that `data_loader` now copies onto `Question.question_id`. It reaches the game
+as a plain constructor argument -- `Game(profile=...)` → `GameContext.profile` →
+`NPCManager` (which weights question selection) and `AnswerProcessor` (which
+records outcomes). Only `__main__` loads one, so constructing a `Game` in a test
+never touches the player's home directory, and `profile=None` gives exactly the
+pre-history behaviour.
+
+Three rules to keep in mind when touching it:
+
+- An *empty* profile is deliberately not passed through to the selector either.
+  Equal weights would still consume the RNG differently, so a first-time
+  player's seeded run would stop matching previous builds.
+- Nothing about the profile belongs in the save file. It outlives runs and must
+  survive deleting a save.
+- Every load failure degrades to an empty profile; see the module docstring for
+  the full list. Do not add a code path that lets a bad profile end a run.
+
 ## Common patterns
 
 ### Loading data
@@ -185,6 +206,10 @@ values.
    schema in `docs/question-guide.md`.
 2. Reference its ID from one or more NPCs in `npcs.json`.
 3. Run `make validate`.
+
+Question IDs are the key for cross-run history, so renaming one silently
+orphans every player's record for that question. Reword the text freely; leave
+the key alone.
 
 ### A new question type
 1. Add the variant to `QuestionType` in `question_types.py`.

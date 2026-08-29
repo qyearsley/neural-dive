@@ -18,8 +18,35 @@ from neural_dive.data_loader import (
     get_default_content_set,
     load_all_game_data,
     load_npcs,
+    load_questions,
 )
 from neural_dive.models import Answer, Question
+
+
+class TestQuestionIdentity(unittest.TestCase):
+    """Test that questions carry the authored id from questions.json.
+
+    That id is the key cross-run history is recorded against, so losing it
+    would silently disable question history.
+    """
+
+    def test_every_loaded_question_carries_its_key_as_its_id(self):
+        questions = load_questions()
+
+        self.assertGreater(len(questions), 0)
+        for question_id, question in questions.items():
+            self.assertEqual(question.question_id, question_id)
+
+    def test_question_ids_cover_all_question_types(self):
+        from neural_dive.question_types import QuestionType
+
+        questions = load_questions()
+        by_type = {question.question_type for question in questions.values()}
+
+        self.assertIn(QuestionType.MULTIPLE_CHOICE, by_type)
+        self.assertIn(QuestionType.SHORT_ANSWER, by_type)
+        self.assertIn(QuestionType.YES_NO, by_type)
+        self.assertTrue(all(q.question_id for q in questions.values()))
 
 
 class TestContentSetPaths(unittest.TestCase):
