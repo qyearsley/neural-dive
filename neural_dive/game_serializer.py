@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -131,7 +132,7 @@ class GameSerializer:
             # Quest state (delegated to QuestManager)
             "quest_manager": game.quest_manager.to_dict(),
             # Legacy statistics (kept for backward compatibility with old saves)
-            "start_time": game.stats_tracker.start_time,
+            "start_time": time.time() - game.stats_tracker.get_time_played(),
             "questions_answered": game.stats_tracker.questions_answered,
             "questions_correct": game.stats_tracker.questions_correct,
             "questions_wrong": game.stats_tracker.questions_wrong,
@@ -238,20 +239,15 @@ class GameSerializer:
     @classmethod
     def _restore_stats_tracker(cls, save_data: dict) -> StatsTracker:
         """Rebuild the StatsTracker from a save, tolerating pre-StatsTracker saves."""
-        import time
-
         from neural_dive.managers.stats_tracker import StatsTracker
 
         if "stats_tracker" in save_data:
             return StatsTracker.from_dict(save_data["stats_tracker"])
 
-        # Backward compatibility: older saves kept these as top-level fields.
-        return StatsTracker(
-            questions_answered=save_data.get("questions_answered", 0),
-            questions_correct=save_data.get("questions_correct", 0),
-            questions_wrong=save_data.get("questions_wrong", 0),
-            start_time=save_data.get("start_time", time.time()),
-        )
+        # Backward compatibility: older saves kept these as top-level fields
+        # under the same names, so the same reader handles them. Their
+        # wall-clock `start_time` is ignored -- see StatsTracker.from_dict.
+        return StatsTracker.from_dict(save_data)
 
     @classmethod
     def _restore_quest_manager(cls, save_data: dict) -> QuestManager:

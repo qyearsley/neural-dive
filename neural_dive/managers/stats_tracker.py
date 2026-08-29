@@ -10,6 +10,16 @@ from dataclasses import dataclass, field
 import time
 
 
+def _now() -> float:
+    """Read the monotonic clock.
+
+    Wrapped in a function rather than passed as ``default_factory=time.monotonic``
+    so the lookup happens at call time -- a direct reference is bound when the
+    dataclass is defined, which tests cannot patch.
+    """
+    return time.monotonic()
+
+
 @dataclass
 class StatsTracker:
     """Tracks game statistics and scoring.
@@ -21,17 +31,34 @@ class StatsTracker:
     - Generate final statistics for end screens
     - Add new scoring mechanics (combos, bonuses, achievements)
 
+    Time played is accumulated rather than derived from a wall-clock start
+    timestamp. ``accumulated_seconds`` banks the play time of earlier sessions
+    and ``_session_start`` marks when the current one began, so a run that is
+    saved, quit, and resumed the next day does not count the intervening night.
+    Intervals are measured with :func:`time.monotonic`, which cannot jump when
+    the system clock is stepped by NTP, a DST change, or a sleep/wake cycle.
+
     Attributes:
         questions_answered: Total number of questions answered
         questions_correct: Number of correct answers
         questions_wrong: Number of wrong answers
-        start_time: Timestamp when tracking began
+        accumulated_seconds: Play time banked by earlier sessions of this run
     """
 
     questions_answered: int = 0
     questions_correct: int = 0
     questions_wrong: int = 0
-    start_time: float = field(default_factory=time.time)
+    accumulated_seconds: float = 0.0
+
+    # Monotonic reading taken when this session started. Not part of the save
+    # format, not comparable across processes, so it stays out of __init__,
+    # __repr__, and __eq__.
+    _session_start: float = field(
+        default_factory=_now,
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def record_correct_answer(self) -> None:
         """Record a correct answer.
@@ -63,9 +90,10 @@ class StatsTracker:
         """Get total time played in seconds.
 
         Returns:
-            Time elapsed since tracking started
+            Play time banked by earlier sessions plus the elapsed time of the
+            current one. Time spent with the game closed is not counted.
         """
-        return time.time() - self.start_time
+        return self.accumulated_seconds + (_now() - self._session_start)
 
     def get_current_score(
         self,
@@ -138,6 +166,9 @@ class StatsTracker:
     def to_dict(self) -> dict:
         """Serialize stats to dictionary for save/load.
 
+        Stores the running play-time total rather than an absolute timestamp,
+        so the clock resumes where it stopped when the save is loaded.
+
         Returns:
             Dictionary containing all stats state
         """
@@ -145,12 +176,20 @@ class StatsTracker:
             "questions_answered": self.questions_answered,
             "questions_correct": self.questions_correct,
             "questions_wrong": self.questions_wrong,
-            "start_time": self.start_time,
+            "accumulated_seconds": self.get_time_played(),
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> StatsTracker:
         """Deserialize stats from dictionary.
+
+        Saves written before play time was accumulated carry only a
+        ``start_time`` wall-clock timestamp. That timestamp records when the
+        run began in real-world terms, not how long it was played, so there is
+        nothing to recover from it -- such a save resumes with its play-time
+        total at zero rather than importing hours the player spent away from
+        the game. The pre-fix portion of that run's time is lost; everything
+        after the load is measured correctly.
 
         Args:
             data: Dictionary containing stats state from to_dict()
@@ -158,9 +197,14 @@ class StatsTracker:
         Returns:
             New StatsTracker instance with loaded state
         """
+        # A missing, non-numeric, or negative total degrades to zero. `load`
+        # only catches ValueError, so a `null` here would otherwise crash.
+        raw = data.get("accumulated_seconds", 0.0)
+        accumulated = float(raw) if isinstance(raw, (int, float)) else 0.0
+
         return cls(
             questions_answered=data.get("questions_answered", 0),
             questions_correct=data.get("questions_correct", 0),
             questions_wrong=data.get("questions_wrong", 0),
-            start_time=data.get("start_time", time.time()),
+            accumulated_seconds=max(0.0, accumulated),
         )

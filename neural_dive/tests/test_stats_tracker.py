@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import time
 import unittest
+from unittest.mock import patch
 
 from neural_dive.managers.stats_tracker import StatsTracker
 
@@ -27,23 +28,21 @@ class TestStatsTrackerInitialization(unittest.TestCase):
         self.assertEqual(tracker.questions_answered, 0)
         self.assertEqual(tracker.questions_correct, 0)
         self.assertEqual(tracker.questions_wrong, 0)
-        self.assertIsInstance(tracker.start_time, float)
-        self.assertGreater(tracker.start_time, 0)
+        self.assertEqual(tracker.accumulated_seconds, 0.0)
 
     def test_custom_initialization(self):
         """Test StatsTracker can be initialized with custom values."""
-        start_time = time.time() - 100
         tracker = StatsTracker(
             questions_answered=10,
             questions_correct=7,
             questions_wrong=3,
-            start_time=start_time,
+            accumulated_seconds=100.0,
         )
 
         self.assertEqual(tracker.questions_answered, 10)
         self.assertEqual(tracker.questions_correct, 7)
         self.assertEqual(tracker.questions_wrong, 3)
-        self.assertEqual(tracker.start_time, start_time)
+        self.assertEqual(tracker.accumulated_seconds, 100.0)
 
 
 class TestAnswerRecording(unittest.TestCase):
@@ -168,6 +167,19 @@ class TestAccuracyCalculation(unittest.TestCase):
         self.assertAlmostEqual(accuracy, 70.0, places=2)
 
 
+class FakeClock:
+    """A monotonic clock the tests can advance by hand."""
+
+    def __init__(self, now: float = 1000.0):
+        self.now = now
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
 class TestTimeTracking(unittest.TestCase):
     """Test time tracking."""
 
@@ -182,25 +194,125 @@ class TestTimeTracking(unittest.TestCase):
         self.assertGreaterEqual(time_played, 0.0)
 
     def test_time_played_with_delay(self):
-        """Test time played increases over time."""
-        start_time = time.time() - 5.0  # 5 seconds ago
-        tracker = StatsTracker(start_time=start_time)
+        """Test time played increases as the session runs."""
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker()
+            clock.advance(5.0)
 
-        time_played = tracker.get_time_played()
+            self.assertAlmostEqual(tracker.get_time_played(), 5.0, places=6)
 
-        # Should be approximately 5 seconds (allow small variance)
-        self.assertGreater(time_played, 4.9)
-        self.assertLess(time_played, 5.2)
+    def test_time_played_includes_banked_seconds(self):
+        """Test banked time from earlier sessions is added to the current one."""
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker(accumulated_seconds=100.0)
+            clock.advance(20.0)
 
-    def test_time_played_after_100_seconds(self):
-        """Test time played with longer duration."""
-        start_time = time.time() - 100.0
-        tracker = StatsTracker(start_time=start_time)
+            self.assertAlmostEqual(tracker.get_time_played(), 120.0, places=6)
 
-        time_played = tracker.get_time_played()
+    def test_time_played_uses_a_monotonic_clock(self):
+        """Test a wall-clock jump does not move the play-time total.
 
-        self.assertGreater(time_played, 99.9)
-        self.assertLess(time_played, 100.2)
+        NTP steps, DST changes, and sleep/wake all move ``time.time()``. The
+        timer must ignore them; before the fix a backwards step made
+        ``get_time_played()`` return a negative number.
+        """
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker()
+            clock.advance(30.0)
+
+            with patch("time.time", return_value=0.0):
+                forward = tracker.get_time_played()
+            with patch("time.time", return_value=10**12):
+                backward = tracker.get_time_played()
+
+        self.assertAlmostEqual(forward, 30.0, places=6)
+        self.assertAlmostEqual(backward, 30.0, places=6)
+
+    def test_time_played_is_never_negative_after_a_clock_step(self):
+        """Test the real clock cannot produce a negative play time."""
+        tracker = StatsTracker()
+
+        with patch("time.time", return_value=time.time() - 86400):
+            self.assertGreaterEqual(tracker.get_time_played(), 0.0)
+
+
+class TestTimeAcrossSaveAndLoad(unittest.TestCase):
+    """Test that play time accumulates across a save/load cycle."""
+
+    def test_accumulated_time_survives_a_save_load_cycle(self):
+        """Test a saved total is banked and the clock resumes from it."""
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker()
+            clock.advance(60.0)
+            data = tracker.to_dict()
+
+            self.assertAlmostEqual(data["accumulated_seconds"], 60.0, places=6)
+
+            # Eight hours pass with the game closed, then the save is loaded.
+            clock.advance(8 * 3600)
+            restored = StatsTracker.from_dict(data)
+
+            self.assertAlmostEqual(restored.get_time_played(), 60.0, places=6)
+
+            # Play resumes; the new session adds to the banked total.
+            clock.advance(45.0)
+            self.assertAlmostEqual(restored.get_time_played(), 105.0, places=6)
+
+    def test_time_away_from_the_game_is_not_counted(self):
+        """Test repeated save/quit/resume cycles only count time in-game."""
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker()
+            for _ in range(3):
+                clock.advance(120.0)  # play for two minutes
+                data = tracker.to_dict()
+                clock.advance(24 * 3600)  # quit for a day
+                tracker = StatsTracker.from_dict(data)
+
+            self.assertAlmostEqual(tracker.get_time_played(), 360.0, places=6)
+
+    def test_old_format_save_loads_without_error(self):
+        """Test a pre-accumulation save (start_time only) still loads."""
+        data = {
+            "questions_answered": 10,
+            "questions_correct": 7,
+            "questions_wrong": 3,
+            "start_time": time.time() - 86400,  # saved a day ago
+        }
+
+        tracker = StatsTracker.from_dict(data)
+
+        self.assertEqual(tracker.questions_answered, 10)
+        self.assertEqual(tracker.questions_correct, 7)
+        self.assertEqual(tracker.questions_wrong, 3)
+        # The wall-clock timestamp is not play time, so nothing is carried over
+        # rather than importing a day of it.
+        self.assertEqual(tracker.accumulated_seconds, 0.0)
+        self.assertLess(tracker.get_time_played(), 1.0)
+
+    def test_negative_accumulated_seconds_is_clamped(self):
+        """Test a corrupt negative total does not produce negative play time."""
+        tracker = StatsTracker.from_dict({"accumulated_seconds": -500.0})
+
+        self.assertEqual(tracker.accumulated_seconds, 0.0)
+        self.assertGreaterEqual(tracker.get_time_played(), 0.0)
+
+    def test_non_numeric_accumulated_seconds_does_not_crash(self):
+        """Test a corrupt total degrades to zero instead of raising.
+
+        ``GameSerializer.load`` only catches ValueError, so a ``null`` or a
+        string here must not reach ``float()`` unguarded.
+        """
+        bad_values: list[object] = [None, "twenty", [], {}]
+        for bad in bad_values:
+            with self.subTest(value=bad):
+                tracker = StatsTracker.from_dict({"accumulated_seconds": bad})
+
+                self.assertEqual(tracker.accumulated_seconds, 0.0)
 
 
 class TestScoreCalculation(unittest.TestCase):
@@ -342,8 +454,7 @@ class TestFinalStats(unittest.TestCase):
 
     def test_final_stats_with_game_progress(self):
         """Test final stats with actual game progress."""
-        start_time = time.time() - 300  # 5 minutes ago
-        tracker = StatsTracker(start_time=start_time)
+        tracker = StatsTracker(accumulated_seconds=300)  # 5 minutes already played
 
         # Simulate game progress
         for _ in range(7):
@@ -420,19 +531,22 @@ class TestSerialization(unittest.TestCase):
 
     def test_to_dict(self):
         """Test converting StatsTracker to dictionary."""
-        tracker = StatsTracker(
-            questions_answered=10,
-            questions_correct=7,
-            questions_wrong=3,
-            start_time=1234567890.0,
-        )
-
-        data = tracker.to_dict()
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            tracker = StatsTracker(
+                questions_answered=10,
+                questions_correct=7,
+                questions_wrong=3,
+                accumulated_seconds=1000.0,
+            )
+            clock.advance(234.0)
+            data = tracker.to_dict()
 
         self.assertEqual(data["questions_answered"], 10)
         self.assertEqual(data["questions_correct"], 7)
         self.assertEqual(data["questions_wrong"], 3)
-        self.assertEqual(data["start_time"], 1234567890.0)
+        # The running total, not the banked figure alone.
+        self.assertAlmostEqual(data["accumulated_seconds"], 1234.0, places=6)
 
     def test_from_dict(self):
         """Test creating StatsTracker from dictionary."""
@@ -440,7 +554,7 @@ class TestSerialization(unittest.TestCase):
             "questions_answered": 10,
             "questions_correct": 7,
             "questions_wrong": 3,
-            "start_time": 1234567890.0,
+            "accumulated_seconds": 1234.0,
         }
 
         tracker = StatsTracker.from_dict(data)
@@ -448,7 +562,7 @@ class TestSerialization(unittest.TestCase):
         self.assertEqual(tracker.questions_answered, 10)
         self.assertEqual(tracker.questions_correct, 7)
         self.assertEqual(tracker.questions_wrong, 3)
-        self.assertEqual(tracker.start_time, 1234567890.0)
+        self.assertEqual(tracker.accumulated_seconds, 1234.0)
 
     def test_from_dict_with_defaults(self):
         """Test from_dict uses defaults for missing keys."""
@@ -459,25 +573,27 @@ class TestSerialization(unittest.TestCase):
         self.assertEqual(tracker.questions_answered, 0)
         self.assertEqual(tracker.questions_correct, 0)
         self.assertEqual(tracker.questions_wrong, 0)
-        self.assertGreater(tracker.start_time, 0)  # Uses current time
+        self.assertEqual(tracker.accumulated_seconds, 0.0)
 
     def test_round_trip_serialization(self):
         """Test serialization round-trip preserves state."""
-        original = StatsTracker(
-            questions_answered=15,
-            questions_correct=12,
-            questions_wrong=3,
-            start_time=1234567890.0,
-        )
+        clock = FakeClock()
+        with patch("time.monotonic", clock):
+            original = StatsTracker(
+                questions_answered=15,
+                questions_correct=12,
+                questions_wrong=3,
+                accumulated_seconds=1234.0,
+            )
 
-        # Convert to dict and back
-        data = original.to_dict()
-        restored = StatsTracker.from_dict(data)
+            # Convert to dict and back
+            data = original.to_dict()
+            restored = StatsTracker.from_dict(data)
 
-        self.assertEqual(restored.questions_answered, original.questions_answered)
-        self.assertEqual(restored.questions_correct, original.questions_correct)
-        self.assertEqual(restored.questions_wrong, original.questions_wrong)
-        self.assertEqual(restored.start_time, original.start_time)
+            self.assertEqual(restored.questions_answered, original.questions_answered)
+            self.assertEqual(restored.questions_correct, original.questions_correct)
+            self.assertEqual(restored.questions_wrong, original.questions_wrong)
+            self.assertAlmostEqual(restored.get_time_played(), original.get_time_played(), places=6)
 
 
 if __name__ == "__main__":

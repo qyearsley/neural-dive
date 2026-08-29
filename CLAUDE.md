@@ -86,7 +86,7 @@ Read and write state on the manager that owns it:
 | --- | --- |
 | `current_floor`, `max_floors` | `floor_manager` |
 | `coherence`, `max_coherence`, `knowledge_modules` | `player_manager` |
-| `questions_answered/correct/wrong`, `start_time` | `stats_tracker` |
+| `questions_answered/correct/wrong`, `accumulated_seconds` | `stats_tracker` |
 | `npcs`, `conversations` | `npc_manager` |
 | `quest_active`, `completed_npcs` | `quest_manager` |
 | `active_conversation`, `active_terminal`, `active_inventory`, `active_snippet`, `show_greeting`, `last_answer_response`, `text_input_buffer`, `eliminated_answers` | `conversation_engine` |

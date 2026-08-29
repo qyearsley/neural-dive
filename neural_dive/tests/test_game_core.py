@@ -9,7 +9,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import tempfile
+import time
 import unittest
+from unittest.mock import patch
 
 from neural_dive.enums import NPCType
 from neural_dive.game import Game
@@ -438,6 +440,57 @@ class TestSaveLoad(unittest.TestCase):
         self.assertEqual(
             sorted((npc.name, npc.x, npc.y) for npc in game2.npc_manager.npcs), saved_npcs
         )
+
+    def test_loading_a_save_does_not_count_the_time_the_game_was_closed(self):
+        """Time Played must exclude the gap between saving and resuming.
+
+        The tracker used to keep a wall-clock ``start_time``, so a run saved and
+        resumed the next day reported the intervening night as time played.
+        """
+        game1 = Game(seed=42, random_npcs=False)
+        game1.stats_tracker.accumulated_seconds = 90.0
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "play_time.json"
+            game1.save_game(str(save_path))
+
+            # Eight hours pass with the game closed.
+            with patch("time.time", return_value=time.time() + 8 * 3600):
+                game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertAlmostEqual(game2.stats_tracker.get_time_played(), 90.0, delta=2.0)
+        self.assertAlmostEqual(game2.get_final_stats()["time_played"], 90.0, delta=2.0)
+
+    def test_loading_an_old_format_save_does_not_report_wall_clock_time(self):
+        """A save with only the legacy top-level fields must still load."""
+        game1 = Game(seed=42, random_npcs=False)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "old_format.json"
+            game1.save_game(str(save_path))
+
+            # Rewrite the save the way a pre-StatsTracker version wrote it:
+            # no "stats_tracker" blob, just a wall-clock start_time from a
+            # day ago alongside the question counts.
+            with open(save_path) as f:
+                save_data = json.load(f)
+            del save_data["stats_tracker"]
+            save_data["start_time"] = time.time() - 86400
+            save_data["questions_answered"] = 4
+            save_data["questions_correct"] = 3
+            save_data["questions_wrong"] = 1
+            with open(save_path, "w") as f:
+                json.dump(save_data, f)
+
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(game2.stats_tracker.questions_answered, 4)
+        self.assertEqual(game2.stats_tracker.questions_correct, 3)
+        self.assertEqual(game2.stats_tracker.questions_wrong, 1)
+        # The day-old timestamp is discarded rather than reported as play time.
+        self.assertLess(game2.stats_tracker.get_time_played(), 60.0)
 
 
 class TestGameStatistics(unittest.TestCase):
