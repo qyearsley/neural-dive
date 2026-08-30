@@ -47,7 +47,7 @@ neural_dive/
 ├── data_loader.py           # Loads questions, NPCs, levels, snippets
 ├── data/
 │   ├── content/algorithms/  # Canonical content (questions, NPCs, levels)
-│   └── levels.py            # Re-export shim → content/algorithms/levels.py
+│   └── levels.py            # Re-exports content/algorithms/levels.py (live imports)
 ├── managers/
 │   ├── player_manager.py        # Coherence, knowledge, inventory
 │   ├── npc_manager.py           # NPC generation, movement AI, opinions
@@ -106,8 +106,15 @@ the appropriate manager + event.
 
 **Content is loaded from `data/content/algorithms/`.** Old paths
 (`data/npcs.json`, `data/questions.json`) were deleted; only the canonical
-content set remains. `data/levels.py` is a thin re-export shim for legacy
-imports — edit `data/content/algorithms/levels.py` instead.
+content set remains. Edit `data/content/algorithms/levels.py`, not
+`data/levels.py`.
+
+`data/levels.py` re-exports from that canonical file, but do not read "shim" as
+"dead". Three live call sites import through it — `data_loader.py:187`
+(`PARSED_LEVELS`), `managers/npc_manager.py:20` (`BOSS_NPCS`), and
+`managers/floor_entity_generator.py:19` (`ZONE_TERMINALS`) — and each hardcodes
+the algorithms set, so terminal content and the level fallback ignore
+`content_set` entirely. Changing what it re-exports changes runtime behaviour.
 
 **Floor requirements are dynamic**, computed by
 `data_loader.compute_floor_requirements` from each NPC's `floor` and

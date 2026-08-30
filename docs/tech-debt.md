@@ -40,12 +40,6 @@ Last audited: 2026-08-18.
   before anything else starts writing that file. The per-answer write is also
   deliberate: a run killed with Ctrl-C must not lose its history, and the file
   is a couple of KB.
-- **`CLAUDE.md` contradicts the `data/levels.py` note above.** Its Layout section
-  calls the file a "Re-export shim" and its Architecture notes say it is "a thin
-  re-export shim for legacy imports — edit `data/content/algorithms/levels.py`
-  instead." The Notes entry above is the accurate one: it is load-bearing, and
-  both of its consumers hardcode the algorithms set. Anyone trusting `CLAUDE.md`
-  would misjudge what touching that file affects.
 - **`terminals.json` is authored but unwired.** Each content set ships a
   `terminals.json` with 10 reference entries (Big-O guide, SOLID, TCP, design
   patterns). No code reads it — terminal content comes from `ZONE_TERMINALS` in
@@ -60,6 +54,16 @@ Last audited: 2026-08-18.
   `movement_controller`. Either publish it from `StateManager` or drop the event.
 
 ## Resolved
+
+- **`CLAUDE.md` contradicted the `data/levels.py` note above** (fixed
+  2026-08-30). Its Architecture notes called the file "a thin re-export shim for
+  legacy imports", which invited treating it as dead code. The imports are live:
+  `data_loader.py:187`, `managers/npc_manager.py:20`, and
+  `managers/floor_entity_generator.py:19` all reach level data through it, and
+  each hardcodes the algorithms set. `CLAUDE.md` now names the three call sites
+  and says changing what the module re-exports changes runtime behaviour. The
+  underlying design issue — the hardcoded content set — is unchanged and still
+  recorded in Notes above.
 
 - **`Game` was a forwarding facade** — 21 properties and 16 setters forwarding to
   manager state, so every mutation flowed through `Game` and a reader had to trace
