@@ -603,52 +603,17 @@ def _weak_areas_line(game: Game) -> str | None:
     return "Weak areas: " + ", ".join(f"{topic} ({wrong} missed)" for topic, wrong, _ in topics)
 
 
-def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme):
-    """Draw victory screen with final statistics"""
+def format_time(seconds: float) -> str:
+    """Seconds as "3m 07s", for the end screens."""
+    minutes = int(seconds // 60)
+    secs = int(seconds % 60)
+    return f"{minutes}m {secs}s"
+
+
+def _end_screen_lines(game: Game) -> list[str]:
+    """The run summary both end screens show. An empty string is a blank line."""
     stats = game.get_final_stats()
-
-    # Clear screen
-    print(backend.home + backend.clear, end="")
-
-    # Calculate centered position
-    width = min(VICTORY_SCREEN_MAX_WIDTH, backend.width - OVERLAY_SCREEN_MARGIN)
-    height = min(VICTORY_SCREEN_MAX_HEIGHT, backend.height - OVERLAY_SCREEN_MARGIN)
-    start_x = (backend.width - width) // 2
-    start_y = (backend.height - height) // 2
-
-    # Draw background
-    for y in range(start_y, start_y + height):
-        print(backend.move_xy(start_x, y) + backend.black_on_white(" " * width), end="")
-
-    # Draw border
-    success_color = get_color_func(backend, f"bold_{colors.ui_success}", "bold_green")
-    _draw_overlay_border(backend, start_x, start_y, width, height, colors.ui_success)
-
-    current_y = start_y + 1
-
-    # Title
-    title = "★ VICTORY ★"
-    print(
-        backend.move_xy(start_x + (width - len(title)) // 2, current_y) + success_color(title),
-        end="",
-    )
-    current_y += 1
-
-    subtitle = "Neural Dive Complete"
-    print(
-        backend.move_xy(start_x + (width - len(subtitle)) // 2, current_y)
-        + backend.bold_black(subtitle),
-        end="",
-    )
-    current_y += 2
-
-    # Stats
-    def format_time(seconds):
-        minutes = int(seconds // 60)
-        secs = int(seconds % 60)
-        return f"{minutes}m {secs}s"
-
-    stats_lines = [
+    lines = [
         f"Final Score: {stats['score']}",
         "",
         f"Questions Answered: {stats['questions_answered']}",
@@ -662,21 +627,65 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
         f"Time Played: {format_time(stats['time_played'])}",
         f"Deepest Layer: {stats['current_floor']}/{game.floor_manager.max_floors}",
     ]
-
     weak_areas = _weak_areas_line(game)
     if weak_areas:
-        stats_lines.extend(["", weak_areas])
+        lines.extend(["", weak_areas])
+    return lines
 
-    for line in stats_lines:
-        if current_y < start_y + height - 2:
-            if line == "":
-                current_y += 1
-                continue
-            # Center align stats
-            print(backend.move_xy(start_x + 2, current_y) + backend.bold_black(line), end="")
+
+def _draw_end_screen(
+    backend: RenderBackend,
+    game: Game,
+    colors: ColorScheme,
+    title: str,
+    subtitle: str,
+    accent: str,
+) -> None:
+    """Draw a full-screen run summary. Both endings go through here.
+
+    They did not always. The victory screen was a function here and the game
+    over screen was twenty lines of raw terminal escapes inline in the main
+    loop, which is why only one of them ever showed any statistics -- and the
+    one that did not is the ending where the weak-areas line would help most.
+    Sharing the body also makes both testable against `TestBackend`, which the
+    inline version could not be.
+    """
+    print(backend.home + backend.clear, end="")
+
+    width = min(VICTORY_SCREEN_MAX_WIDTH, backend.width - OVERLAY_SCREEN_MARGIN)
+    height = min(VICTORY_SCREEN_MAX_HEIGHT, backend.height - OVERLAY_SCREEN_MARGIN)
+    start_x = (backend.width - width) // 2
+    start_y = (backend.height - height) // 2
+
+    for y in range(start_y, start_y + height):
+        print(backend.move_xy(start_x, y) + backend.black_on_white(" " * width), end="")
+
+    accent_color = get_color_func(backend, f"bold_{accent}", "bold")
+    _draw_overlay_border(backend, start_x, start_y, width, height, accent)
+
+    current_y = start_y + 1
+    print(
+        backend.move_xy(start_x + (width - len(title)) // 2, current_y) + accent_color(title),
+        end="",
+    )
+    current_y += 1
+
+    print(
+        backend.move_xy(start_x + (width - len(subtitle)) // 2, current_y)
+        + backend.bold_black(subtitle),
+        end="",
+    )
+    current_y += 2
+
+    for line in _end_screen_lines(game):
+        if current_y >= start_y + height - 2:
+            break
+        if line == "":
             current_y += 1
+            continue
+        print(backend.move_xy(start_x + 2, current_y) + backend.bold_black(line), end="")
+        current_y += 1
 
-    # Footer
     print(
         backend.move_xy(start_x + 2, start_y + height - 2)
         + get_color_func(backend, f"bold_{colors.ui_primary}", "bold")("[Press Q to quit]"),
@@ -684,3 +693,33 @@ def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme)
     )
 
     sys.stdout.flush()
+
+
+def draw_victory_screen(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
+    """The run was finished: a boss on the final layer went down."""
+    _draw_end_screen(
+        backend,
+        game,
+        colors,
+        title="\u2605 VICTORY \u2605",
+        subtitle="Neural Dive Complete",
+        accent=colors.ui_success,
+    )
+
+
+def draw_game_over_screen(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
+    """Coherence ran out.
+
+    The same summary as the victory screen, deliberately. This ending used to
+    show two lines of red text over the map and nothing else -- so the score,
+    the accuracy, the time and the weak-areas line were all invisible at exactly
+    the moment they are worth reading.
+    """
+    _draw_end_screen(
+        backend,
+        game,
+        colors,
+        title="SYSTEM FAILURE",
+        subtitle="Coherence lost",
+        accent=colors.ui_error,
+    )

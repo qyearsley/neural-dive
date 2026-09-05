@@ -8,7 +8,8 @@ focused modules:
 - ``overlay_renderer`` -- modal panels and the victory screen
 - ``render_helpers`` -- shared colour and wrapped-text primitives
 
-``draw_victory_screen`` and ``OverlayRenderer`` are re-exported here because
+``draw_victory_screen``, ``draw_game_over_screen`` and ``OverlayRenderer`` are
+re-exported here because
 callers and tests have always reached for them through this module.
 """
 
@@ -28,6 +29,7 @@ from neural_dive.overlay_renderer import (
     create_overlay,
     draw_completion_overlay,
     draw_conversation_overlay,
+    draw_game_over_screen,
     draw_inventory_overlay,
     draw_snippet_overlay,
     draw_terminal_overlay,
@@ -49,6 +51,7 @@ __all__ = [
     "draw_inventory_overlay",
     "draw_snippet_overlay",
     "draw_terminal_overlay",
+    "draw_game_over_screen",
     "draw_victory_screen",
 ]
 

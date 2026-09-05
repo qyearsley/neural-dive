@@ -65,7 +65,7 @@ class EndGameHandler:
     """Handles input for end game states (victory and game over).
 
     This handler processes input when the game has ended, either through
-    victory (collecting all knowledge) or failure (coherence <= 0).
+    victory (a boss on the final layer defeated) or failure (coherence <= 0).
     """
 
     def handle(self, key: Keystroke, game: Game, term: Terminal) -> InputResult:

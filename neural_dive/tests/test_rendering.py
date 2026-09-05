@@ -618,3 +618,144 @@ class TestEntityRenderers(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class _StubBackend:
+    """The blessed-shaped surface the end screens actually use.
+
+    `draw_victory_screen` and `draw_game_over_screen` build escape sequences as
+    strings and `print` them, rather than going through `backend.draw_text` --
+    which is why `TestBackend` cannot record them and why the twelve tests in
+    `test_rendering_backend.py` are still skipped. Until that conversion
+    happens, the honest way to test these two is to give them the attributes
+    they read and capture stdout.
+    """
+
+    width = 100
+    height = 40
+    home = ""
+    clear = ""
+
+    def move_xy(self, x, y):
+        return ""
+
+    def bold_black(self, text):
+        return text
+
+    def black_on_white(self, text):
+        return text
+
+    def get_color_func(self, color, bold=False):
+        return lambda text: text
+
+    def __getattr__(self, name):
+        # Colour helpers are looked up by name (`bold_green`, `bold_red`, ...),
+        # so anything else this reads is an identity function too.
+        return lambda text="": text
+
+
+class TestEndScreens(unittest.TestCase):
+    """Both endings show the run summary. Only one of them used to.
+
+    The game over screen was twenty lines of raw terminal escapes inline in the
+    main loop -- two strings, "SYSTEM FAILURE - COHERENCE LOST" and "Press Q to
+    quit", over the still-drawn map. So the score, the accuracy, the time and
+    the weak-areas line were all invisible at the one ending where knowing what
+    you got wrong helps most.
+    """
+
+    def _game(self):
+        game = MagicMock()
+        game.profile = None
+        game.questions = {}
+        game.get_final_stats.return_value = {
+            "score": 1234,
+            "questions_answered": 20,
+            "questions_correct": 15,
+            "questions_wrong": 5,
+            "accuracy": 75.0,
+            "npcs_completed": 7,
+            "knowledge_modules": 3,
+            "final_coherence": 0,
+            "time_played": 187,
+            "current_floor": 3,
+        }
+        game.player_manager.max_coherence = 100
+        game.floor_manager.max_floors = 3
+        return game
+
+    def _render(self, draw):
+        from contextlib import redirect_stdout
+        import io
+
+        from neural_dive.themes import get_theme
+
+        _chars, colors = get_theme()
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            draw(_StubBackend(), self._game(), colors)
+        return buffer.getvalue()
+
+    def test_victory_screen_shows_the_summary(self):
+        from neural_dive.overlay_renderer import draw_victory_screen
+
+        output = self._render(draw_victory_screen)
+        self.assertIn("VICTORY", output)
+        self.assertIn("Final Score: 1234", output)
+        self.assertIn("Accuracy: 75.0%", output)
+
+    def test_game_over_screen_shows_the_same_summary(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen
+
+        output = self._render(draw_game_over_screen)
+        self.assertIn("SYSTEM FAILURE", output)
+        self.assertIn("Final Score: 1234", output)
+        self.assertIn("Accuracy: 75.0%", output)
+        self.assertIn("Questions Answered: 20", output)
+        self.assertIn("Deepest Layer: 3/3", output)
+
+    def test_game_over_screen_says_how_to_leave(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen
+
+        self.assertIn("Press Q to quit", self._render(draw_game_over_screen))
+
+    def test_the_two_screens_differ_only_in_their_heading(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen, draw_victory_screen
+
+        won = self._render(draw_victory_screen)
+        lost = self._render(draw_game_over_screen)
+        self.assertNotIn("VICTORY", lost)
+        self.assertNotIn("SYSTEM FAILURE", won)
+        for line in ("Final Score: 1234", "NPCs Defeated: 7", "Time Played: 3m 7s"):
+            self.assertIn(line, won)
+            self.assertIn(line, lost)
+
+
+class TestFormatTime(unittest.TestCase):
+    """Was a closure inside `draw_victory_screen`, so it could not be tested and
+    the game over screen could not reuse it."""
+
+    def test_under_a_minute(self):
+        from neural_dive.overlay_renderer import format_time
+
+        self.assertEqual(format_time(45), "0m 45s")
+
+    def test_whole_minutes(self):
+        from neural_dive.overlay_renderer import format_time
+
+        self.assertEqual(format_time(120), "2m 0s")
+
+    def test_minutes_and_seconds(self):
+        from neural_dive.overlay_renderer import format_time
+
+        self.assertEqual(format_time(187), "3m 7s")
+
+    def test_fractional_seconds_are_dropped(self):
+        from neural_dive.overlay_renderer import format_time
+
+        self.assertEqual(format_time(59.9), "0m 59s")
+
+    def test_zero(self):
+        from neural_dive.overlay_renderer import format_time
+
+        self.assertEqual(format_time(0), "0m 0s")

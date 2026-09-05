@@ -22,7 +22,7 @@ from neural_dive.input_handler import (
     OverlayHandler,
 )
 from neural_dive.player_profile import PlayerProfile, format_profile_summary
-from neural_dive.rendering import draw_game, draw_victory_screen
+from neural_dive.rendering import draw_game, draw_game_over_screen, draw_victory_screen
 from neural_dive.themes import get_theme
 
 
@@ -79,17 +79,7 @@ def run_interactive(game: Game, chars, colors):
 
                 # Check for game over
                 if game.player_manager.coherence <= 0:
-                    draw_game(backend, game, chars, colors, redraw_all=first_draw)
-                    print(
-                        term.move_xy(0, term.height // 2)
-                        + term.center(term.bold_red("SYSTEM FAILURE - COHERENCE LOST")).rstrip()
-                    )
-                    print(
-                        term.move_xy(0, term.height // 2 + 2)
-                        + term.center("Press Q to quit").rstrip()
-                    )
-                    sys.stdout.flush()
-                    first_draw = False
+                    draw_game_over_screen(backend, game, colors)
 
                     key = term.inkey(timeout=0.1)
                     if key:
