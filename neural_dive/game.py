@@ -20,6 +20,7 @@ from neural_dive.config import (
     MAX_FLOORS,
 )
 from neural_dive.difficulty import DifficultyLevel, DifficultySettings
+from neural_dive.events import ItemPickedUp
 
 if TYPE_CHECKING:
     import random
@@ -314,6 +315,15 @@ class Game:
         self.message = result.message
         if result.old_position is not None:
             self.old_player_pos = result.old_position
+
+        # `ItemPickedUp` is published here rather than in the controller, which
+        # has no event bus. Before this it was the one event in events.py that
+        # nothing ever fired: defined, documented, referenced only by its own
+        # test, and silently absent from every subscriber that asked for it.
+        if result.picked_up is not None:
+            self.event_bus.publish(
+                ItemPickedUp(result.picked_up.name, result.picked_up.item_type.value)
+            )
 
         return result.success
 

@@ -1,7 +1,12 @@
 """Data loading utilities for Neural Dive.
 
-Loads questions, NPCs, and terminals from JSON files.
-Supports multiple content sets for different learning topics.
+Loads questions and NPCs from JSON files. Supports multiple content sets for
+different learning topics.
+
+Terminal text is deliberately not here: it comes from `ZONE_TERMINALS` in a
+content set's `levels.py`, which `floor_entity_generator` imports. There used to
+be a `terminals.json` beside the other two that nothing read, and this docstring
+used to claim it was loaded.
 """
 
 from __future__ import annotations

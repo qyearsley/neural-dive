@@ -14,7 +14,9 @@ import unittest
 from unittest.mock import patch
 
 from neural_dive.enums import NPCType
+from neural_dive.events import ItemPickedUp
 from neural_dive.game import Game
+from neural_dive.items import HintToken, ItemPickup
 from neural_dive.models import Answer, Conversation, Question
 from neural_dive.question_types import QuestionType
 
@@ -531,3 +533,45 @@ class TestGameStatistics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestItemPickedUpIsPublished(unittest.TestCase):
+    """Walking onto an item announces it on the event bus.
+
+    `ItemPickedUp` was the one event dataclass in events.py with no publisher:
+    defined, documented, and referenced only by its own test. A subscriber that
+    asked for it never heard anything.
+    """
+
+    def setUp(self):
+        self.game = Game(seed=42)
+        self.heard: list[ItemPickedUp] = []
+        self.game.event_bus.subscribe(ItemPickedUp, self.heard.append)
+
+    def _put_an_item_next_to_the_player(self):
+        """Drop a hint token on a walkable square the player can step onto."""
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            x, y = self.game.player.x + dx, self.game.player.y + dy
+            if self.game.movement_controller.is_walkable(x, y, self.game.game_map):
+                item = HintToken()
+                self.game.item_pickups.append(ItemPickup(x, y, item))
+                return dx, dy, item
+        raise AssertionError("The player started walled in, which is a map bug")
+
+    def test_picking_something_up_publishes_the_event(self):
+        dx, dy, item = self._put_an_item_next_to_the_player()
+
+        self.game.move_player(dx, dy)
+
+        self.assertEqual(len(self.heard), 1)
+        self.assertEqual(self.heard[0].item_name, item.name)
+        self.assertEqual(self.heard[0].item_type, item.item_type.value)
+
+    def test_an_ordinary_move_publishes_nothing(self):
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if self.game.movement_controller.is_walkable(
+                self.game.player.x + dx, self.game.player.y + dy, self.game.game_map
+            ):
+                self.game.move_player(dx, dy)
+                break
+        self.assertEqual(self.heard, [])

@@ -296,3 +296,62 @@ class TestMoveResultDataclass(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPickupIsReported(unittest.TestCase):
+    """A move that collects something says so, so `Game` can publish the event.
+
+    `ItemPickedUp` was defined in events.py, documented, referenced only by its
+    own test, and never fired -- because the pickup happens here and this
+    controller has no event bus. `MoveResult.picked_up` is the seam that fixed
+    it: the controller reports, `Game.move_player` publishes.
+    """
+
+    def setUp(self):
+        self.controller = MovementController()
+        self.player = Entity(1, 1, "@", "white", "Player")
+        self.game_map = [
+            ["#", "#", "#", "#", "#"],
+            ["#", ".", ".", ".", "#"],
+            ["#", ".", ".", ".", "#"],
+            ["#", ".", ".", ".", "#"],
+            ["#", "#", "#", "#", "#"],
+        ]
+        self.player_manager = PlayerManager()
+
+    def _move(self, pickups, dx=1, dy=0):
+        return self.controller.move_player(
+            player=self.player,
+            dx=dx,
+            dy=dy,
+            game_map=self.game_map,
+            item_pickups=pickups,
+            stairs=[],
+            player_manager=self.player_manager,
+            is_in_conversation=False,
+        )
+
+    def test_an_ordinary_move_picks_nothing_up(self):
+        self.assertIsNone(self._move([]).picked_up)
+
+    def test_walking_onto_an_item_reports_it(self):
+        item = HintToken()
+        result = self._move([ItemPickup(2, 1, item)])
+        self.assertIs(result.picked_up, item)
+        self.assertTrue(result.success)
+
+    def test_a_full_inventory_picks_nothing_up(self):
+        # The move still succeeds -- you walked onto the square -- but nothing
+        # was collected, so there is nothing to announce.
+        while self.player_manager.add_item(HintToken()):
+            pass
+        result = self._move([ItemPickup(2, 1, HintToken())])
+        self.assertTrue(result.success)
+        self.assertIsNone(result.picked_up)
+        self.assertEqual(result.message, "Inventory full!")
+
+    def test_a_blocked_move_picks_nothing_up(self):
+        # Into the wall at (1, 0), with an item sitting on the far side.
+        result = self._move([ItemPickup(1, 0, HintToken())], dx=0, dy=-1)
+        self.assertFalse(result.success)
+        self.assertIsNone(result.picked_up)

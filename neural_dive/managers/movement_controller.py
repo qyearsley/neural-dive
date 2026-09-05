@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from neural_dive.entities import Entity, Stairs
-    from neural_dive.items import ItemPickup
+    from neural_dive.items import Item, ItemPickup
     from neural_dive.managers.player_manager import PlayerManager
 
 
@@ -23,11 +23,18 @@ class MoveResult:
         success: Whether the movement was successful
         message: Message to display to the player
         old_position: Player's previous position (only set if movement succeeded)
+        picked_up: The item collected by this move, if any.
+
+            Reported rather than announced. This controller has no event bus --
+            it is deliberately a pure-ish mover, and giving it one to publish a
+            single event would be the wrong direction. `Game.move_player` has
+            the bus and publishes `ItemPickedUp` from here.
     """
 
     success: bool
     message: str
     old_position: tuple[int, int] | None = None
+    picked_up: Item | None = None
 
 
 class MovementController:
@@ -124,6 +131,7 @@ class MovementController:
                         success=True,
                         message=f"Picked up {pickup.item.name}!",
                         old_position=old_pos,
+                        picked_up=pickup.item,
                     )
                 else:
                     return MoveResult(
