@@ -22,10 +22,12 @@ make run           # Launch the game
 make run-debug     # Launch with a fixed seed (42) for reproducible debugging
 ```
 
-There is no CI for this repo. `make ci` and the pre-commit hooks are the only
-automatic checks. They run the same ruff/mypy/pytest commands; the hooks also
-run whitespace and JSON fixers plus `scripts/check-lockfile-index.sh`, which
-fails if `uv.lock` references a non-public index.
+`make ci`, the pre-commit hooks, and `.github/workflows/ci.yml` all run the same
+ruff/mypy/pytest commands, deliberately -- one definition of clean rather than
+three that drift. The hooks also run whitespace and JSON fixers plus
+`scripts/check-lockfile-index.sh`, which fails if `uv.lock` references a
+non-public index. CI adds what the hooks cannot: a clean machine, and both ends
+of the supported Python range (3.10 and 3.14).
 
 **Never run bare `uv run` in this repo.** Every `uv run`/`uv sync` re-resolves and
 rewrites `uv.lock` with whatever index `UV_INDEX_URL`/`UV_DEFAULT_INDEX` points

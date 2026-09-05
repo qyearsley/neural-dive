@@ -3,19 +3,20 @@
 Architectural debt and maintainability issues identified for future cleanup.
 Distinct from `known-issues.md` (runtime bugs).
 
-Last audited: 2026-08-18.
+Last audited: 2026-09-05.
 
 ---
 
 ## Highest Impact
 
-- **No CI.** 19k lines and 545 tests, with `make ci` and the pre-commit hooks as
-  the only gate — and the hooks only protect a machine that ran `make hooks`.
-  Nothing verifies a push. A GitHub Actions workflow running `make ci` on push
-  and pull request would close this; `UV_FROZEN=1` is already exported by the
-  Makefile, so `make ci` should work in Actions unchanged. Once it exists, drop
-  the "there is no CI for this repo" notes in `CLAUDE.md` and the `ci` target's
-  comment.
+- **Two renderer modules never made it onto the backend.** `ui_renderer.py` has
+  six `print(` calls and zero `draw_text`, and `entity_renderers.py` has five
+  and zero. Twelve tests in `test_rendering_backend.py` are hard-skipped for
+  exactly this reason, and their skip messages are accurate. It is also why the
+  two end screens have to be tested by capturing stdout against a stub backend
+  rather than through `TestBackend`. The conversion of the *question* renderers
+  is filed under Resolved below, which reads as if the whole job were done; it
+  is not.
 
 ## Notes
 
@@ -40,20 +41,31 @@ Last audited: 2026-08-18.
   before anything else starts writing that file. The per-answer write is also
   deliberate: a run killed with Ctrl-C must not lose its history, and the file
   is a couple of KB.
-- **`terminals.json` is authored but unwired.** Each content set ships a
-  `terminals.json` with 10 reference entries (Big-O guide, SOLID, TCP, design
-  patterns). No code reads it — terminal content comes from `ZONE_TERMINALS` in
-  `levels.py`, which holds zone lore instead. Either wire the JSON up as a second
-  terminal source or delete it; leaving both invites editing the wrong one.
-  Note the carrying cost of leaving it: it is now documented as unused in
-  `README.md`, twice in `docs/content-guide.md`, and here, and
-  `data_loader.py`'s module docstring still claims it "Loads questions, NPCs,
-  and terminals from JSON files."
-- **`ItemPickedUp` is never published.** The event is defined in `events.py` and
-  covered by tests, but no code emits it even though item pickup happens in
-  `movement_controller`. Either publish it from `StateManager` or drop the event.
 
 ## Resolved
+
+- **CI exists** (2026-09-05). `.github/workflows/ci.yml` runs ruff, mypy, pytest
+  and `validate_questions.py` on push and pull request, over a Python matrix of
+  3.10 and 3.14 -- the two ends of the range `requires-python` and the
+  classifiers claim, neither of which anything had ever run before. The
+  lockfile-index check is a second job. The pre-commit hooks stay: they are the
+  faster feedback, and what they cannot do is check a machine that is not
+  yours. The five "there is no CI" notes are gone -- for the record, the entry
+  this replaces said there were two.
+
+- **`terminals.json` was authored and unwired** (deleted 2026-09-05). Each
+  content set shipped one with 10 reference entries that no code read; terminal
+  text comes from `ZONE_TERMINALS` in `levels.py`. Deleted rather than wired up,
+  because the carrying cost had overtaken the file: it was documented as unused
+  in `README.md`, twice in `docs/content-guide.md`, and here, and
+  `data_loader.py`'s module docstring claimed it was loaded. Four explanations
+  for 147 lines nothing used. `ZONE_TERMINALS` remains the one place terminal
+  text lives, which is now simply true rather than true-with-a-caveat.
+- **`ItemPickedUp` is now published** (2026-09-05). It was the one event in
+  `events.py` with no publisher, because the pickup happens in
+  `movement_controller`, which has no event bus. Rather than give it one,
+  `MoveResult` grew a `picked_up` field and `Game.move_player` publishes from
+  there -- the controller reports, the orchestrator announces.
 
 - **`CLAUDE.md` contradicted the `data/levels.py` note above** (fixed
   2026-08-30). Its Architecture notes called the file "a thin re-export shim for

@@ -227,53 +227,12 @@ ZONE_TERMINALS = {
 }
 ```
 
-**Not wired up:** a `terminals.json` file is read by nothing — the algorithms set
-ships one, but `floor_entity_generator` imports `ZONE_TERMINALS` from
-`neural_dive.data.levels` instead. That shim re-exports the algorithms set's
-`levels.py`, so terminal content is currently fixed to the algorithms set no
-matter which content set is loaded.
-
-<details>
-<summary>Older <code>terminals.json</code> shape (unused)</summary>
-
-```json
-{
-  "intro": {
-    "title": "Welcome to Your Content",
-    "content": [
-      "╔══════════════════════════════════════════════════════╗",
-      "║            Content Set Introduction                 ║",
-      "╚══════════════════════════════════════════════════════╝",
-      "",
-      "Welcome! This content set teaches...",
-      "",
-      "Topics covered:",
-      "• Topic 1 - description",
-      "• Topic 2 - description",
-      "• Topic 3 - description",
-      "",
-      "Read terminals like this for helpful information!"
-    ]
-  },
-  "tips": {
-    "title": "Learning Tips",
-    "content": [
-      "╔══════════════════════════════════════════════════════╗",
-      "║                  Study Tips                          ║",
-      "╚══════════════════════════════════════════════════════╝",
-      "",
-      "1. Read all answer options carefully",
-      "2. Look for key words in questions",
-      "3. Review information terminals",
-      "4. Take your time - accuracy matters!",
-      "",
-      "Good luck on your learning journey!"
-    ]
-  }
-}
-```
-
-</details>
+**Terminal text is not JSON.** It lives in `ZONE_TERMINALS` in a content
+set's `levels.py`, and `floor_entity_generator` imports it from
+`neural_dive.data.levels` -- a shim that re-exports the algorithms set. So
+terminal content is currently fixed to the algorithms set no matter which
+content set is loaded, which is the thing to fix if a second set ever needs
+its own terminals.
 
 **Terminal Tips:**
 - Use box drawing characters for visual appeal

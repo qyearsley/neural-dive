@@ -90,7 +90,7 @@ failing. `--stats` prints your most-missed questions and weakest topics;
 **Layers:** (3 total, set by `MAX_FLOORS` in `config.py`)
 - **Layer 1**: Introduction - 5 NPCs covering the basics, including one enemy
 - **Layer 2**: Intermediate challenges - 6 specialists testing your growing knowledge
-- **Layer 3**: Deep Core - three bosses; defeat one to win
+- **Layer 3**: Deep Core - three bosses and one specialist; defeat a boss to win
 
 **Mechanics:**
 - **Coherence** = health (80/100 start, +10 correct, -25 wrong, -40 from enemies)
@@ -151,9 +151,14 @@ make relock        # Regenerate uv.lock after a dependency change
 make clean         # Remove artifacts
 ```
 
-This repo has no CI. `make ci` and the pre-commit hooks are the only automatic
-checks. They run the same linters, type check, and tests; the hooks add
-whitespace/JSON fixers and a check that `uv.lock` only references public PyPI.
+Three things run the same checks, on purpose. `make ci` is what you run before
+pushing; the pre-commit hooks run it on commit, and add whitespace/JSON fixers
+plus a check that `uv.lock` only references public PyPI; and
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs it on every push and
+pull request, on a clean machine, across Python 3.10 and 3.14. The hooks are the
+faster feedback. What they cannot do is check a machine that is not yours --
+which matters here, because the install instructions above tell strangers to
+`pipx install` this.
 
 Use the make targets rather than calling `uv run` directly: they set
 `UV_FROZEN=1`, which stops uv from re-resolving and rewriting `uv.lock` on every
@@ -168,10 +173,12 @@ neural_dive/
 │   │       ├── content.json
 │   │       ├── questions.json
 │   │       ├── npcs.json
-│   │       ├── terminals.json   # unused; terminal text lives in levels.py
 │   │       └── levels.py
 │   ├── snippets.json         # Code snippets awarded by specialists
-│   └── levels.py             # Re-export shim for content/algorithms/levels.py
+│   └── levels.py             # Re-exports content/algorithms/levels.py. Not dead
+│                             # code: data_loader, npc_manager and
+│                             # floor_entity_generator all import through it,
+│                             # and each hardcodes the algorithms set.
 ├── managers/                 # Game state managers
 │   ├── player_manager.py
 │   ├── npc_manager.py
