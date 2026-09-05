@@ -63,23 +63,29 @@ hooks:
 # ruff runs over the whole repo, not just the package: `ndive` and
 # `validate_questions.py` are real Python that nothing was checking, and the
 # hooks and CI have to agree with this or there are two definitions of clean.
+#
+# `ndive` has to be named explicitly. Ruff's default include is `*.py`, so a
+# `.`-only invocation walks straight past an extensionless script -- which meant
+# the first version of this widening silently did not cover the one file it was
+# mostly written for.
+#
 # mypy stays scoped to the package, which is where the types are.
 lint:
-	uv run ruff check .
+	uv run ruff check . ndive
 
 format:
-	uv run ruff format .
+	uv run ruff format . ndive
 
 check: lint
-	uv run ruff format --check .
+	uv run ruff format --check . ndive
 	uv run mypy neural_dive/
 
 typecheck:
 	uv run mypy neural_dive/
 
 fix:
-	uv run ruff check --fix .
-	uv run ruff format .
+	uv run ruff check --fix . ndive
+	uv run ruff format . ndive
 
 # Content validation. Exits non-zero if an NPC references a missing question.
 validate:

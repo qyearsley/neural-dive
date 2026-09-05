@@ -35,9 +35,14 @@ jobs:
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
-      - run: uv sync --locked --all-extras
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
+      # No `--locked`: uv rejects it outright when UV_FROZEN is set, and the
+      # whole workflow died on this line. UV_FROZEN already means "use uv.lock
+      # as it is and never write it", which is the same guarantee.
+      - run: uv sync --all-extras
+      # `. ndive` and not just `.`: ruff's default include is *.py, so the
+      # extensionless `ndive` script is skipped unless it is named.
+      - run: uv run ruff check . ndive
+      - run: uv run ruff format --check . ndive
       - run: uv run mypy neural_dive/
       - run: uv run pytest -q
       # An NPC pointing at a question that does not exist is a content bug that
