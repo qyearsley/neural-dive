@@ -1,5 +1,6 @@
 #!/usr/bin/env -S uv run --script
 # /// script
+# requires-python = ">=3.10"
 # dependencies = [
 #   "blessed>=1.20.0",
 # ]
@@ -17,13 +18,15 @@ Quick Start:
   ndive --help       Show all options
 """
 
-import sys
 import os
+import sys
 
-# Add parent directory to path for development
+# Add this file's directory to the path, so `neural_dive` is importable when
+# the script is run from anywhere. It has to happen before the import below,
+# which is why that import is not at the top of the file.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from neural_dive.__main__ import main
+from neural_dive.__main__ import main  # noqa: E402
 
 if __name__ == "__main__":
     try:

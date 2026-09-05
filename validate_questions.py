@@ -5,10 +5,10 @@ import json
 import sys
 
 # Load data
-with open('neural_dive/data/content/algorithms/npcs.json') as f:
+with open("neural_dive/data/content/algorithms/npcs.json") as f:
     npcs = json.load(f)
 
-with open('neural_dive/data/content/algorithms/questions.json') as f:
+with open("neural_dive/data/content/algorithms/questions.json") as f:
     questions = json.load(f)
 
 print("=" * 70)
@@ -21,7 +21,7 @@ warnings = []
 valid_count = 0
 
 for npc_name, npc_data in npcs.items():
-    question_ids = npc_data.get('questions', [])
+    question_ids = npc_data.get("questions", [])
 
     for q_id in question_ids:
         if q_id not in questions:
@@ -31,7 +31,7 @@ for npc_name, npc_data in npcs.items():
 
 # Check for duplicate questions within same NPC
 for npc_name, npc_data in npcs.items():
-    question_ids = npc_data.get('questions', [])
+    question_ids = npc_data.get("questions", [])
     if len(question_ids) != len(set(question_ids)):
         duplicates = [q for q in set(question_ids) if question_ids.count(q) > 1]
         warnings.append(f"WARNING: {npc_name} has duplicate questions: {duplicates}")
@@ -59,10 +59,10 @@ print("=" * 70)
 
 by_floor = {}
 for npc_name, npc_data in npcs.items():
-    floor = npc_data.get('floor', 0)
+    floor = npc_data.get("floor", 0)
     if floor not in by_floor:
         by_floor[floor] = []
-    by_floor[floor].append((npc_name, len(npc_data.get('questions', []))))
+    by_floor[floor].append((npc_name, len(npc_data.get("questions", []))))
 
 for floor in sorted(by_floor.keys()):
     print(f"\nFloor {floor} ({len(by_floor[floor])} NPCs):")

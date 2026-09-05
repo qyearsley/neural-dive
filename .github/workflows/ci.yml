@@ -1,0 +1,52 @@
+name: CI
+
+# Pull requests as well as pushes, because a check that only runs after the
+# push has already landed reports a problem that is already in main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The pre-commit hooks in .pre-commit-config.yaml run the same checks, and they
+# are the faster feedback. What they cannot do is check a machine that is not
+# yours: they depend on someone having run `make hooks`, and on the local
+# environment being right. This repo's README tells strangers to
+# `pipx install git+https://...`, so a clean-machine check has real value here.
+env:
+  # Matches the Makefile. Without it, uv re-resolves and rewrites uv.lock on
+  # every invocation, baking in whichever index the environment points at.
+  UV_FROZEN: 1
+
+jobs:
+  check:
+    strategy:
+      # Both ends of the supported range. `requires-python` says ">=3.10" and
+      # the classifiers claim 3.10 through 3.13, and until this job existed
+      # nothing had ever run the code on anything but the developer's 3.13 --
+      # the floor was asserted, not tested.
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --locked --all-extras
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy neural_dive/
+      - run: uv run pytest -q
+      # An NPC pointing at a question that does not exist is a content bug that
+      # only shows up when a player talks to that NPC.
+      - run: uv run validate_questions.py
+
+  lockfile:
+    name: uv.lock uses public PyPI only
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-lockfile-index.sh

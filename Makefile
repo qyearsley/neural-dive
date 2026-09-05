@@ -58,23 +58,28 @@ dev-install:
 hooks:
 	uv run prek install
 
-# Linting and formatting
+# Linting and formatting.
+#
+# ruff runs over the whole repo, not just the package: `ndive` and
+# `validate_questions.py` are real Python that nothing was checking, and the
+# hooks and CI have to agree with this or there are two definitions of clean.
+# mypy stays scoped to the package, which is where the types are.
 lint:
-	uv run ruff check neural_dive/
+	uv run ruff check .
 
 format:
-	uv run ruff format neural_dive/
+	uv run ruff format .
 
 check: lint
-	uv run ruff format --check neural_dive/
+	uv run ruff format --check .
 	uv run mypy neural_dive/
 
 typecheck:
 	uv run mypy neural_dive/
 
 fix:
-	uv run ruff check --fix neural_dive/
-	uv run ruff format neural_dive/
+	uv run ruff check --fix .
+	uv run ruff format .
 
 # Content validation. Exits non-zero if an NPC references a missing question.
 validate:
@@ -97,9 +102,10 @@ test-verbose:
 test-cov:
 	uv run pytest --cov=neural_dive --cov-report=html --cov-report=term $(ARGS)
 
-# There is no CI for this repo, so this is the gate. Also what the pre-commit
-# hooks run -- see .pre-commit-config.yaml.
-ci: check test
+# What CI runs, and what the pre-commit hooks run -- see
+# .github/workflows/ci.yml and .pre-commit-config.yaml. Three copies of one
+# list is two too many, so they all go through this target where they can.
+ci: check test validate
 
 # Running the game
 run:
