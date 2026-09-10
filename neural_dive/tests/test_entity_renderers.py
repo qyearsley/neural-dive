@@ -221,9 +221,13 @@ class TestNPCHighlighting(unittest.TestCase):
 
         from neural_dive.backends import BlessedBackend
 
-        term = Terminal(force_styling=True)
-        if not term.does_styling:
-            self.skipTest("terminal reports no styling support")
+        # Pin the terminal kind rather than inheriting $TERM. CI runs with
+        # TERM=dumb, where force_styling still reports does_styling == True but
+        # every capability is the empty string -- so all three renders came out
+        # as a bare "A" and the test failed on the runner only.
+        term = Terminal(kind="xterm-256color", force_styling=True)
+        if not term.bold:
+            self.skipTest("no terminfo entry for xterm-256color")
         backend = BlessedBackend(term)
         colors = get_theme()[1]
 
