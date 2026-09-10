@@ -16,19 +16,35 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from neural_dive.conversation import create_randomized_conversation
+from neural_dive.conversation import apply_answer_order, create_randomized_conversation
 from neural_dive.data.levels import BOSS_NPCS
 from neural_dive.entities import Entity
 from neural_dive.managers.npc_movement import NPCMovement
 from neural_dive.managers.npc_relationships import NPCRelationships
 from neural_dive.managers.npc_spawning import NPCSpawner
-from neural_dive.models import Conversation
+from neural_dive.models import Conversation, Question
 
 if TYPE_CHECKING:
     import random
 
     from neural_dive.difficulty import DifficultySettings
     from neural_dive.player_profile import PlayerProfile
+
+
+def _question_key(question: Question) -> str:
+    """Identify a question across runs, for the save file.
+
+    The authored id from ``questions.json`` is the real key. Questions built in
+    code carry no id, so their text stands in -- good enough for a save, which
+    only has to survive until the same content is loaded again.
+
+    Args:
+        question: The question to identify
+
+    Returns:
+        A key that is stable for as long as the content set is
+    """
+    return question.question_id or question.question_text
 
 
 class NPCManager:
@@ -95,7 +111,7 @@ class NPCManager:
         """
         # An empty profile is deliberately not passed through: it would produce
         # all-equal weights but consume the RNG differently, so a first-time
-        # player's seeded run would no longer match previous builds.
+        # player's seeded run would no longer match a run with no profile.
         question_weight = None
         if self.profile is not None and not self.profile.is_empty:
             question_weight = self.profile.question_weighter()
@@ -114,6 +130,7 @@ class NPCManager:
                 randomize_answer_order=True,
                 num_questions=num_questions,
                 question_weight=question_weight,
+                rng=self.rng,
             )
         return conversations
 
@@ -224,6 +241,19 @@ class NPCManager:
                 name: {
                     "completed": conv.completed,
                     "current_question_idx": conv.current_question_idx,
+                    # The exact draw, so a reload resumes the same conversation.
+                    # Without it the reload re-rolled both which questions the
+                    # NPC asks and how many, which could leave the saved index
+                    # past the end of a shorter conversation -- an NPC that
+                    # could never be completed, and so a floor that could never
+                    # be finished.
+                    "questions": [
+                        {
+                            "key": _question_key(question),
+                            "answers": [answer.text for answer in question.answers],
+                        }
+                        for question in conv.questions
+                    ],
                 }
                 for name, conv in self.conversations.items()
             },
@@ -281,10 +311,60 @@ class NPCManager:
 
         # Restore conversation state
         for name, state in data.get("conversations", {}).items():
-            if name in manager.conversations:
-                manager.conversations[name].completed = state.get("completed", False)
-                manager.conversations[name].current_question_idx = state.get(
-                    "current_question_idx", 0
-                )
+            conv = manager.conversations.get(name)
+            if conv is None:
+                continue
+            manager._restore_conversation(conv, state)
 
         return manager
+
+    def _restore_conversation(self, conv: Conversation, state: dict) -> None:
+        """Put one saved conversation back onto its freshly built counterpart.
+
+        ``__init__`` has already drawn a random conversation for this NPC --
+        deliberately, so the RNG stream matches a fresh game of the same seed.
+        This replaces that draw with the one the save recorded.
+
+        Args:
+            conv: The freshly drawn conversation to overwrite
+            state: The saved state for this NPC
+        """
+        saved_questions = state.get("questions")
+        if saved_questions:
+            restored = self._questions_from_save(conv.npc_name, saved_questions)
+            # An empty result means the content no longer has any of the saved
+            # questions. Keeping the fresh draw beats leaving the NPC mute.
+            if restored:
+                conv.questions = restored
+
+        # A save written before the draw was recorded, or one whose content set
+        # has since lost questions, can name an index past the end.
+        conv.current_question_idx = min(state.get("current_question_idx", 0), len(conv.questions))
+        conv.completed = state.get("completed", False)
+
+    def _questions_from_save(self, npc_name: str, saved: list[dict]) -> list[Question]:
+        """Rebuild the drawn questions, in order, from the authored pool.
+
+        Args:
+            npc_name: The NPC whose pool to draw from
+            saved: The per-question records written by :meth:`to_dict`
+
+        Returns:
+            The questions the save recorded, minus any the content no longer
+            defines
+        """
+        template = self.npc_data.get(npc_name, {}).get("conversation")
+        if template is None:
+            return []
+
+        by_key = {_question_key(question): question for question in template.questions}
+
+        restored: list[Question] = []
+        for entry in saved:
+            question = by_key.get(entry.get("key", ""))
+            if question is None:
+                # The content set dropped or renamed this question since the
+                # save. Skip it rather than crash; the rest still resume.
+                continue
+            restored.append(apply_answer_order(question, entry.get("answers", [])))
+        return restored

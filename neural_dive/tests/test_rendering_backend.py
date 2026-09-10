@@ -261,5 +261,65 @@ class TestBackendColorHandling(unittest.TestCase):
         self.assertEqual(result, "Test")
 
 
+class TestDrawGameFrameComposition(unittest.TestCase):
+    """The parts of `draw_game` that are observable through TestBackend.
+
+    Most of `draw_game` still `print()`s, so the tests above stay skipped. The
+    screen clear and the help overlay go through the backend, and both are
+    load-bearing: the clear is how a resize recovers, and the help overlay is
+    the piece the key binding hangs off.
+    """
+
+    def setUp(self):
+        self.game = Game(
+            map_width=50,
+            map_height=25,
+            seed=42,
+            random_npcs=False,
+            content_set="algorithms",
+        )
+        self.chars, self.colors = get_theme()
+
+    def _draw(self, backend, redraw_all=False):
+        from contextlib import redirect_stdout
+        import io
+
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            draw_game(backend, self.game, self.chars, self.colors, redraw_all=redraw_all)
+        return buffer.getvalue()
+
+    def test_full_redraw_clears_the_screen(self):
+        backend = TestBackend(width=80, height=40)
+        self._draw(backend, redraw_all=True)
+
+        self.assertTrue(backend.get_calls_by_type("clear"))
+
+    def test_a_partial_frame_does_not_clear(self):
+        backend = TestBackend(width=80, height=40)
+        self._draw(backend, redraw_all=False)
+
+        self.assertFalse(backend.get_calls_by_type("clear"))
+
+    def test_help_overlay_is_drawn_when_the_engine_flags_it(self):
+        backend = TestBackend(width=100, height=40)
+        self.game.conversation_engine.active_help = True
+
+        self.assertIn("MAP LEGEND", self._draw(backend))
+
+    def test_help_overlay_is_absent_by_default(self):
+        backend = TestBackend(width=100, height=40)
+
+        self.assertNotIn("MAP LEGEND", self._draw(backend))
+
+    def test_a_window_shorter_than_the_map_does_not_draw_past_the_bottom(self):
+        backend = TestBackend(width=80, height=24)
+        self._draw(backend, redraw_all=True)
+
+        positioned = [call for call in backend.draw_calls if call.call_type == "text"]
+        self.assertTrue(positioned)
+        self.assertLess(max(call.y for call in positioned), 24)
+
+
 if __name__ == "__main__":
     unittest.main()

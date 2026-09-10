@@ -22,6 +22,7 @@ from neural_dive.question_renderers import (
     MultipleChoiceRenderer,
     ShortAnswerRenderer,
     YesNoRenderer,
+    answer_key_hint,
     get_display_width,
     get_question_renderer,
 )
@@ -258,8 +259,92 @@ class TestYesNoRenderer(unittest.TestCase):
 
         drawn = _drawn_text(backend)
         self.assertIn("Is the heap balanced?", drawn)
-        self.assertIn("Answer (yes/no):", drawn)
-        self.assertIn("Press Y/N", drawn)
+        self.assertIn("Answer (Y/N):", drawn)
+        self.assertIn("Press Y for yes or N for no", drawn)
+
+
+class TestAnswerKeyHint(unittest.TestCase):
+    """The footer used to say "Press 1-4" whatever was actually selectable."""
+
+    def _question(self, count: int) -> Question:
+        return Question(
+            question_text="?",
+            topic="math",
+            question_type=QuestionType.MULTIPLE_CHOICE,
+            answers=[Answer(text=str(i), correct=False, response="") for i in range(count)],
+        )
+
+    def test_four_answers(self):
+        self.assertEqual(answer_key_hint(self._question(4), set()), "Press 1-4")
+
+    def test_three_answers(self):
+        self.assertEqual(answer_key_hint(self._question(3), set()), "Press 1-3")
+
+    def test_one_answer(self):
+        self.assertEqual(answer_key_hint(self._question(1), set()), "Press 1")
+
+    def test_a_hint_that_removes_the_last_option_keeps_a_range(self):
+        self.assertEqual(answer_key_hint(self._question(4), {3}), "Press 1-3")
+
+    def test_a_hint_that_removes_a_middle_option_lists_the_survivors(self):
+        self.assertEqual(answer_key_hint(self._question(4), {1}), "Press 1/3/4")
+
+    def test_two_gaps(self):
+        self.assertEqual(answer_key_hint(self._question(4), {1, 2}), "Press 1/4")
+
+    def test_no_answers_left(self):
+        self.assertEqual(answer_key_hint(self._question(4), {0, 1, 2, 3}), "")
+
+    def test_no_answers_at_all(self):
+        self.assertEqual(answer_key_hint(self._question(0), set()), "")
+
+    def test_the_footer_reflects_an_eliminated_answer(self):
+        backend = TestBackend()
+        _render(
+            MultipleChoiceRenderer(),
+            backend,
+            _make_mc_question(),
+            game=_fake_game(eliminated={1}),
+        )
+
+        footer = next(call for call in _text_calls(backend) if "ESC/Q to exit" in call.text)
+        self.assertIn("Press 1/3/4", footer.text)
+        self.assertNotIn("1-4", footer.text)
+
+
+class TestInstructionStringsMatchTheHandler(unittest.TestCase):
+    """Two footers told the player to do things the handler never accepted."""
+
+    def _footer(self, renderer, question_type: QuestionType) -> str:
+        backend = TestBackend()
+        question = Question(
+            question_text="Is it?",
+            topic="algorithms",
+            question_type=question_type,
+            correct_answer="yes",
+        )
+        _render(renderer, backend, question)
+        return next(call.text for call in _text_calls(backend) if "to exit" in call.text)
+
+    def test_yes_no_does_not_claim_you_can_type_yes(self):
+        """ConversationHandler submits on the first "y", so "yes" is untypeable."""
+        footer = self._footer(YesNoRenderer(), QuestionType.YES_NO)
+
+        self.assertIn("Press Y for yes or N for no", footer)
+        self.assertNotIn("type answer", footer)
+
+    def test_yes_no_names_the_keys_that_really_exit(self):
+        footer = self._footer(YesNoRenderer(), QuestionType.YES_NO)
+
+        self.assertIn("ESC/X", footer)
+        self.assertNotIn("ESC/Q", footer)
+
+    def test_short_answer_names_the_keys_that_really_exit(self):
+        """The handler exits on ESC or "x"; "q" just types a letter."""
+        footer = self._footer(ShortAnswerRenderer(), QuestionType.SHORT_ANSWER)
+
+        self.assertIn("ESC/X", footer)
+        self.assertNotIn("ESC/Q", footer)
 
 
 class TestRendererRegistry(unittest.TestCase):

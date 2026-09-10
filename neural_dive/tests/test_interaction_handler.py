@@ -477,5 +477,64 @@ class TestFloorCompletion(unittest.TestCase):
         self.assertTrue(result)
 
 
+class TestQuestBonusIsAwardedOnce(unittest.TestCase):
+    """Pressing Space at the quest NPC again must not pay the bonus again.
+
+    ``_handle_quest_npc`` read ``get_completion_bonus`` and awarded it on every
+    interaction, with nothing recording that it had already been paid. No quest
+    NPCs ship in the current content, so this could not fire in a real run --
+    the guard is here so that adding one does not reintroduce it.
+    """
+
+    def setUp(self):
+        from neural_dive.config import QUEST_TARGET_NPCS
+
+        self.player_manager = PlayerManager(coherence=50, max_coherence=1000)
+        self.quest_manager = QuestManager()
+        self.handler = InteractionHandler(
+            player_manager=self.player_manager,
+            conversation_engine=ConversationEngine(),
+            floor_manager=FloorManager(3, 80, 24, 42, {}),
+            quest_manager=self.quest_manager,
+            difficulty_settings=get_difficulty_settings(DifficultyLevel.NORMAL),
+        )
+
+        self.npc = Entity(5, 5, "Q", "yellow", "QUEST_NPC")
+        self.conversation = Conversation(
+            npc_name="QUEST_NPC",
+            npc_type=NPCType.QUEST,
+            greeting="I have a quest!",
+            questions=[],
+        )
+        self.conversations = {"QUEST_NPC": self.conversation}
+
+        # First interaction activates the quest, then finish its objectives.
+        self.handler.interact((5, 6), [], [self.npc], [], self.conversations)
+        for name in QUEST_TARGET_NPCS:
+            self.quest_manager.complete_npc_objective(name)
+
+    def _interact(self):
+        return self.handler.interact((5, 6), [], [self.npc], [], self.conversations)
+
+    def test_the_bonus_lands_once_however_often_the_player_asks(self):
+        before = self.player_manager.coherence
+
+        self._interact()
+        after_first = self.player_manager.coherence
+
+        for _ in range(5):
+            self._interact()
+
+        self.assertGreater(after_first, before)
+        self.assertEqual(self.player_manager.coherence, after_first)
+
+    def test_the_repeat_message_does_not_promise_coherence(self):
+        self._interact()
+
+        result = self._interact()
+
+        self.assertNotIn("Coherence", result.message)
+
+
 if __name__ == "__main__":
     unittest.main()

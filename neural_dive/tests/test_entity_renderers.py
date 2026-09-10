@@ -23,7 +23,9 @@ from neural_dive.entity_renderers import (
     StairsRenderer,
     TerminalRenderer,
     get_entity_renderer,
+    npc_style_name,
 )
+from neural_dive.themes import get_theme
 
 
 def _fake_chars() -> Mock:
@@ -41,6 +43,7 @@ def _fake_colors() -> Mock:
     colors.npc_helper = "blue"
     colors.npc_enemy = "red"
     colors.npc_quest = "yellow"
+    colors.npc_boss = "bright_red"
     colors.terminal = "cyan"
     colors.stairs = "yellow"
     colors.player = "green"
@@ -162,6 +165,87 @@ class TestEntityRendererOutput(unittest.TestCase):
             )
         )
         self.assertIn("N", output)
+
+
+class TestNPCHighlighting(unittest.TestCase):
+    """Required NPCs, bosses and optional NPCs must not look the same.
+
+    The old rule was "bright_<colour> when required, <colour> otherwise", but
+    every theme colour already starts with "bright_", so both branches resolved
+    to the same attribute and produced byte-identical output. README.md claimed
+    required NPCs glowed brighter; no shipped NPC ever did.
+    """
+
+    def test_required_and_optional_use_different_styles(self):
+        colors = _fake_colors()
+        required = npc_style_name("specialist", colors, is_required=True)
+        optional = npc_style_name("specialist", colors, is_required=False)
+
+        self.assertNotEqual(required, optional)
+
+    def test_boss_has_its_own_style(self):
+        colors = _fake_colors()
+        boss = npc_style_name("boss", colors, is_required=False)
+
+        self.assertNotEqual(boss, npc_style_name("specialist", colors, is_required=True))
+        self.assertNotEqual(boss, npc_style_name("specialist", colors, is_required=False))
+        self.assertNotEqual(boss, npc_style_name("enemy", colors, is_required=True))
+
+    def test_boss_uses_the_boss_colour_not_the_specialist_one(self):
+        colors = _fake_colors()
+
+        self.assertIn(colors.npc_boss, npc_style_name("boss", colors, is_required=False))
+
+    def test_every_npc_type_maps_to_a_theme_colour(self):
+        colors = get_theme()[1]
+        for npc_type in ("specialist", "helper", "enemy", "quest", "boss"):
+            style = npc_style_name(npc_type, colors, is_required=False)
+            self.assertTrue(style.startswith("bold_"), msg=f"{npc_type} -> {style}")
+
+    def test_unknown_npc_type_falls_back_to_the_specialist_colour(self):
+        colors = _fake_colors()
+
+        self.assertEqual(
+            npc_style_name("mystery", colors, is_required=False),
+            npc_style_name("specialist", colors, is_required=False),
+        )
+
+    def test_required_and_optional_emit_different_escape_sequences(self):
+        """The regression guard: assert on real terminal output, not the name.
+
+        The previous bug was invisible at the name level too -- both branches
+        computed a *valid* attribute name, just the same one. Rendering through
+        a real BlessedBackend is what proves the player sees a difference.
+        """
+        from blessed import Terminal
+
+        from neural_dive.backends import BlessedBackend
+
+        term = Terminal(force_styling=True)
+        if not term.does_styling:
+            self.skipTest("terminal reports no styling support")
+        backend = BlessedBackend(term)
+        colors = get_theme()[1]
+
+        def draw(is_required: bool, npc_type: str = "specialist") -> str:
+            entity = Mock(x=0, y=0, char="A", npc_type=npc_type)
+            return _render_and_capture(
+                lambda: NPCRenderer().render(
+                    term=backend,
+                    entity=entity,
+                    chars=_fake_chars(),
+                    colors=colors,
+                    is_required=is_required,
+                )
+            )
+
+        required = draw(True)
+        optional = draw(False)
+        boss = draw(False, npc_type="boss")
+
+        self.assertNotEqual(required, optional)
+        self.assertNotEqual(boss, required)
+        self.assertNotEqual(boss, optional)
 
 
 if __name__ == "__main__":

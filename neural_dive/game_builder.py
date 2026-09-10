@@ -171,15 +171,19 @@ class GameInitializer:
         )
 
     @staticmethod
-    def create_conversation_engine() -> ConversationEngine:
+    def create_conversation_engine(rand: random.Random | None = None) -> ConversationEngine:
         """Create and initialize ConversationEngine.
+
+        Args:
+            rand: Random number generator, used for hint-token eliminations so
+                a seeded run stays reproducible (None for a private one)
 
         Returns:
             Initialized ConversationEngine instance
         """
         from neural_dive.managers.conversation_engine import ConversationEngine
 
-        return ConversationEngine()
+        return ConversationEngine(rng=rand)
 
     @staticmethod
     def create_player_manager(difficulty_settings: DifficultySettings) -> PlayerManager:
@@ -509,7 +513,7 @@ class GameManagers:
                 ctx.level_data,
                 ctx.profile,
             ),
-            conversation_engine=GameInitializer.create_conversation_engine(),
+            conversation_engine=GameInitializer.create_conversation_engine(ctx.rand),
             player_manager=GameInitializer.create_player_manager(ctx.difficulty_settings),
             stats_tracker=GameInitializer.create_stats_tracker(),
             quest_manager=GameInitializer.create_quest_manager(),

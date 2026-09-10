@@ -7,7 +7,13 @@ state including active conversations, greetings, responses, and text input.
 
 from __future__ import annotations
 
+import random
+from typing import TYPE_CHECKING
+
 from neural_dive.models import Conversation, Question
+
+if TYPE_CHECKING:
+    from neural_dive.entities import InfoTerminal
 
 
 class ConversationEngine:
@@ -24,21 +30,50 @@ class ConversationEngine:
         active_conversation: Current active conversation, if any
         active_terminal: Currently viewing info terminal, if any
         active_inventory: Whether inventory UI is currently displayed
+        active_help: Whether the glyph/key legend is currently displayed
         show_greeting: Whether to display conversation greeting
         last_answer_response: Last response text from answering a question
         text_input_buffer: Buffer for text-based question answers
+        eliminated_answers: Indices the renderer must skip for the *current*
+            question only. Everything that moves to another question clears it;
+            see :meth:`clear_eliminated_answers`.
     """
 
-    def __init__(self):
-        """Initialize ConversationEngine with default state."""
+    def __init__(self, rng: random.Random | None = None):
+        """Initialize ConversationEngine with default state.
+
+        Args:
+            rng: Generator used to choose which wrong answers a hint token
+                eliminates. The game passes its seeded generator so ``--seed``
+                covers hints too. None builds a private unseeded one.
+        """
+        self.rng = random.Random() if rng is None else rng
         self.active_conversation: Conversation | None = None
-        self.active_terminal = None  # InfoTerminal type, avoiding circular import
+        # Annotated under TYPE_CHECKING rather than left bare: giving __init__
+        # a signature makes mypy infer attribute types, and a bare `= None`
+        # would type this as None and mark every `if active_terminal:` body
+        # unreachable.
+        self.active_terminal: InfoTerminal | None = None
         self.active_inventory: bool = False
+        # The help legend. Modal like the others, but opened only from normal
+        # mode, so it never stacks on top of another overlay and `?` stays a
+        # typeable character inside a short answer.
+        self.active_help: bool = False
         self.active_snippet: dict | None = None  # Currently viewing snippet
         self.show_greeting: bool = False
         self.last_answer_response: str | None = None
         self.text_input_buffer: str = ""
         self.eliminated_answers: set[int] = set()  # Track eliminated answer indices
+
+    def clear_eliminated_answers(self) -> None:
+        """Forget which answers a hint token eliminated.
+
+        Call this whenever the question on screen changes. The indices mean
+        nothing outside the question they were computed for: carried over, they
+        hide an arbitrary slot on the next question, which can be the correct
+        one.
+        """
+        self.eliminated_answers = set()
 
     def start_conversation(self, conversation: Conversation) -> None:
         """Start a new conversation.
@@ -50,7 +85,7 @@ class ConversationEngine:
         self.show_greeting = True
         self.last_answer_response = None
         self.text_input_buffer = ""
-        self.eliminated_answers = set()  # Clear eliminated answers
+        self.clear_eliminated_answers()
 
     def end_conversation(self) -> None:
         """End the current conversation and reset state."""
@@ -58,7 +93,7 @@ class ConversationEngine:
         self.show_greeting = False
         self.last_answer_response = None
         self.text_input_buffer = ""
-        self.eliminated_answers = set()  # Clear eliminated answers
+        self.clear_eliminated_answers()
 
     def answer_question(self, answer_idx: int) -> tuple[bool, str]:
         """
@@ -90,7 +125,7 @@ class ConversationEngine:
 
         # Clear eliminated answers BEFORE advancing to next question
         # to prevent eliminated indices from wrong question appearing on next question
-        self.eliminated_answers = set()
+        self.clear_eliminated_answers()
 
         # Advance to next question
         conv.current_question_idx += 1
@@ -148,10 +183,8 @@ class ConversationEngine:
             return False, "No wrong answers left to eliminate"
 
         # Eliminate up to num_to_eliminate wrong answers
-        import random
-
         to_eliminate = min(num_to_eliminate, len(wrong_answers))
-        eliminated = random.sample(wrong_answers, to_eliminate)
+        eliminated = self.rng.sample(wrong_answers, to_eliminate)
         self.eliminated_answers.update(eliminated)
 
         return True, f"Eliminated {to_eliminate} wrong answer(s)"
@@ -186,7 +219,10 @@ class ConversationEngine:
 
     @classmethod
     def from_dict(
-        cls, data: dict, npc_conversations: dict[str, Conversation]
+        cls,
+        data: dict,
+        npc_conversations: dict[str, Conversation],
+        rng: random.Random | None = None,
     ) -> ConversationEngine:
         """
         Create ConversationEngine from serialized dictionary.
@@ -194,11 +230,12 @@ class ConversationEngine:
         Args:
             data: Serialized conversation engine state
             npc_conversations: Map of NPC names to conversations
+            rng: Generator for hint-token eliminations (None for a private one)
 
         Returns:
             Restored ConversationEngine instance
         """
-        engine = cls()
+        engine = cls(rng=rng)
 
         # Restore active conversation
         active_npc = data.get("active_conversation_npc")

@@ -16,8 +16,30 @@ if TYPE_CHECKING:
     from neural_dive.themes import CharacterSet, ColorScheme
 
 
+def is_on_screen(backend: RenderBackend, x: int, y: int) -> bool:
+    """Report whether a cell is inside the terminal.
+
+    Writing past the last column or the last row makes most terminals wrap and
+    scroll, which shifts the whole frame up by a row and corrupts the display.
+    Every map and entity draw is filtered through this.
+
+    Args:
+        backend: Render backend instance, for its current size
+        x: Column to test
+        y: Row to test
+
+    Returns:
+        True when (x, y) is a cell the backend can address
+    """
+    return 0 <= x < backend.width and 0 <= y < backend.height
+
+
 def draw_map(backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme) -> None:
     """Draw the game map tiles to the terminal.
+
+    Tiles outside the terminal are skipped. The maps are authored at a fixed
+    size (50x25, and 50x30 on the last floor), so a window smaller than that
+    would otherwise scroll the terminal as the map ran off the bottom.
 
     Args:
         backend: Render backend instance for output
@@ -25,13 +47,26 @@ def draw_map(backend: RenderBackend, game: Game, chars: CharacterSet, colors: Co
         chars: Character set for rendering tiles
         colors: Color scheme for tile colors
     """
-    for y in range(len(game.game_map)):
-        for x in range(len(game.game_map[0])):
-            char = game.game_map[y][x]
+    visible_rows = min(len(game.game_map), backend.height)
+    for y in range(visible_rows):
+        row = game.game_map[y]
+        visible_cols = min(len(row), backend.width)
+        for x in range(visible_cols):
+            char = row[x]
             if char == "#":
                 backend.draw_text(x, y, chars.wall, colors.wall, bold=True)
             elif char == ".":
                 backend.draw_text(x, y, chars.floor, colors.floor)
+
+
+def _tile_at(game: Game, x: int, y: int) -> str | None:
+    """The map character at (x, y), or None when the position is off the map."""
+    if not (0 <= y < len(game.game_map)):
+        return None
+    row = game.game_map[y]
+    if not (0 <= x < len(row)):
+        return None
+    return row[x]
 
 
 def clear_old_player_position(
@@ -47,8 +82,9 @@ def clear_old_player_position(
     """
     if game.old_player_pos:
         old_x, old_y = game.old_player_pos
-        char = game.game_map[old_y][old_x]
-        if char == ".":
+        if not is_on_screen(backend, old_x, old_y):
+            return
+        if _tile_at(game, old_x, old_y) == ".":
             backend.draw_text(old_x, old_y, chars.floor, colors.floor)
 
 
@@ -89,8 +125,10 @@ def clear_old_npc_positions(
     """
     for _npc_name, (old_x, old_y) in game.npc_manager.movement.old_positions.items():
         # If not occupied, redraw the floor tile
+        if not is_on_screen(backend, old_x, old_y):
+            continue
         if not _is_position_occupied(game, old_x, old_y):
-            char = game.game_map[old_y][old_x]
+            char = _tile_at(game, old_x, old_y)
             if char == ".":
                 color_func = get_color_func(backend, colors.floor, "cyan")
                 print(backend.move_xy(old_x, old_y) + color_func(chars.floor), end="")
@@ -106,6 +144,9 @@ def draw_entities(
     backend: RenderBackend, game: Game, chars: CharacterSet, colors: ColorScheme
 ) -> None:
     """Draw all game entities including NPCs, terminals, stairs, and player.
+
+    Entities positioned outside the terminal are skipped, for the same reason
+    ``draw_map`` clips: a write past the last row scrolls the whole frame.
 
     Args:
         backend: Render backend instance for output
@@ -123,24 +164,30 @@ def draw_entities(
     # Draw NPCs using NPCRenderer
     npc_renderer = get_entity_renderer(EntityType.NPC)
     for npc in game.npc_manager.npcs:
+        if not is_on_screen(backend, npc.x, npc.y):
+            continue
         is_required = npc.name in required_npcs
         npc_renderer.render(backend, npc, chars, colors, is_required=is_required)
 
     # Draw terminals using TerminalRenderer
     terminal_renderer = get_entity_renderer(EntityType.TERMINAL)
     for terminal in game.terminals:
-        terminal_renderer.render(backend, terminal, chars, colors)
+        if is_on_screen(backend, terminal.x, terminal.y):
+            terminal_renderer.render(backend, terminal, chars, colors)
 
     # Draw stairs using StairsRenderer
     stairs_renderer = get_entity_renderer(EntityType.STAIRS)
     for stair in game.stairs:
-        stairs_renderer.render(backend, stair, chars, colors)
+        if is_on_screen(backend, stair.x, stair.y):
+            stairs_renderer.render(backend, stair, chars, colors)
 
     # Draw item pickups using ItemPickupRenderer
     item_renderer = get_entity_renderer(EntityType.ITEM_PICKUP)
     for pickup in game.item_pickups:
-        item_renderer.render(backend, pickup, chars, colors)
+        if is_on_screen(backend, pickup.x, pickup.y):
+            item_renderer.render(backend, pickup, chars, colors)
 
     # Draw player using PlayerRenderer
     player_renderer = get_entity_renderer(EntityType.PLAYER)
-    player_renderer.render(backend, game.player, chars, colors)
+    if is_on_screen(backend, game.player.x, game.player.y):
+        player_renderer.render(backend, game.player, chars, colors)

@@ -20,9 +20,18 @@ from neural_dive.input_handler import (
     EndGameHandler,
     NormalModeHandler,
     OverlayHandler,
+    overlay_is_open,
 )
 from neural_dive.player_profile import PlayerProfile, format_profile_summary
-from neural_dive.rendering import draw_game, draw_game_over_screen, draw_victory_screen
+from neural_dive.rendering import (
+    ResizeWatcher,
+    draw_game,
+    draw_game_over_screen,
+    draw_too_small_screen,
+    draw_victory_screen,
+    required_terminal_size,
+    terminal_is_too_small,
+)
 from neural_dive.themes import get_theme
 
 
@@ -55,6 +64,14 @@ def run_interactive(game: Game, chars, colors):
     backend = BlessedBackend(term)
     first_draw = True
 
+    # Terminal size is polled once per frame rather than handled through
+    # SIGWINCH. Any change forces a full redraw, because a partial repaint
+    # leaves the old status panel painted at the old row; and a window that
+    # drops below the required size pauses the game behind a resize prompt
+    # instead of scribbling off the edge of the screen.
+    required = required_terminal_size(game)
+    resize_watcher = ResizeWatcher(backend)
+
     # Initialize input handlers
     end_game_handler = EndGameHandler()
     overlay_handler = OverlayHandler()
@@ -64,6 +81,19 @@ def run_interactive(game: Game, chars, colors):
     try:
         with term.cbreak(), term.hidden_cursor():
             while True:
+                if resize_watcher.poll():
+                    first_draw = True
+
+                # Too small: pause, prompt, and recover when it grows again.
+                if terminal_is_too_small(backend, required):
+                    if first_draw:
+                        draw_too_small_screen(backend, required)
+                        first_draw = False
+                    key = term.inkey(timeout=0.2)
+                    if key and key.lower() == "q":
+                        break
+                    continue
+
                 # Update NPC wandering every frame
                 game.update_npc_wandering()
 
@@ -98,12 +128,8 @@ def run_interactive(game: Game, chars, colors):
                     continue
 
                 # Try handlers in priority order
-                # 1. Check overlay mode (inventory, snippets, terminals)
-                if (
-                    game.conversation_engine.active_inventory
-                    or game.conversation_engine.active_snippet
-                    or game.conversation_engine.active_terminal
-                ):
+                # 1. Check overlay mode (help, inventory, snippets, terminals)
+                if overlay_is_open(game):
                     result = overlay_handler.handle(key, game, term)
 
                 # 2. Check conversation mode
@@ -127,6 +153,7 @@ def run_interactive(game: Game, chars, colors):
                         game.message = result.message
                     if result.new_game:
                         game = result.new_game
+                        required = required_terminal_size(game)
                         first_draw = True
 
     except KeyboardInterrupt:
@@ -183,7 +210,14 @@ Examples:
 
 Controls:
   Arrow keys: Move  |  Space/Enter: Interact  |  >/< : Stairs
-  V: Inventory  |  S: Save  |  L: Load  |  Q: Quit
+  V: Inventory  |  S: Save  |  L: Load  |  ?: Help  |  Q: Quit
+  Q and L ask for confirmation first; press Y to go ahead.
+  In a conversation: 1-4 answer, Y/N for yes-no, H hint, S snippet, ESC/X leave
+
+Terminal Size:
+  The map does not scroll. The game refuses to start in a window smaller than
+  the tallest floor plus the status panel, and pauses if you shrink it below
+  that mid-run.
 
 Save Location:
   Games are saved to ~/.neural_dive/save.json by default
@@ -286,20 +320,35 @@ Question History:
             # Always use NORMAL difficulty
             difficulty = DifficultyLevel.NORMAL
 
-            # Adjust map size to terminal if needed
-            map_width = min(args.width, term.width)
-            map_height = min(args.height, term.height - 6)
+            # --width/--height only affect procedurally generated floors.
+            # FloorManager._create_map_for_floor overwrites map_width and
+            # map_height from the authored layout whenever one exists, and the
+            # shipped content authors every floor -- so these are not a way to
+            # fit the game into a small window. There used to be a
+            # min(args.width, term.width) clamp here that looked like one; it
+            # never had any effect.
             random_npcs = not args.fixed
 
             game = Game(
-                map_width=map_width,
-                map_height=map_height,
+                map_width=args.width,
+                map_height=args.height,
                 random_npcs=random_npcs,
                 seed=args.seed,
                 difficulty=difficulty,
                 content_set=content_set,
                 profile=profile,
             )
+
+        required_width, required_height = required_terminal_size(game)
+        if term.width < required_width or term.height < required_height:
+            print(term.clear)
+            print(
+                f"Neural Dive needs a terminal of at least "
+                f"{required_width} columns by {required_height} rows."
+            )
+            print(f"This one is {term.width} by {term.height}.")
+            print("The map does not scroll, so resize the window and start again.")
+            sys.exit(1)
 
         run_interactive(game, chars, colors)
 

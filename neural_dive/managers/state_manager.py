@@ -134,12 +134,7 @@ class StateManager:
             return False
 
         # Perform mutations
-        self.game.conversation_engine.active_conversation = conversation
-        self.game.conversation_engine.show_greeting = True
-        self.game.conversation_engine.last_answer_response = None
-        self.game.conversation_engine.text_input_buffer = ""
-        # Clear eliminated answers
-        self.game.conversation_engine.eliminated_answers = set()
+        self.game.conversation_engine.start_conversation(conversation)
 
         # Emit event
         self.event_bus.publish(ConversationStateChanged("started", npc_name))
@@ -158,12 +153,7 @@ class StateManager:
         npc_name = self.game.conversation_engine.active_conversation.npc_name
 
         # Perform mutations
-        self.game.conversation_engine.active_conversation = None
-        self.game.conversation_engine.show_greeting = False
-        self.game.conversation_engine.last_answer_response = None
-        self.game.conversation_engine.text_input_buffer = ""
-        # Clear eliminated answers
-        self.game.conversation_engine.eliminated_answers = set()
+        self.game.conversation_engine.end_conversation()
 
         # Emit event
         self.event_bus.publish(ConversationStateChanged("ended", npc_name))
@@ -180,9 +170,10 @@ class StateManager:
             correct_answers: Number of correct answers
             total_questions: Total questions answered
         """
-        # Get NPC type for event
+        # Get NPC type for event. data_loader stores this as "npc_type"; reading
+        # "type" meant every NPCDefeated event reported "specialist".
         npc_info = self.game.npc_data.get(npc_name, {})
-        npc_type = npc_info.get("type", "specialist")
+        npc_type = npc_info.get("npc_type", "specialist")
 
         # Emit NPC defeated event
         self.event_bus.publish(NPCDefeated(npc_name, npc_type, correct_answers, total_questions))
@@ -204,14 +195,20 @@ class StateManager:
     def change_floor(self, new_floor: int, direction: str) -> None:
         """Change to a different floor with event emission.
 
+        Builds the new floor's map, moves the player onto it, and respawns its
+        entities -- the same three steps ``Game.use_stairs`` takes. Assigning
+        ``current_floor`` on its own only changed the number: the player stayed
+        on the old map, with the old floor's NPCs and items.
+
         Args:
             new_floor: Floor number to move to
             direction: "up" or "down"
         """
         old_floor = self.game.floor_manager.current_floor
 
-        # Update floor
-        self.game.floor_manager.current_floor = new_floor
+        # Update floor: map, player position, then entities.
+        self.game.floor_manager.generate_floor(new_floor, self.game.player)
+        self.game._generate_floor()
 
         # Emit event
         self.event_bus.publish(FloorChanged(old_floor, new_floor, direction))
@@ -236,10 +233,12 @@ class StateManager:
         """Complete the active quest and award bonus.
 
         Returns:
-            Bonus coherence awarded
+            Bonus coherence awarded (0 if it has already been claimed)
         """
-        # Get bonus from QuestManager
-        bonus = self.game.quest_manager.get_completion_bonus()
+        # Take the bonus from QuestManager, which pays it out only once
+        bonus = self.game.quest_manager.claim_completion_bonus()
+        if not bonus:
+            return 0
 
         # Award bonus
         self.change_coherence(bonus, "quest_completed")

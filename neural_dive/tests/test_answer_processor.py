@@ -380,5 +380,113 @@ class TestQuestionHistoryRecording(AnswerProcessorTestBase):
         self.assertTrue(self.profile.is_empty)
 
 
+class TestCompletedAlwaysMeansCounted(AnswerProcessorTestBase):
+    """A conversation can never be marked complete without the NPC counting.
+
+    ``_validate_conversation_state`` used to set ``completed`` and say
+    "Conversation completed!" while only ``_handle_correct_answer`` ever added
+    the name to ``npcs_completed``. An index left past the end of the question
+    list -- which a reload could produce -- made the NPC go quiet forever
+    without satisfying its floor requirement.
+    """
+
+    def test_an_overrun_index_still_counts_the_npc(self):
+        conv = self.start_conversation([_mc_question()])
+        conv.current_question_idx = 5  # what a reload used to leave behind
+        npcs_completed: set[str] = set()
+
+        success, message, _ = self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=npcs_completed, is_final_floor=False
+        )
+
+        self.assertTrue(success)
+        self.assertIn("completed", message)
+        self.assertTrue(conv.completed)
+        self.assertIn("ALGO_SPIRIT", npcs_completed)
+
+    def test_an_overrun_index_also_credits_the_quest(self):
+        conv = self.start_conversation([_mc_question()])
+        conv.current_question_idx = 5
+
+        self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertIn("ALGO_SPIRIT", self.quest_manager.completed_npcs)
+
+    def test_the_text_path_counts_it_too(self):
+        conv = self.start_conversation([_short_answer_question()])
+        conv.current_question_idx = 5
+        npcs_completed: set[str] = set()
+
+        self.processor.answer_text_question(
+            "log n", npcs_completed=npcs_completed, is_final_floor=False
+        )
+
+        self.assertIn("ALGO_SPIRIT", npcs_completed)
+
+
+class TestEliminatedAnswersDoNotOutlastTheirQuestion(AnswerProcessorTestBase):
+    """Advancing a question drops the hint token's eliminated indices."""
+
+    def test_a_correct_answer_clears_them(self):
+        self.start_conversation([_mc_question(correct_idx=1), _mc_question(correct_idx=3)])
+        self.conversation_engine.eliminated_answers = {3}
+
+        self.processor.answer_multiple_choice(
+            answer_idx=1, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertEqual(self.conversation_engine.eliminated_answers, set())
+
+    def test_finishing_the_conversation_clears_them(self):
+        self.start_conversation([_mc_question(correct_idx=1)])
+        self.conversation_engine.eliminated_answers = {2}
+
+        self.processor.answer_multiple_choice(
+            answer_idx=1, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertEqual(self.conversation_engine.eliminated_answers, set())
+
+
+class TestWrongAnswerSaysTheQuestionRepeats(AnswerProcessorTestBase):
+    """A wrong answer re-asks the same question; the text now says so.
+
+    The retry behaviour itself is unchanged -- only the wording, which used to
+    leave the player looking at a question they had just answered with nothing
+    on screen explaining why.
+    """
+
+    def test_the_response_tells_the_player_to_try_again(self):
+        self.start_conversation([_mc_question(correct_idx=1)])
+
+        _, message, _ = self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertIn("again", message.lower())
+
+    def test_the_question_index_still_does_not_move(self):
+        conv = self.start_conversation([_mc_question(correct_idx=1)])
+
+        self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertEqual(conv.current_question_idx, 0)
+
+    def test_running_out_of_coherence_says_nothing_about_trying_again(self):
+        self.player_manager.coherence = 1
+        self.start_conversation([_mc_question(correct_idx=1)])
+
+        _, message, _ = self.processor.answer_multiple_choice(
+            answer_idx=0, npcs_completed=set(), is_final_floor=False
+        )
+
+        self.assertIn("SYSTEM FAILURE", message)
+        self.assertNotIn("again", message.lower())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -731,6 +731,316 @@ class TestEndScreens(unittest.TestCase):
             self.assertIn(line, lost)
 
 
+class TestEndScreenFitting(unittest.TestCase):
+    """A short window used to lose the tail of the summary, silently.
+
+    Measured before the fix: at 24 rows everything fitted, at 22 rows the
+    weak-areas line vanished, and at 20 rows "Time Played", "Deepest Layer" and
+    "Weak areas" all went -- the three least likely to be missed being the ones
+    that survived.
+    """
+
+    def _entries(self, count: int):
+        from neural_dive.overlay_renderer import _SummaryLine
+
+        return [_SummaryLine(f"line {i}", priority=i) for i in range(count)]
+
+    def test_everything_is_kept_when_it_fits(self):
+        from neural_dive.overlay_renderer import fit_end_screen_lines
+
+        entries = self._entries(5)
+
+        self.assertEqual(len(fit_end_screen_lines(entries, 5)), 5)
+        self.assertEqual(len(fit_end_screen_lines(entries, 50)), 5)
+
+    def test_the_lowest_priority_lines_go_first(self):
+        from neural_dive.overlay_renderer import fit_end_screen_lines
+
+        kept = fit_end_screen_lines(self._entries(5), 2)
+
+        self.assertEqual(kept, ["line 3", "line 4"])
+
+    def test_surviving_lines_keep_their_original_order(self):
+        from neural_dive.overlay_renderer import _SummaryLine, fit_end_screen_lines
+
+        entries = [
+            _SummaryLine("first", 100),
+            _SummaryLine("second", 1),
+            _SummaryLine("third", 50),
+        ]
+
+        self.assertEqual(fit_end_screen_lines(entries, 2), ["first", "third"])
+
+    def test_blank_spacers_are_dropped_before_content(self):
+        from neural_dive.overlay_renderer import _SummaryLine, fit_end_screen_lines
+
+        entries = [
+            _SummaryLine("a", 10),
+            _SummaryLine("", 0),
+            _SummaryLine("b", 10),
+        ]
+
+        self.assertEqual(fit_end_screen_lines(entries, 2), ["a", "b"])
+
+    def test_no_capacity_keeps_nothing(self):
+        from neural_dive.overlay_renderer import fit_end_screen_lines
+
+        self.assertEqual(fit_end_screen_lines(self._entries(5), 0), [])
+        self.assertEqual(fit_end_screen_lines(self._entries(5), -3), [])
+
+    def test_weak_areas_outranks_every_other_line(self):
+        """The loss screen's whole point is telling the player what to study."""
+        from neural_dive.overlay_renderer import _end_screen_entries
+
+        game = _stats_game(with_weak_areas=True)
+        entries = _end_screen_entries(game)
+        weak = next(entry for entry in entries if entry.text.startswith("Weak areas"))
+
+        self.assertEqual(weak.priority, max(entry.priority for entry in entries))
+
+    def test_weak_areas_survives_a_window_that_only_fits_two_lines(self):
+        from neural_dive.overlay_renderer import _end_screen_entries, fit_end_screen_lines
+
+        kept = fit_end_screen_lines(_end_screen_entries(_stats_game(with_weak_areas=True)), 2)
+
+        self.assertTrue(any(line.startswith("Weak areas") for line in kept))
+
+    def test_a_short_window_still_shows_the_most_valuable_lines(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen
+
+        output = _render_end_screen(draw_game_over_screen, height=22, with_weak_areas=True)
+
+        self.assertIn("Weak areas", output)
+        self.assertIn("Final Score", output)
+
+    def test_a_twenty_row_window_still_shows_weak_areas(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen
+
+        output = _render_end_screen(draw_game_over_screen, height=20, with_weak_areas=True)
+
+        self.assertIn("Weak areas", output)
+
+    def test_a_tall_window_shows_the_whole_summary(self):
+        from neural_dive.overlay_renderer import _end_screen_lines, draw_victory_screen
+
+        output = _render_end_screen(draw_victory_screen, height=40, with_weak_areas=True)
+
+        for line in _end_screen_lines(_stats_game(with_weak_areas=True)):
+            if line:
+                self.assertIn(line, output)
+
+    def test_the_panel_shrinks_to_the_window_rather_than_overflowing(self):
+        from neural_dive.overlay_renderer import draw_game_over_screen
+
+        # Should not raise, and should still say how to leave.
+        output = _render_end_screen(draw_game_over_screen, height=12, with_weak_areas=True)
+
+        self.assertIn("Press Q to quit", output)
+
+
+def _stats_game(with_weak_areas: bool = False):
+    """A game stub with the final stats the end screens read."""
+    game = MagicMock()
+    game.get_final_stats.return_value = {
+        "score": 1234,
+        "questions_answered": 20,
+        "questions_correct": 15,
+        "questions_wrong": 5,
+        "accuracy": 75.0,
+        "npcs_completed": 7,
+        "knowledge_modules": 3,
+        "final_coherence": 0,
+        "time_played": 187,
+        "current_floor": 3,
+    }
+    game.player_manager.max_coherence = 100
+    game.floor_manager.max_floors = 3
+
+    if with_weak_areas:
+        from neural_dive.models import Question
+        from neural_dive.player_profile import PlayerProfile, QuestionRecord
+        from neural_dive.question_types import QuestionType
+
+        game.profile = PlayerProfile(questions={"a": QuestionRecord(seen=3, correct=0, wrong=3)})
+        game.questions = {
+            "a": Question(
+                question_text="A?",
+                topic="graphs",
+                question_type=QuestionType.YES_NO,
+                question_id="a",
+            )
+        }
+    else:
+        game.profile = None
+        game.questions = {}
+    return game
+
+
+def _render_end_screen(draw, height: int, with_weak_areas: bool = False) -> str:
+    from contextlib import redirect_stdout
+    import io
+
+    from neural_dive.themes import get_theme
+
+    backend = _StubBackend()
+    backend.height = height
+    _chars, colors = get_theme()
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        draw(backend, _stats_game(with_weak_areas), colors)
+    return buffer.getvalue()
+
+
+class TestHelpOverlay(unittest.TestCase):
+    """There was no in-game legend at all before this.
+
+    The only key to the glyphs was an author-facing docstring in the level
+    data, which a player never sees.
+    """
+
+    def _render(self, width: int = 100, height: int = 40) -> str:
+        from contextlib import redirect_stdout
+        import io
+
+        from neural_dive.backends.test_backend import TestBackend
+        from neural_dive.overlay_renderer import draw_help_overlay
+        from neural_dive.themes import get_theme
+
+        chars, colors = get_theme()
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            draw_help_overlay(TestBackend(width=width, height=height), chars, colors)
+        return buffer.getvalue()
+
+    def test_names_itself(self):
+        self.assertIn("HELP", self._render())
+
+    def test_explains_the_map_glyphs(self):
+        from neural_dive.themes import get_theme
+
+        chars, _colors = get_theme()
+        output = self._render()
+
+        for glyph in (chars.player, chars.terminal, chars.stairs_up, chars.stairs_down):
+            self.assertIn(glyph, output)
+
+    def test_disambiguates_the_glyphs_the_map_reuses(self):
+        """ "?" and "S" are items, but "S" is also the layer-2 NPC SYSTEM_CORE."""
+        output = self._render()
+
+        self.assertIn("SYSTEM_CORE", output)
+        self.assertIn("reverse video", output)
+
+    def test_explains_coherence(self):
+        output = self._render()
+
+        self.assertIn("COHERENCE", output)
+        self.assertIn("zero", output)
+
+    def test_explains_what_gates_the_stairs(self):
+        output = self._render()
+
+        self.assertIn("stairs down only open", output)
+
+    def test_lists_the_keys(self):
+        output = self._render()
+
+        for key in ("Arrows", "Inventory", "Save", "Quit", "1-4"):
+            self.assertIn(key, output)
+
+    def test_says_how_to_close_itself(self):
+        self.assertIn("close", self._render())
+
+    def test_renders_in_a_short_window_without_raising(self):
+        # 34 rows is the minimum the game will start at; the overlay must not
+        # need more than the window it lives in.
+        self.assertTrue(self._render(width=50, height=34))
+
+    def test_renders_in_a_very_short_window_without_raising(self):
+        self.assertIsInstance(self._render(width=30, height=10), str)
+
+    def test_lines_fit_the_overlay_width(self):
+        from neural_dive.config import OVERLAY_CONTENT_MARGIN, OVERLAY_MAX_WIDTH
+        from neural_dive.overlay_renderer import help_overlay_lines
+        from neural_dive.themes import get_theme
+
+        chars, _colors = get_theme()
+        limit = OVERLAY_MAX_WIDTH - OVERLAY_CONTENT_MARGIN
+
+        for line in help_overlay_lines(chars):
+            self.assertLessEqual(len(line), limit, msg=line)
+
+    def test_every_line_fits_the_minimum_supported_window(self):
+        """34 rows is the floor the game starts at, so help must fit in 34."""
+        from neural_dive.config import (
+            HELP_OVERLAY_MAX_HEIGHT,
+            OVERLAY_FOOTER_MARGIN,
+            OVERLAY_SCREEN_MARGIN,
+        )
+        from neural_dive.overlay_renderer import help_overlay_lines
+        from neural_dive.themes import get_theme
+
+        chars, _colors = get_theme()
+        overlay_height = min(HELP_OVERLAY_MAX_HEIGHT, 34 - OVERLAY_SCREEN_MARGIN)
+        # Content runs from row 2 of the overlay to the footer margin.
+        rows = overlay_height - 2 - OVERLAY_FOOTER_MARGIN
+
+        self.assertLessEqual(len(help_overlay_lines(chars)), rows)
+
+
+class TestInventoryTruncation(unittest.TestCase):
+    """Item lists used to stop after three with no sign of the rest."""
+
+    def _render(self, hint_count: int, snippet_count: int) -> str:
+        from contextlib import redirect_stdout
+        import io
+
+        from neural_dive.backends.test_backend import TestBackend
+        from neural_dive.items import ItemType
+        from neural_dive.overlay_renderer import draw_inventory_overlay
+        from neural_dive.themes import get_theme
+
+        hints = [MagicMock(description=f"hint {i}") for i in range(hint_count)]
+        snippets = [MagicMock(name=f"snip {i}") for i in range(snippet_count)]
+        for i, snippet in enumerate(snippets):
+            snippet.name = f"snip {i}"
+
+        game = MagicMock()
+        game.player_manager.get_inventory_count.return_value = hint_count + snippet_count
+        game.player_manager.max_inventory_size = 20
+        game.player_manager.get_items_by_type.side_effect = lambda kind: (
+            hints if kind == ItemType.HINT_TOKEN else snippets
+        )
+
+        _chars, colors = get_theme()
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            draw_inventory_overlay(TestBackend(width=100, height=40), game, colors)
+        return buffer.getvalue()
+
+    def test_three_or_fewer_items_show_no_indicator(self):
+        output = self._render(hint_count=3, snippet_count=0)
+
+        self.assertIn("hint 2", output)
+        self.assertNotIn("more", output)
+
+    def test_extra_hint_tokens_are_counted(self):
+        output = self._render(hint_count=7, snippet_count=0)
+
+        self.assertIn("+4 more", output)
+
+    def test_extra_snippets_are_counted(self):
+        output = self._render(hint_count=0, snippet_count=5)
+
+        self.assertIn("+2 more", output)
+
+    def test_both_lists_get_their_own_indicator(self):
+        output = self._render(hint_count=5, snippet_count=6)
+
+        self.assertIn("+2 more", output)
+        self.assertIn("+3 more", output)
+
+
 class TestFormatTime(unittest.TestCase):
     """Was a closure inside `draw_victory_screen`, so it could not be tested and
     the game over screen could not reuse it."""

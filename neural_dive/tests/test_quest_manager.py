@@ -293,5 +293,48 @@ class TestSerialization(unittest.TestCase):
         self.assertEqual(restored.is_quest_complete(), original.is_quest_complete())
 
 
+class TestTheCompletionBonusIsPaidOnce(unittest.TestCase):
+    """The bonus is claimed, not just read.
+
+    ``InteractionHandler`` awards it on every interaction with the quest NPC,
+    so without a claimed flag holding Space was unlimited coherence.
+    """
+
+    @staticmethod
+    def _completed_quest() -> QuestManager:
+        from neural_dive.config import QUEST_TARGET_NPCS
+
+        manager = QuestManager()
+        manager.activate_quest()
+        for npc in QUEST_TARGET_NPCS:
+            manager.complete_npc_objective(npc)
+        return manager
+
+    def test_the_second_claim_pays_nothing(self):
+        manager = self._completed_quest()
+
+        first = manager.claim_completion_bonus()
+        second = manager.claim_completion_bonus()
+
+        self.assertGreater(first, 0)
+        self.assertEqual(second, 0)
+
+    def test_an_unfinished_quest_pays_nothing_and_stays_claimable(self):
+        manager = QuestManager()
+        manager.activate_quest()
+
+        self.assertEqual(manager.claim_completion_bonus(), 0)
+        self.assertFalse(manager.bonus_claimed)
+
+    def test_the_claimed_flag_survives_a_save(self):
+        manager = self._completed_quest()
+        manager.claim_completion_bonus()
+
+        restored = QuestManager.from_dict(manager.to_dict())
+
+        self.assertTrue(restored.bonus_claimed)
+        self.assertEqual(restored.claim_completion_bonus(), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

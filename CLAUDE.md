@@ -92,7 +92,7 @@ Read and write state on the manager that owns it:
 | `questions_answered/correct/wrong`, `accumulated_seconds` | `stats_tracker` |
 | `npcs`, `conversations` | `npc_manager` |
 | `quest_active`, `completed_npcs` | `quest_manager` |
-| `active_conversation`, `active_terminal`, `active_inventory`, `active_snippet`, `show_greeting`, `last_answer_response`, `text_input_buffer`, `eliminated_answers` | `conversation_engine` |
+| `active_conversation`, `active_terminal`, `active_inventory`, `active_snippet`, `active_help`, `show_greeting`, `last_answer_response`, `text_input_buffer`, `eliminated_answers` | `conversation_engine` |
 
 Within `NPCManager`, go one level further: `npc_manager.movement.old_positions`,
 `npc_manager.spawner.all_npcs`, `npc_manager.relationships`.
@@ -139,6 +139,21 @@ that stores a manager reference, construct it there.
 `_assemble` also generates floor entities exactly once, at the end. Generating a
 floor twice used to drop every NPC on floor 1 and shift randomly placed items.
 
+**A save has to record anything that would otherwise be re-rolled.** One-pass
+assembly is not enough on its own, because an unseeded save (`seed: null`) builds
+a fresh `random.Random(None)` on load. Three things are therefore written to the
+save and restored rather than regenerated:
+
+- the questions each conversation drew, and their answer order
+  (`NPCManager.to_dict`);
+- the item pickups still on the ground, per floor (`Game._floor_items`);
+- one `Entity` per NPC, which `NPCSpawner._build` reuses rather than rebuilding.
+
+Each restore path degrades rather than crashing when the content set has moved
+on: a missing field, an unknown question id, and an unknown answer text are all
+handled. If you add state that a fresh `Game` would randomize, put it in the save
+too.
+
 **Question history is passed in, never loaded implicitly.** `PlayerProfile`
 (`player_profile.py`) accumulates per-question outcomes across runs in
 `~/.neural_dive/profile.json`, keyed by the authored id from `questions.json`
@@ -153,7 +168,7 @@ Three rules to keep in mind when touching it:
 
 - An *empty* profile is deliberately not passed through to the selector either.
   Equal weights would still consume the RNG differently, so a first-time
-  player's seeded run would stop matching previous builds.
+  player's seeded run would stop matching a run with no profile at all.
 - Nothing about the profile belongs in the save file. It outlives runs and must
   survive deleting a save.
 - Every load failure degrades to an empty profile; see the module docstring for
@@ -171,18 +186,26 @@ questions, npcs, levels, snippets = load_all_game_data()
 ### Creating a conversation
 `NPCManager` builds every conversation up front from the template that
 `data_loader` attaches to each NPC. To randomize one yourself, pass the
-`Conversation` object — not the raw NPC data:
+`Conversation` object — not the raw NPC data — and pass the generator you want
+it to draw from:
 ```python
+import random
+
 from neural_dive.conversation import create_randomized_conversation
 
 conv = create_randomized_conversation(
     npc_data["ALGO_SPIRIT"]["conversation"],
     randomize_question_order=True,
     randomize_answer_order=True,
-    seed=42,
+    rng=random.Random(42),
     num_questions=3,
 )
 ```
+
+Use `rng=`, not `seed=`. Both are reproducible now — a `seed` builds a private
+`random.Random` for that call — but `rng=` is what the game passes, so it is the
+path that `--seed` actually exercises. Question selection, question order,
+answer order, and hint-token eliminations all draw from the game's generator.
 
 ### Map access
 ```python

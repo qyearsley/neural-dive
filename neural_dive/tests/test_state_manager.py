@@ -360,5 +360,47 @@ class TestStateManager(unittest.TestCase):
             self.assertFalse(self.state_manager.can_move())
 
 
+class TestStateManagerFloorAndNPCFixes(unittest.TestCase):
+    """Two small bugs in StateManager that nothing in production reached yet."""
+
+    def setUp(self):
+        self.game = Game(
+            map_width=50,
+            map_height=25,
+            seed=42,
+            random_npcs=False,
+            content_set="algorithms",
+        )
+        self.event_bus = EventBus()
+        self.events: list[GameEvent] = []
+        for event_type in (FloorChanged, NPCDefeated):
+            self.event_bus.subscribe(event_type, self.events.append)
+        self.state_manager = StateManager(self.game, self.event_bus)
+
+    def test_changing_floor_brings_the_new_floors_map_and_entities(self):
+        """Assigning ``current_floor`` alone left the player on the old map."""
+        floor_one_map = self.game.game_map
+        floor_one_npcs = {npc.name for npc in self.game.npc_manager.npcs}
+
+        self.state_manager.change_floor(2, "down")
+
+        self.assertEqual(self.game.floor_manager.current_floor, 2)
+        self.assertNotEqual(self.game.game_map, floor_one_map)
+        self.assertIs(self.game.game_map, self.game.floor_manager.game_map)
+        self.assertNotEqual({npc.name for npc in self.game.npc_manager.npcs}, floor_one_npcs)
+
+    def test_npc_defeated_reports_the_real_npc_type(self):
+        """data_loader stores the type under ``npc_type``; reading ``type``
+        meant every event said "specialist"."""
+        npc_name = next(
+            name for name, info in self.game.npc_data.items() if info.get("npc_type") == "enemy"
+        )
+
+        self.state_manager.complete_conversation(npc_name, 2, 2)
+
+        event = next(e for e in self.events if isinstance(e, NPCDefeated))
+        self.assertEqual(event.npc_type, "enemy")
+
+
 if __name__ == "__main__":
     unittest.main()

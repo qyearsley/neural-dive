@@ -2,7 +2,7 @@
   "id": "algorithms",
   "name": "Computer Science Algorithms",
   "description": "Learn fundamental algorithms, data structures, and CS concepts while navigating a cyberpunk neural network.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "topics": [
     "ai_ml",
     "algorithms",
@@ -12,7 +12,6 @@
     "design_patterns",
     "devops",
     "distributed_systems",
-    "machine_learning",
     "networking",
     "programming_fundamentals",
     "security",
@@ -25,6 +24,6 @@
     "web_development"
   ],
   "difficulty_range": "beginner to expert",
-  "question_count": 140,
+  "question_count": 153,
   "floors": 3
 }

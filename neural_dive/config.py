@@ -46,9 +46,29 @@ OVERLAY_MAX_HEIGHT = 30  # Increased from 25
 COMPLETION_OVERLAY_MAX_HEIGHT = 35  # Increased from 30
 TERMINAL_OVERLAY_MAX_HEIGHT = 20  # Height for info terminal overlays
 INVENTORY_OVERLAY_MAX_HEIGHT = 25  # Height for inventory overlays
+HELP_OVERLAY_MAX_HEIGHT = 30  # Height for the glyph/key legend overlay
 VICTORY_SCREEN_MAX_WIDTH = 70  # Maximum width for victory screen
-VICTORY_SCREEN_MAX_HEIGHT = 20  # Maximum height for victory screen
 UI_BOTTOM_OFFSET = 4
+
+# End screens (victory and game over).
+#
+# The panel is sized from its content instead of a fixed height, because a
+# fixed height silently dropped the tail of the summary -- including the
+# weak-areas line, which is the most useful line on the loss screen.
+# END_SCREEN_CHROME_ROWS counts the rows the panel spends on chrome rather than
+# summary lines: top border, title, subtitle, one blank, footer, bottom border.
+END_SCREEN_CHROME_ROWS = 6
+END_SCREEN_MIN_HEIGHT = 10
+
+# Minimum terminal size.
+#
+# The map is drawn from row 0 and the status panel owns the last
+# UI_BOTTOM_OFFSET rows, so the window must be at least as tall as the tallest
+# floor layout plus the panel. These are the fallbacks used when the level
+# layouts cannot be measured; rendering.required_terminal_size() measures the
+# real content and returns the larger figure.
+MIN_TERMINAL_WIDTH = DEFAULT_MAP_WIDTH
+MIN_TERMINAL_HEIGHT = DEFAULT_MAP_HEIGHT + UI_BOTTOM_OFFSET
 
 # Overlay layout offsets (in character cells)
 OVERLAY_SCREEN_MARGIN = 4  # Clearance subtracted from screen w/h when sizing an overlay
@@ -60,6 +80,19 @@ OVERLAY_FOOTER_MARGIN = 2  # Rows above the overlay bottom for the footer prompt
 STAIRS_UP_CHAR = "<"
 STAIRS_DOWN_CHAR = ">"
 STAIRS_COLOR = "yellow"
+
+# Status panel coherence meter.
+#
+# Coherence used to print in the terminal's default attribute, which reads the
+# same at 5/100 as at 80/100. The bar plus a colour band makes the game's core
+# tension visible at a glance. Eight cells is chosen so the whole status line
+# still fits an 80-column window; below that the bar is dropped and the numbers
+# stay.
+COHERENCE_BAR_WIDTH = 8
+COHERENCE_BAR_FILLED_CHAR = "█"  # Full block
+COHERENCE_BAR_EMPTY_CHAR = "░"  # Light shade
+COHERENCE_WARNING_FRACTION = 0.5  # At or below this the meter turns amber
+COHERENCE_CRITICAL_FRACTION = 0.25  # At or below this the meter turns red
 
 # Item characters and colors
 ITEM_CHAR_HINT_TOKEN = "?"

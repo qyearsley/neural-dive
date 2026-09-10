@@ -21,9 +21,11 @@ class NPCSpawner:
     """Creates the NPC entities for a floor.
 
     Attributes:
-        all_npcs: Every NPC created so far, across all floors. The save file
-            persists this, so an NPC keeps its position and wander state after
-            the player leaves and returns to a floor.
+        all_npcs: Every NPC created so far, across all floors, one Entity per
+            name. A floor generated a second time -- by a load, or by leaving
+            and returning -- hands back those same objects, so an NPC keeps its
+            position and wander state, and the save file records the NPC the
+            player actually saw.
     """
 
     def __init__(self, npc_data: dict, rng: random.Random, level_data: dict | None = None):
@@ -135,7 +137,18 @@ class NPCSpawner:
         return placed
 
     def _build(self, npc_name: str, npc_info: dict, x: int, y: int) -> Entity:
-        """Create an NPC entity and record it in ``all_npcs`` if it is new."""
+        """Return the one Entity for this NPC, creating it the first time.
+
+        A known NPC is handed back as-is, at wherever it has wandered to. The
+        caller's freshly computed ``(x, y)`` is a starting position, and this
+        NPC already has one. Building a second Entity here instead was the bug:
+        ``all_npcs`` kept the original and the floor got the copy, so movement
+        updated one object while the save file wrote the other.
+        """
+        for known in self.all_npcs:
+            if known.name == npc_name:
+                return known
+
         npc = Entity(
             x,
             y,
@@ -144,6 +157,5 @@ class NPCSpawner:
             npc_name,
             npc_type=npc_info.get("npc_type", "specialist"),
         )
-        if not any(known.name == npc_name for known in self.all_npcs):
-            self.all_npcs.append(npc)
+        self.all_npcs.append(npc)
         return npc

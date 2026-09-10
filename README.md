@@ -12,7 +12,7 @@
 
 ## Features
 
-- **Computer Science learning content** - 140 questions across algorithms, systems, web, ML, and more
+- **Computer Science learning content** - 153 questions across algorithms, systems, web, ML, and more
 - **Roguelike gameplay** with wandering NPCs and procedural maps
 - **Cyberpunk theme** with Unicode graphics
 - **Save/Load system** - save your progress and continue later
@@ -60,7 +60,35 @@ so it installs `blessed` on first run. If you'd rather use pip directly:
 ./ndive --no-history   # Play without reading or writing question history
 ```
 
-**Controls:** Arrow keys to move • Space/Enter to interact • >/< for stairs • **S to Save** • **L to Load** • Q to quit
+## Controls
+
+| Key | Does |
+| --- | --- |
+| Arrow keys | Move |
+| Space, Enter, or `i` | Talk to an NPC, read a terminal, or take the stairs |
+| `>` `<` (also `.` `,`) | Take the stairs |
+| `?` or ESC | Show the map legend and key list |
+| `V` | Inventory |
+| `S` | Save |
+| `L` | Load the saved game |
+| `Q` | Quit |
+
+`Q` and `L` both throw away an unsaved run, so both ask first: press `Y` to
+confirm, or any other key to carry on playing.
+
+In a conversation: `1`-`4` choose an answer, `Y`/`N` answer a yes-no question,
+`H` spends a hint token, `S` reads a code snippet, ENTER submits a typed
+answer, and ESC or `X` walks away. While you are typing an answer, backspace,
+Ctrl+U (clear the line) and Ctrl+W (delete the last word) all work.
+
+Every panel — help, inventory, snippets, info terminals — closes on ESC, Enter,
+Space, `q`, or the key that opened it.
+
+### Terminal size
+
+The map does not scroll, so the game needs a window of at least **50 columns by
+34 rows**. It refuses to start in anything smaller, and pauses behind a resize
+prompt if you shrink the window mid-run.
 
 ---
 
@@ -87,8 +115,8 @@ failing. `--stats` prints your most-missed questions and weakest topics;
 
 **Objective:** Descend through neural layers, answer questions, gain knowledge, defeat challenging NPCs.
 
-**Layers:** (3 total, set by `MAX_FLOORS` in `config.py`)
-- **Layer 1**: Introduction - 5 NPCs covering the basics, including one enemy
+**Layers:** (3 total, set by `MAX_FLOORS` in `config.py`; 16 NPCs in all)
+- **Layer 1**: Introduction - 6 NPCs covering the basics, including one enemy
 - **Layer 2**: Intermediate challenges - 6 specialists testing your growing knowledge
 - **Layer 3**: Deep Core - three bosses and one specialist; defeat a boss to win
 
@@ -98,7 +126,8 @@ failing. `--stats` prints your most-missed questions and weakest topics;
 - **Score** = 100 per correct answer + 50 per knowledge module + 200 per NPC
   completed + 10 per remaining coherence point
 
-Required NPCs (specialists and enemies) glow brighter than optional ones.
+Required NPCs (specialists and enemies) are drawn in reverse video; bosses are
+reverse video and underlined. Optional NPCs are plain bold.
 
 ---
 
@@ -111,6 +140,10 @@ Required NPCs (specialists and enemies) glow brighter than optional ones.
 ```
 
 The display is fixed to the cyberpunk dark theme; there are no theme options.
+
+`--width` and `--height` only size procedurally generated floors. Every floor in
+the shipped content is authored, so neither flag is a way to fit the game into a
+smaller window.
 
 Edit `neural_dive/config.py` for game parameters (NPC speed, rewards, map size, etc).
 
@@ -214,7 +247,7 @@ ndive                         # Launcher
 ## Topics Covered
 
 ### Computer Science (algorithms content)
-140 questions covering AI/ML, DevOps, algorithms, systems programming, web
+153 questions covering AI/ML, DevOps, algorithms, systems programming, web
 development, databases, design patterns, security, software engineering, system
 design, data structures, testing, networking, distributed systems, programming
 fundamentals, version control, architecture, and computability theory.

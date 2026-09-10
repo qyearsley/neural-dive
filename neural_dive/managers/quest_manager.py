@@ -21,12 +21,14 @@ class QuestManager:
     Attributes:
         quest_active: Whether the main quest has been activated
         completed_npcs: Set of NPC names that have been completed for quest objectives
+        bonus_claimed: Whether the completion bonus has already been paid out
     """
 
     def __init__(self) -> None:
         """Initialize QuestManager with default state."""
         self.quest_active = False
         self.completed_npcs: set[str] = set()
+        self.bonus_claimed = False
 
     def activate_quest(self) -> tuple[bool, str]:
         """Activate the main quest.
@@ -80,12 +82,28 @@ class QuestManager:
     def get_completion_bonus(self) -> int:
         """Get the coherence bonus for completing the quest.
 
+        This only reports the amount. Use :meth:`claim_completion_bonus` to
+        actually award it, so it can be awarded once and not once per keypress.
+
         Returns:
             Coherence bonus amount (0 if quest not complete)
         """
         if self.is_quest_complete():
             return QUEST_COMPLETION_COHERENCE_BONUS
         return 0
+
+    def claim_completion_bonus(self) -> int:
+        """Take the completion bonus, once.
+
+        Returns:
+            The bonus the first time the quest is complete, 0 every time after
+        """
+        if self.bonus_claimed:
+            return 0
+        bonus = self.get_completion_bonus()
+        if bonus:
+            self.bonus_claimed = True
+        return bonus
 
     def to_dict(self) -> dict:
         """Serialize quest state to dictionary for save/load.
@@ -96,6 +114,7 @@ class QuestManager:
         return {
             "quest_active": self.quest_active,
             "completed_npcs": list(self.completed_npcs),
+            "bonus_claimed": self.bonus_claimed,
         }
 
     @classmethod
@@ -111,4 +130,5 @@ class QuestManager:
         manager = cls()
         manager.quest_active = data.get("quest_active", False)
         manager.completed_npcs = set(data.get("completed_npcs", []))
+        manager.bonus_claimed = data.get("bonus_claimed", False)
         return manager

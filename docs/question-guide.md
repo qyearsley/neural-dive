@@ -22,9 +22,9 @@ Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Ne
 
 ### Current Question Type Mix
 
-The algorithms set is currently 124 multiple choice, 11 yes/no, and 5 short
-answer. Multiple choice dominates; adding short-answer and yes/no questions is
-the easiest way to add variety.
+The algorithms set is currently 133 multiple choice, 12 yes/no, and 8 short
+answer -- 153 in total. Multiple choice dominates; adding short-answer and
+yes/no questions is the easiest way to add variety.
 
 **Minimal Multiple Choice Example:**
 ```json
@@ -71,7 +71,7 @@ the easiest way to add variety.
 
 ## Question Types
 
-### 1. Multiple Choice (124 of 140 questions)
+### 1. Multiple Choice (133 of 153 questions)
 
 **Best for:**
 - Teaching through wrong answers
@@ -90,7 +90,7 @@ the easiest way to add variety.
 - Multiple concepts could be confused
 - Beginner to medium difficulty
 
-### 2. Short Answer (5 of 140 questions)
+### 2. Short Answer (8 of 153 questions)
 
 **Best for:**
 - Big-O complexity (most common in interviews!)
@@ -118,7 +118,7 @@ Accept ALL correct variations that show understanding:
 - Interview-style questions
 - Medium to hard difficulty
 
-### 3. Yes/No (11 of 140 questions)
+### 3. Yes/No (12 of 153 questions)
 
 **Best for:**
 - True/false facts
@@ -161,6 +161,9 @@ for authors:
 - **Deleting a question is safe.** Stale records are inert -- the weighting only
   looks up IDs that still exist, and `ndive --stats` labels the strays rather
   than crashing or dropping them.
+- **An unreferenced question is not safe.** It can never appear in a run, so
+  nobody playtests it and it rots. `make validate` fails on one. If a question
+  is finished, delete it; do not leave it orphaned.
 
 ### Question Text
 **✅ DO:**
@@ -191,25 +194,24 @@ The `topic` field is free text — nothing validates it — so reuse an existing
 value rather than inventing a near-duplicate. Topics currently in use, with
 question counts:
 
-- `ai_ml` (19) - ML and AI concepts, models
-- `devops` (12) - CI/CD, deployment, monitoring
-- `algorithms` (10) - Algorithm analysis, complexity
-- `systems` (9) - Operating systems, memory, processes
+- `ai_ml` (21) - ML and AI concepts, models
+- `algorithms` (15) - Algorithm analysis, complexity
+- `data_structures` (13) - Arrays, trees, graphs, etc.
+- `devops` (11) - CI/CD, deployment, monitoring
+- `systems` (11) - Operating systems, memory, processes
 - `web_development` (9) - HTTP, REST, APIs
 - `databases` (8) - SQL, NoSQL, transactions
 - `design_patterns` (8) - Software design patterns
 - `security` (8) - Cryptography, auth, vulnerabilities
 - `software_engineering` (8) - SOLID, refactoring
-- `system_design` (8) - Scaling, caching, trade-offs
-- `data_structures` (7) - Arrays, trees, graphs, etc.
+- `system_design` (7) - Scaling, caching, trade-offs
 - `testing` (7) - Test strategies, TDD
+- `distributed_systems` (6) - CAP, consensus, replication
 - `networking` (6) - Protocols, HTTP, TCP/IP
-- `distributed_systems` (5) - CAP, consensus, replication
 - `programming_fundamentals` (5) - Basics, paradigms
 - `version_control` (4) - Git, branching, history
 - `architecture` (3) - System and software architecture
 - `theory` (3) - Computability, complexity theory
-- `machine_learning` (1) - Overlaps `ai_ml`; prefer `ai_ml`
 
 ### Answers
 
@@ -332,6 +334,31 @@ Make wrong answers tempting but not misleading:
 - Version-specific features
 - Company-specific terminology
 - Cutting-edge research (unless fundamental)
+
+### 6. Do Not Let the Format Give the Answer Away
+
+The game shuffles answer order at runtime. It does not shuffle answer *length*,
+so a long correct option next to three short ones is a free win. The set once
+had the longest option correct in 78% of its multiple choice questions.
+
+- Keep the correct option about as long as the distractors. If it is the
+  longest, either trim it or give a distractor real substance.
+- Put the detail in the `response`, not in the option text.
+- Keep the yes/no answers near an even split. Reword the stem to flip one —
+  never state something false to get a "no".
+
+`neural_dive/tests/test_content_integrity.py` fails if the longest option is
+correct in 40% or more of the multiple choice questions, or if the yes/no split
+gets too lopsided.
+
+### 7. Do Not Answer the Question in the Question
+
+Two failure modes:
+
+- The stem contains the answer. "What does a CSRF token protect against?" with
+  the option "Cross-Site Request Forgery" tests reading, not knowledge.
+- The stem eliminates the distractors. If the stem names "Zero Trust", every
+  option that contains the word "trust" is already out.
 
 ---
 
@@ -513,7 +540,8 @@ To add questions:
 2. Follow this guide
 3. Ensure unique question IDs
 4. Reference each new ID from one or more NPCs in `npcs.json`
-5. Run `make validate` to confirm every reference resolves
+5. Run `make validate` to confirm every reference resolves and no question is
+   orphaned
 6. Test in-game with `./ndive --seed 42`
 
 For major additions (10+ questions), consider:
@@ -539,6 +567,9 @@ For major additions (10+ questions), consider:
 - [ ] Exactly 4 answers
 - [ ] One clear correct answer
 - [ ] Wrong answers are plausible
+- [ ] The correct answer is not the longest option
+- [ ] The stem neither contains the answer nor rules out the distractors
+- [ ] At least one NPC references the question
 - [ ] Responses are helpful and concise
 - [ ] No framework-specific details
 - [ ] No trick questions

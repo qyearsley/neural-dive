@@ -10,6 +10,7 @@ This test module covers all ConversationEngine functionality including:
 
 from __future__ import annotations
 
+import random
 import unittest
 
 from neural_dive.enums import NPCType
@@ -27,9 +28,20 @@ class TestConversationEngineInitialization(unittest.TestCase):
 
         self.assertIsNone(engine.active_conversation)
         self.assertIsNone(engine.active_terminal)
+        self.assertFalse(engine.active_inventory)
+        self.assertFalse(engine.active_help)
         self.assertFalse(engine.show_greeting)
         self.assertIsNone(engine.last_answer_response)
         self.assertEqual(engine.text_input_buffer, "")
+
+    def test_active_help_is_a_real_annotated_field(self):
+        """A bare `= None` would type as None and make every `if` body dead."""
+        engine = ConversationEngine()
+
+        engine.active_help = True
+
+        self.assertTrue(engine.active_help)
+        self.assertIn("active_help", vars(engine))
 
     def test_is_active_false_initially(self):
         """Test that is_active() returns False when no conversation."""
@@ -503,6 +515,69 @@ class TestConversationEngineHintToken(unittest.TestCase):
         self.assertTrue(engine.eliminated_answers)
 
         engine.answer_question(0)
+
+        self.assertEqual(engine.eliminated_answers, set())
+
+
+class TestHintEliminationUsesTheGameGenerator(unittest.TestCase):
+    """Which wrong answer a hint removes has to follow the game's seed.
+
+    ``use_hint_token`` did ``import random`` and sampled from the process-wide
+    generator, so it was the one part of a ``--seed`` run that was not
+    reproducible.
+    """
+
+    @staticmethod
+    def _engine_with_a_question(rng):
+        engine = ConversationEngine(rng=rng)
+        engine.start_conversation(
+            Conversation(
+                npc_name="MC_NPC",
+                greeting="Hi",
+                questions=[
+                    Question(
+                        question_text="Q1",
+                        answers=[
+                            Answer("Right", True, "yes"),
+                            Answer("Wrong 1", False, "no"),
+                            Answer("Wrong 2", False, "no"),
+                            Answer("Wrong 3", False, "no"),
+                        ],
+                        topic="t",
+                    )
+                ],
+                npc_type=NPCType.SPECIALIST,
+            )
+        )
+        return engine
+
+    def test_the_same_seed_eliminates_the_same_answer(self):
+        first = self._engine_with_a_question(random.Random(42))
+        first.use_hint_token()
+
+        # Disturb the process-wide generator; it must make no difference.
+        random.seed(1234)
+        second = self._engine_with_a_question(random.Random(42))
+        second.use_hint_token()
+
+        self.assertEqual(first.eliminated_answers, second.eliminated_answers)
+
+    def test_the_game_hands_its_own_generator_to_the_engine(self):
+        from neural_dive.game import Game
+
+        game = Game(seed=42, random_npcs=False)
+
+        self.assertIs(game.conversation_engine.rng, game.rand)
+
+
+class TestClearEliminatedAnswers(unittest.TestCase):
+    """The one method every question transition calls."""
+
+    def test_it_empties_the_set(self):
+        engine = ConversationEngine()
+        engine.eliminated_answers = {0, 2}
+
+        engine.clear_eliminated_answers()
 
         self.assertEqual(engine.eliminated_answers, set())
 

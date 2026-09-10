@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     import random
 
     from neural_dive.game_builder import GameContext, GameManagers
+    from neural_dive.items import ItemPickup
     from neural_dive.managers.conversation_engine import ConversationEngine
     from neural_dive.managers.floor_manager import FloorManager
     from neural_dive.managers.npc_manager import NPCManager
@@ -89,6 +90,7 @@ class Game:
         npcs_completed: set[str] | None = None,
         game_won: bool = False,
         message: str | None = None,
+        floor_items: dict[int, list[ItemPickup]] | None = None,
     ) -> Game:
         """Build a Game from an existing context and a specific set of managers.
 
@@ -104,6 +106,9 @@ class Game:
             npcs_completed: Names of NPCs already completed (None for none)
             game_won: Whether the game has already been won
             message: UI message to show (None for the welcome message)
+            floor_items: Item pickups still on the ground, per floor. A floor
+                listed here is not regenerated, so items the player collected
+                before saving stay collected and the rest stay where they were.
 
         Returns:
             A fully assembled Game
@@ -115,6 +120,7 @@ class Game:
             npcs_completed=npcs_completed,
             game_won=game_won,
             message=message,
+            floor_items=floor_items,
         )
         return game
 
@@ -126,6 +132,7 @@ class Game:
         npcs_completed: set[str] | None = None,
         game_won: bool = False,
         message: str | None = None,
+        floor_items: dict[int, list[ItemPickup]] | None = None,
     ) -> None:
         """Assemble the game from a context and its managers.
 
@@ -157,6 +164,11 @@ class Game:
         self.player = ctx.player
         self.old_player_pos: tuple[int, int] | None = None
         self.stairs, self.terminals, self.item_pickups = GameInitializer.initialize_entities()
+
+        # Item pickups still on the ground, per floor. Generated once per floor
+        # and kept, so leaving and returning does not restock what the player
+        # already collected. Restored from a save so it survives a reload too.
+        self._floor_items: dict[int, list[ItemPickup]] = {} if floor_items is None else floor_items
 
         # Managers own the game's mutable state
         self.npc_manager: NPCManager = managers.npc_manager
@@ -228,6 +240,12 @@ class Game:
         This method is called when entering a new floor or starting the game.
         It clears existing floor entities and creates new ones based on the current floor.
         Note: Map generation is handled by FloorManager.
+
+        Stairs and terminals are rebuilt every time. Items are not: they are
+        generated once per floor and then kept in ``_floor_items``, because
+        regenerating them handed the player back everything they had already
+        picked up. On floor 2 the up-stairs sits next to the player's start
+        tile, so that was an unlimited supply of hint tokens.
         """
         # Get updated map dimensions from floor manager
         self.game_map = self.floor_manager.game_map
@@ -243,9 +261,11 @@ class Game:
         self.npc_manager.movement.old_positions.clear()
         self.old_player_pos = None  # Clear player's old position to prevent stale rendering
 
+        floor = self.floor_manager.current_floor
+
         # Generate NPCs for this floor using NPCManager
         self.npc_manager.generate_npcs_for_floor(
-            floor=self.floor_manager.current_floor,
+            floor=floor,
             game_map=self.game_map,
             player_pos=(self.player.x, self.player.y),
             random_placement=self.random_npcs,
@@ -254,17 +274,29 @@ class Game:
         )
 
         # Generate all non-NPC entities using FloorEntityGenerator
-        self.stairs, self.terminals, self.item_pickups = (
-            self.floor_entity_generator.generate_all_entities(
-                floor=self.floor_manager.current_floor,
-                max_floors=self.floor_manager.max_floors,
+        self.stairs, self.terminals = self.floor_entity_generator.generate_fixtures(
+            floor=floor,
+            max_floors=self.floor_manager.max_floors,
+            game_map=self.game_map,
+            map_width=self.map_width,
+            map_height=self.map_height,
+            player_pos=(self.player.x, self.player.y),
+            random_placement=self.random_npcs,
+        )
+
+        if floor not in self._floor_items:
+            self._floor_items[floor] = self.floor_entity_generator.generate_items(
+                floor=floor,
                 game_map=self.game_map,
                 map_width=self.map_width,
                 map_height=self.map_height,
                 player_pos=(self.player.x, self.player.y),
                 random_placement=self.random_npcs,
             )
-        )
+
+        # The same list object the cache holds, so a pickup removing itself
+        # during movement removes it from the floor for good.
+        self.item_pickups = self._floor_items[floor]
 
     def update_npc_wandering(self):
         """
@@ -349,7 +381,11 @@ class Game:
         if result.action == "terminal" and result.terminal:
             self.conversation_engine.active_terminal = result.terminal
         elif result.action == "conversation" and result.conversation:
-            self.conversation_engine.active_conversation = result.conversation
+            # Through the engine, not by assigning the field: starting a
+            # conversation has to clear the hint-token eliminations from the
+            # last one, or an index eliminated on one NPC keeps hiding a slot
+            # on every NPC after it.
+            self.conversation_engine.start_conversation(result.conversation)
 
         return result.success
 
@@ -535,7 +571,7 @@ class Game:
             True if a conversation was exited, False otherwise
         """
         if self.conversation_engine.active_conversation:
-            self.conversation_engine.active_conversation = None
+            self.conversation_engine.end_conversation()
             self.message = "Conversation ended."
             return True
         return False

@@ -69,9 +69,9 @@
         "reward_knowledge": "trees"
       },
       {
-        "text": "O(√n)",
+        "text": "O(n log n)",
         "correct": false,
-        "response": "Interesting guess, but not quite right."
+        "response": "That is the cost of sorting n items, not the height of a tree."
       },
       {
         "text": "O(1)",
@@ -108,7 +108,7 @@
     ]
   },
   "cache": {
-    "question_text": "In a cache with LRU replacement, what happens on a cache miss?",
+    "question_text": "In a full cache with LRU replacement, what happens on a cache miss?",
     "topic": "systems",
     "answers": [
       {
@@ -124,7 +124,7 @@
       {
         "text": "Least recently used evicted",
         "correct": true,
-        "response": "Yes! LRU evicts the page with the oldest last access time.",
+        "response": "Yes! LRU evicts the entry with the oldest last access to make room.",
         "reward_knowledge": "caching"
       },
       {
@@ -195,27 +195,23 @@
       {
         "text": "Sorting would be O(1)",
         "correct": false,
-        "response": "No, that's not related to P vs NP.",
-        "enemy_penalty": 45
+        "response": "No, that's not related to P vs NP."
       },
       {
-        "text": "Every efficiently verifiable problem would be efficiently solvable",
+        "text": "Every quickly checkable problem is quickly solvable",
         "correct": true,
-        "response": "Correct! This would revolutionize computer science.",
-        "reward_knowledge": "complexity_theory",
-        "enemy_penalty": 45
+        "response": "Correct! Verification and solution would collapse into the same complexity class.",
+        "reward_knowledge": "complexity_theory"
       },
       {
-        "text": "Turing machines would be obsolete",
+        "text": "Every currently undecidable problem would become decidable",
         "correct": false,
-        "response": "P vs NP doesn't affect the model of computation.",
-        "enemy_penalty": 45
+        "response": "Undecidability is a separate question. The halting problem stays undecidable either way."
       },
       {
         "text": "Only applies to quantum computers",
         "correct": false,
-        "response": "P and NP are classical complexity classes.",
-        "enemy_penalty": 45
+        "response": "P and NP are classical complexity classes."
       }
     ]
   },
@@ -247,13 +243,13 @@
     ]
   },
   "heap_operations": {
-    "question_text": "In a binary heap, what is the time complexity to extract the minimum element?",
+    "question_text": "In a binary min-heap, what is the time complexity of extract-min?",
     "topic": "data_structures",
     "answers": [
       {
         "text": "O(1)",
         "correct": false,
-        "response": "Finding the min is O(1), but extraction requires reheapifying."
+        "response": "Reading the min is O(1), but removing it means reheapifying."
       },
       {
         "text": "O(log n)",
@@ -342,15 +338,15 @@
         "response": "Asymmetric keys are typically much longer (2048-4096 bits vs 128-256)."
       },
       {
-        "text": "You can share public keys without compromising security",
+        "text": "The public key can be shared openly",
         "correct": true,
-        "response": "Correct! No need to securely exchange keys - the public key can be public!",
+        "response": "Correct! No secure channel is needed to distribute it, which solves key exchange.",
         "reward_knowledge": "cryptography"
       },
       {
-        "text": "It provides better confidentiality",
+        "text": "It provides stronger confidentiality guarantees",
         "correct": false,
-        "response": "Both provide confidentiality; the key difference is key distribution."
+        "response": "Both give confidentiality. Key distribution is the real difference."
       }
     ]
   },
@@ -364,9 +360,9 @@
         "response": "Actually SHA-256 is too FAST - attackers can brute force quickly!"
       },
       {
-        "text": "Bcrypt/Argon2 are intentionally slow and include salt",
+        "text": "They are deliberately slow and salted",
         "correct": true,
-        "response": "Correct! Slow hashing + salt makes brute force attacks impractical.",
+        "response": "Correct! A slow hash plus a per-password salt makes brute force impractical.",
         "reward_knowledge": "password_security"
       },
       {
@@ -375,36 +371,36 @@
         "response": "SHA-256 does hash, but it's designed for speed, not password storage."
       },
       {
-        "text": "Bcrypt works with quantum computers",
+        "text": "Bcrypt is resistant to quantum attacks",
         "correct": false,
-        "response": "That's not the key advantage - it's about being computationally expensive."
+        "response": "Not the point. The advantage is deliberate cost, which slows any attacker."
       }
     ]
   },
   "ipc_methods": {
-    "question_text": "Which IPC method allows processes to share memory without copying data?",
+    "question_text": "Which IPC mechanism has the lowest per-message overhead for large buffers?",
     "topic": "systems",
     "answers": [
       {
-        "text": "Pipes",
-        "correct": false,
-        "response": "Pipes copy data through kernel buffers - not true memory sharing."
-      },
-      {
-        "text": "Sockets",
-        "correct": false,
-        "response": "Sockets also copy data, even on the same machine."
-      },
-      {
         "text": "Shared memory",
         "correct": true,
-        "response": "Correct! Processes map the same physical memory pages into their address space.",
+        "response": "Correct! Both processes map the same physical pages, so nothing is copied.",
         "reward_knowledge": "ipc"
       },
       {
-        "text": "Message queues",
+        "text": "Unix domain sockets",
         "correct": false,
-        "response": "Message queues copy data between processes."
+        "response": "Fast, but the payload is still copied through kernel buffers."
+      },
+      {
+        "text": "Anonymous pipes",
+        "correct": false,
+        "response": "Pipes copy the payload through a kernel buffer in both directions."
+      },
+      {
+        "text": "POSIX message queues",
+        "correct": false,
+        "response": "Queues copy each message into and out of the kernel."
       }
     ]
   },
@@ -464,7 +460,7 @@
   },
   "gpu_vs_cpu": {
     "question_text": "Why are GPUs better than CPUs for training neural networks?",
-    "topic": "architecture",
+    "topic": "ai_ml",
     "answers": [
       {
         "text": "GPUs have higher clock speeds",
@@ -499,9 +495,9 @@
         "response": "It's not about crashes, it's about decidability."
       },
       {
-        "text": "No algorithm can determine if arbitrary programs halt for all inputs",
+        "text": "No algorithm decides halting for every program",
         "correct": true,
-        "response": "Correct! This is a fundamental limit of computation - undecidability exists.",
+        "response": "Correct! This is a hard limit on computation - some questions have no decision procedure.",
         "reward_knowledge": "computability_theory"
       },
       {
@@ -510,9 +506,9 @@
         "response": "Many Turing machines loop forever - that's the whole point!"
       },
       {
-        "text": "P = NP",
+        "text": "Halting is decidable but only in exponential time",
         "correct": false,
-        "response": "The halting problem is about decidability, not complexity classes."
+        "response": "No - it is undecidable, not merely slow. No algorithm exists at any cost."
       }
     ]
   },
@@ -580,15 +576,15 @@
         "response": "Never! Private keys must stay private. Only the public key is shared."
       },
       {
-        "text": "The server's public key signed by a Certificate Authority",
+        "text": "The server's public key, signed by a CA",
         "correct": true,
         "response": "Correct! The CA signature proves the public key belongs to the claimed server.",
         "reward_knowledge": "tls_ssl"
       },
       {
-        "text": "The symmetric session key",
+        "text": "The symmetric session key both sides will use",
         "correct": false,
-        "response": "The session key is negotiated after certificate verification."
+        "response": "The session key is derived after the certificate is verified, never shipped in it."
       },
       {
         "text": "The client's public key",
@@ -749,9 +745,9 @@
     "topic": "testing",
     "answers": [
       {
-        "text": "Red (failing test) → Green (make it pass) → Refactor",
+        "text": "Red → Green → Refactor",
         "correct": true,
-        "response": "Correct! TDD follows Red-Green-Refactor: write a failing test first, implement minimal code to pass it, then refactor while keeping tests green.",
+        "response": "Correct! Write a failing test, write the least code that passes it, then clean up.",
         "reward_knowledge": "tdd_methodology"
       },
       {
@@ -869,9 +865,9 @@
     "topic": "system_design",
     "answers": [
       {
-        "text": "Write-through writes to cache and DB immediately; write-back writes to cache first, DB later",
+        "text": "Write-through updates the DB now, write-back later",
         "correct": true,
-        "response": "Correct! Write-through is safer (no data loss) but slower. Write-back is faster but risks data loss if cache fails before writeback. Choose based on consistency needs!",
+        "response": "Correct! Write-through is safe but slow; write-back is fast but can lose data on failure.",
         "reward_knowledge": "caching_strategies"
       },
       {
@@ -1028,25 +1024,25 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "Running two identical environments, switching traffic between them",
+        "text": "Two identical environments, with traffic switched between them",
         "correct": true,
-        "response": "Correct! Blue-green allows instant rollback if issues occur.",
+        "response": "Correct! The idle environment takes the new build, so rollback is one switch back.",
         "reward_knowledge": "deployment_strategies"
       },
       {
-        "text": "Color-coding your server racks",
+        "text": "Shifting a small percentage of traffic to the new version first",
         "correct": false,
-        "response": "It's a deployment strategy, not physical organization."
+        "response": "That is a canary release, which ramps traffic up gradually."
       },
       {
-        "text": "Using two different cloud providers",
+        "text": "Replacing instances a few at a time until all run the new build",
         "correct": false,
-        "response": "It's about environment duplication, not providers."
+        "response": "That is a rolling update. Blue-green keeps two whole environments."
       },
       {
-        "text": "Deploying during off-peak hours",
+        "text": "Releasing to production with the feature switched off at runtime",
         "correct": false,
-        "response": "That's scheduled deployment, not blue-green."
+        "response": "That is a dark launch behind a feature flag, not blue-green."
       }
     ]
   },
@@ -1055,9 +1051,9 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "CI merges code frequently and runs tests; CD automatically deploys to production",
+        "text": "CI integrates and tests; CD also deploys",
         "correct": true,
-        "response": "Correct! CI ensures code integrates cleanly with automated tests. CD takes it further by automatically deploying passing builds to production. CD requires excellent testing confidence!",
+        "response": "Correct! CI keeps the branch mergeable and tested. CD ships every passing build.",
         "reward_knowledge": "ci_cd"
       },
       {
@@ -1082,7 +1078,7 @@
   },
   "decision_tree_splits": {
     "question_text": "In decision trees, what criterion is commonly used to decide how to split nodes?",
-    "topic": "machine_learning",
+    "topic": "ai_ml",
     "answers": [
       {
         "text": "Information gain or Gini impurity",
@@ -1235,9 +1231,9 @@
     "topic": "programming_fundamentals",
     "answers": [
       {
-        "text": "It can hide bugs and catch system exits, making debugging harder",
+        "text": "It hides bugs and swallows SystemExit",
         "correct": true,
-        "response": "Correct! Catching all exceptions can mask KeyboardInterrupt, SystemExit, and unexpected bugs. Be specific about what you catch!",
+        "response": "Correct! A bare except also catches KeyboardInterrupt and SystemExit. Be specific.",
         "reward_knowledge": "error_handling"
       },
       {
@@ -1265,9 +1261,9 @@
     "topic": "programming_fundamentals",
     "answers": [
       {
-        "text": "It allows a program to handle multiple operations concurrently without blocking",
+        "text": "Work continues while I/O is in flight",
         "correct": true,
-        "response": "Correct! Async programming lets you start an I/O operation and do other work while waiting, improving efficiency for I/O-bound tasks.",
+        "response": "Correct! One thread can start an I/O call and do something else until it completes.",
         "reward_knowledge": "async_programming"
       },
       {
@@ -1325,28 +1321,25 @@
     "topic": "data_structures",
     "answers": [
       {
-        "text": "When you need frequent insertions/deletions at the beginning or middle",
+        "text": "When you insert or delete at the head",
         "correct": true,
-        "response": "Correct! Linked lists have O(1) insertion/deletion once you're at a position. Arrays require shifting elements O(n).",
+        "response": "Correct! A head insert is O(1). Inserting mid-list is still O(n) - you must walk there.",
         "reward_knowledge": "data_structures_basics"
       },
       {
         "text": "When you need fast random access by index",
         "correct": false,
-        "response": "Arrays are better for random access O(1). Linked lists require O(n) traversal to reach an index.",
-        "reward_knowledge": null
+        "response": "Arrays win here: O(1) by index. A linked list needs O(n) traversal."
       },
       {
-        "text": "When memory efficiency is critical",
+        "text": "When you must minimise memory overhead per element",
         "correct": false,
-        "response": "Arrays are more memory efficient! Linked lists need extra space for pointers/references.",
-        "reward_knowledge": null
+        "response": "Arrays win here too - a linked list stores a pointer beside every element."
       },
       {
-        "text": "Linked lists are always better than arrays",
+        "text": "When you need to sort the data in place quickly",
         "correct": false,
-        "response": "Each has trade-offs! Arrays: fast random access. Linked lists: fast insertion/deletion.",
-        "reward_knowledge": null
+        "response": "Arrays are better: most in-place sorts rely on O(1) indexed access."
       }
     ]
   },
@@ -1385,9 +1378,9 @@
     "topic": "systems",
     "answers": [
       {
-        "text": "Stack is for local variables with automatic allocation; heap is for dynamic allocation",
+        "text": "The stack is automatic, the heap is manual",
         "correct": true,
-        "response": "Correct! Stack: LIFO, automatic, fast, limited size. Heap: manual allocation, slower, larger, risk of memory leaks.",
+        "response": "Correct! Stack: LIFO, fast, size-limited. Heap: explicit lifetime, larger, leakable.",
         "reward_knowledge": "memory_management"
       },
       {
@@ -1423,7 +1416,7 @@
     "topic": "algorithms",
     "answers": [
       {
-        "text": "When the problem has a natural recursive structure like tree traversal",
+        "text": "When the problem is naturally recursive, like a tree walk",
         "correct": true,
         "response": "Correct! Recursion is elegant for naturally recursive problems: trees, graphs, divide-and-conquer. But watch out for stack overflow!",
         "reward_knowledge": "algorithm_techniques"
@@ -1437,7 +1430,7 @@
       {
         "text": "Recursion uses less memory than iteration",
         "correct": false,
-        "response": "Recursion uses more memory (call stack)! Each call adds a stack frame. Iteration uses constant space.",
+        "response": "Recursion uses more memory: every call adds a stack frame. A loop usually does not.",
         "reward_knowledge": null
       },
       {
@@ -1485,26 +1478,23 @@
       {
         "text": "Don't Repeat Yourself",
         "correct": true,
-        "response": "Correct! DRY means avoid duplicating code and knowledge. Extract common logic into reusable functions/classes. Makes code easier to maintain!",
+        "response": "Correct! Every piece of knowledge should have one authoritative home in the code.",
         "reward_knowledge": "coding_principles"
       },
       {
-        "text": "Debug, Run, Yield",
+        "text": "Keep It Simple, Stupid",
         "correct": false,
-        "response": "Not a real principle! DRY = Don't Repeat Yourself. Avoid code duplication.",
-        "reward_knowledge": null
+        "response": "That is KISS - favour the simplest design that works. DRY is about duplication."
       },
       {
-        "text": "Data Requires Yieldability",
+        "text": "You Aren't Gonna Need It",
         "correct": false,
-        "response": "Made up! DRY = Don't Repeat Yourself. Extract repeated code into reusable components.",
-        "reward_knowledge": null
+        "response": "That is YAGNI - do not build for imagined future needs. DRY targets duplication."
       },
       {
-        "text": "Deploy Rapidly, Yearly",
+        "text": "Separation of Concerns",
         "correct": false,
-        "response": "No! DRY = Don't Repeat Yourself. Eliminate duplication to make code more maintainable.",
-        "reward_knowledge": null
+        "response": "A real principle, but not what DRY stands for. DRY is Don't Repeat Yourself."
       }
     ]
   },
@@ -1543,34 +1533,30 @@
     "topic": "ai_ml",
     "answers": [
       {
-        "text": "To iteratively minimize the loss function by updating weights in the direction of steepest descent",
+        "text": "To minimize the loss by stepping down the gradient",
         "correct": true,
-        "response": "Correct! Gradient descent follows the negative gradient (slope) to find local minima of the loss function. Learning rate controls step size.",
-        "reward_knowledge": "optimization",
-        "enemy_penalty": 45
+        "response": "Correct! Each step moves the weights along the negative gradient. The learning rate sets the step size.",
+        "reward_knowledge": "optimization"
       },
       {
         "text": "To increase the loss function value",
         "correct": false,
-        "response": "Opposite! We want to MINIMIZE loss, not maximize it. That's why we follow the negative gradient.",
-        "enemy_penalty": 45
+        "response": "Opposite! We want to MINIMIZE loss, not maximize it. That's why we follow the negative gradient."
       },
       {
-        "text": "To add more layers to the network",
+        "text": "To search for the best network architecture automatically",
         "correct": false,
-        "response": "Gradient descent is an optimization algorithm, not an architecture modification technique.",
-        "enemy_penalty": 45
+        "response": "That is architecture search. Gradient descent tunes weights, not structure."
       },
       {
-        "text": "To eliminate the need for training data",
+        "text": "To remove the need for labelled training data",
         "correct": false,
-        "response": "No! Gradient descent requires training data to compute loss and gradients. It's a supervised learning technique.",
-        "enemy_penalty": 45
+        "response": "No - the loss is computed against labels, so the data is still required."
       }
     ]
   },
   "merge_sort": {
-    "question_text": "What is the space complexity of merge sort?",
+    "question_text": "What is the auxiliary space complexity of standard array-based merge sort?",
     "topic": "algorithms",
     "answers": [
       {
@@ -1581,12 +1567,12 @@
       {
         "text": "O(log n)",
         "correct": false,
-        "response": "Not quite. Think about the auxiliary space needed."
+        "response": "That is the linked-list variant. The array version needs an O(n) merge buffer."
       },
       {
         "text": "O(n)",
         "correct": true,
-        "response": "Correct! Merge sort needs O(n) auxiliary space.",
+        "response": "Correct! The standard array version needs an O(n) merge buffer.",
         "reward_knowledge": "merge_sort"
       },
       {
@@ -1655,9 +1641,9 @@
     "topic": "data_structures",
     "answers": [
       {
-        "text": "Sorting numbers",
+        "text": "Sorting numbers in linear time",
         "correct": false,
-        "response": "A trie (prefix tree) isn't designed for sorting numbers. Tries are tree structures where each node represents a character, making them perfect for string operations like autocomplete."
+        "response": "That is radix sort. A trie is a tree keyed by characters, built for prefixes."
       },
       {
         "text": "String prefix matching",
@@ -1668,12 +1654,12 @@
       {
         "text": "Graph traversal",
         "correct": false,
-        "response": "Tries are trees, not general graphs. A trie stores strings where each path from root represents a string prefix, making prefix matching O(m) where m is string length\\!"
+        "response": "Tries are trees, not general graphs. A trie stores strings where each path from root represents a string prefix, making prefix matching O(m) where m is string length!"
       },
       {
         "text": "Random access",
         "correct": false,
-        "response": "Arrays give O(1) random access by index. Tries are for string prefix operations - each character is a node, paths spell words. Perfect for autocomplete and spell checking\\!"
+        "response": "Arrays give O(1) random access by index. Tries are for string prefix operations - each character is a node, paths spell words. Perfect for autocomplete and spell checking!"
       }
     ]
   },
@@ -1709,25 +1695,25 @@
     "topic": "web_development",
     "answers": [
       {
-        "text": "Server performance",
-        "correct": false,
-        "response": "CORS is about security, not performance."
-      },
-      {
-        "text": "Cross-domain requests",
+        "text": "Which origins a browser lets a page call",
         "correct": true,
-        "response": "Correct! CORS controls which domains can access resources.",
+        "response": "Correct! The server's CORS headers tell the browser which origins may read the response.",
         "reward_knowledge": "cors"
       },
       {
-        "text": "CSS styling",
+        "text": "Which IP ranges a firewall lets through",
         "correct": false,
-        "response": "CORS has nothing to do with styling!"
+        "response": "That is a network firewall rule. CORS is enforced inside the browser."
       },
       {
-        "text": "Database access",
+        "text": "Which TLS versions a server will accept",
         "correct": false,
-        "response": "CORS is a browser security feature."
+        "response": "That is TLS negotiation. CORS is about cross-origin access, not transport security."
+      },
+      {
+        "text": "Which cookies a browser attaches to a request",
+        "correct": false,
+        "response": "That is the SameSite cookie policy. Related, but a separate mechanism."
       }
     ]
   },
@@ -1791,9 +1777,9 @@
     "topic": "web_development",
     "answers": [
       {
-        "text": "All web applications",
+        "text": "Any page that loads data after first render",
         "correct": false,
-        "response": "WebSockets are for specific use cases."
+        "response": "A plain fetch handles that. WebSockets are for the server pushing without being asked."
       },
       {
         "text": "Real-time bidirectional communication",
@@ -1829,9 +1815,9 @@
         "reward_knowledge": "cdn"
       },
       {
-        "text": "Increase security",
+        "text": "Encrypt traffic between the user and the origin",
         "correct": false,
-        "response": "Security is a side benefit, not the main purpose."
+        "response": "That is TLS. A CDN terminates TLS, but that is not why you put one in front."
       },
       {
         "text": "Compress files",
@@ -1856,9 +1842,9 @@
         "reward_knowledge": "nat"
       },
       {
-        "text": "Speeds up routing",
+        "text": "Chooses the fastest route for each packet",
         "correct": false,
-        "response": "NAT can actually add overhead."
+        "response": "That is routing. NAT only rewrites addresses in the packet header."
       },
       {
         "text": "Replaces DNS",
@@ -1888,9 +1874,9 @@
         "reward_knowledge": "load_balancing"
       },
       {
-        "text": "IP Hash",
+        "text": "IP hash with session affinity",
         "correct": false,
-        "response": "IP Hash ensures session affinity, not load balancing."
+        "response": "IP hash pins a client to one server. It ignores how busy that server already is."
       }
     ]
   },
@@ -1903,29 +1889,29 @@
     "incorrect_response": "Yes - always use parameterized queries to prevent SQL injection."
   },
   "csrf": {
-    "question_text": "What does a CSRF token protect against?",
+    "question_text": "An attacker's page makes a logged-in user's browser POST to your app. What stops it?",
     "topic": "security",
     "answers": [
       {
-        "text": "XSS attacks",
-        "correct": false,
-        "response": "CSRF tokens don't prevent XSS."
-      },
-      {
-        "text": "Cross-Site Request Forgery",
+        "text": "A per-session anti-forgery token in the form",
         "correct": true,
-        "response": "Correct! CSRF tokens validate request origin.",
+        "response": "Correct! The attacker's page cannot read the token, so the forged request is rejected.",
         "reward_knowledge": "csrf"
       },
       {
-        "text": "SQL injection",
+        "text": "Escaping every value rendered into the HTML page",
         "correct": false,
-        "response": "SQL injection requires different defenses."
+        "response": "That defends against XSS. It does nothing about a request forged from another site."
       },
       {
-        "text": "DDoS attacks",
+        "text": "Using parameterized SQL queries",
         "correct": false,
-        "response": "CSRF tokens don't help with DDoS."
+        "response": "That defends against SQL injection. The forged request is still well-formed."
+      },
+      {
+        "text": "Rate limiting requests per IP address",
+        "correct": false,
+        "response": "That slows abuse, but one forged request is all the attacker needs."
       }
     ]
   },
@@ -1957,29 +1943,29 @@
     ]
   },
   "zero_trust": {
-    "question_text": "What is the core principle of Zero Trust security?",
+    "question_text": "Under Zero Trust, how is a request from inside the corporate network treated?",
     "topic": "security",
     "answers": [
       {
-        "text": "Trust the network perimeter",
-        "correct": false,
-        "response": "Zero Trust doesn't trust the perimeter!"
-      },
-      {
-        "text": "Never trust, always verify",
+        "text": "It is authenticated and authorized like any other",
         "correct": true,
-        "response": "Correct! Zero Trust verifies every request.",
+        "response": "Correct! Zero Trust removes implicit network trust - every request is verified.",
         "reward_knowledge": "zero_trust"
       },
       {
-        "text": "Trust internal users",
+        "text": "It is trusted because it came from a known subnet",
         "correct": false,
-        "response": "Zero Trust doesn't assume trust."
+        "response": "That is perimeter security, the model Zero Trust was designed to replace."
       },
       {
-        "text": "No authentication needed",
+        "text": "It skips authorization but is still logged",
         "correct": false,
-        "response": "Zero Trust requires strong authentication!"
+        "response": "Logging is not a control. Zero Trust still authorizes every request."
+      },
+      {
+        "text": "It is allowed once the VPN session is active",
+        "correct": false,
+        "response": "A VPN just moves the perimeter. Zero Trust verifies each request regardless."
       }
     ]
   },
@@ -2004,9 +1990,9 @@
         "response": "Graphics use VRAM, different concept."
       },
       {
-        "text": "Network performance",
+        "text": "It speeds up access to files on disk",
         "correct": false,
-        "response": "Virtual memory is about RAM, not networking."
+        "response": "That is the page cache. Virtual memory is about address translation and isolation."
       }
     ]
   },
@@ -2015,30 +2001,30 @@
     "topic": "systems",
     "answers": [
       {
-        "text": "CPU is destroyed",
-        "correct": false,
-        "response": "The CPU isn't damaged!"
-      },
-      {
-        "text": "Process state is saved and restored",
+        "text": "Register state is saved and restored",
         "correct": true,
-        "response": "Yes! Context switches save/restore CPU state.",
+        "response": "Yes! The kernel saves the outgoing process's registers and restores the incoming one's.",
         "reward_knowledge": "context_switch"
       },
       {
-        "text": "Memory is cleared",
+        "text": "The process's address space is freed",
         "correct": false,
-        "response": "Memory persists across context switches."
+        "response": "That happens when a process exits, not when it is switched out."
       },
       {
-        "text": "New OS is loaded",
+        "text": "The process is swapped out from RAM to disk",
         "correct": false,
-        "response": "The OS stays the same!"
+        "response": "That is swapping. A context switch leaves the process in memory."
+      },
+      {
+        "text": "All CPU caches are invalidated by the kernel",
+        "correct": false,
+        "response": "The kernel does not flush caches, though the incoming process will evict lines."
       }
     ]
   },
   "scheduler_types": {
-    "question_text": "Which scheduling algorithm can cause starvation?",
+    "question_text": "Which scheduling algorithm can starve a process indefinitely without aging?",
     "topic": "systems",
     "answers": [
       {
@@ -2049,7 +2035,7 @@
       {
         "text": "Priority Scheduling",
         "correct": true,
-        "response": "Yes! Low-priority processes can starve.",
+        "response": "Yes! Strict priority can leave a low-priority process waiting forever. Aging fixes it.",
         "reward_knowledge": "scheduling"
       },
       {
@@ -2069,25 +2055,25 @@
     "topic": "distributed_systems",
     "answers": [
       {
-        "text": "Immediate consistency",
+        "text": "Reads always return the newest write",
         "correct": false,
-        "response": "That's strong consistency!"
+        "response": "That is strong consistency. Eventual consistency allows stale reads."
       },
       {
-        "text": "Consistency after bounded time",
+        "text": "Replicas converge once updates stop",
         "correct": true,
-        "response": "Correct! Eventually all replicas will be consistent.",
+        "response": "Correct! With no new writes, replicas eventually agree - with no time bound.",
         "reward_knowledge": "eventual_consistency"
       },
       {
-        "text": "No consistency guarantee",
+        "text": "Staleness is bounded by a fixed window",
         "correct": false,
-        "response": "There is a guarantee, just not immediate."
+        "response": "That is bounded staleness, a stronger model. Eventual consistency sets no bound."
       },
       {
-        "text": "Perfect consistency always",
+        "text": "No convergence guarantee at all",
         "correct": false,
-        "response": "That's not achievable in distributed systems!"
+        "response": "There is a convergence guarantee, just no deadline attached to it."
       }
     ]
   },
@@ -2109,7 +2095,7 @@
       {
         "text": "All servers must agree",
         "correct": false,
-        "response": "Quorums need majority, not all."
+        "response": "Quorums need overlap, not unanimity. R + W > N is enough; R=1, W=N works."
       },
       {
         "text": "Random selection",
@@ -2131,14 +2117,14 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "They're identical",
+        "text": "They are two names for the same practice",
         "correct": false,
-        "response": "They serve different purposes!"
+        "response": "They overlap, but monitoring answers known questions and observability unknown ones."
       },
       {
-        "text": "Observability enables understanding unknown unknowns",
+        "text": "Observability handles unknown unknowns",
         "correct": true,
-        "response": "Yes! Observability lets you explore unexpected issues.",
+        "response": "Yes! Monitoring watches metrics you predefined; observability lets you ask new questions.",
         "reward_knowledge": "observability"
       },
       {
@@ -2185,25 +2171,25 @@
     "topic": "design_patterns",
     "answers": [
       {
-        "text": "Makes code pretty",
-        "correct": false,
-        "response": "It's not about aesthetics!"
-      },
-      {
-        "text": "Adds behavior dynamically",
+        "text": "Adds behaviour to an object at runtime",
         "correct": true,
-        "response": "Yes! Decorators wrap objects with new functionality.",
+        "response": "Yes! A decorator wraps an object and shares its interface, so wrappers stack.",
         "reward_knowledge": "decorator"
       },
       {
-        "text": "Removes functionality",
+        "text": "Converts one interface into another",
         "correct": false,
-        "response": "Decorators add, not remove."
+        "response": "That is Adapter. A decorator keeps the same interface it wraps."
       },
       {
-        "text": "Compiles code",
+        "text": "Gives a simple front to a complex subsystem",
         "correct": false,
-        "response": "Decorators are runtime, not compile-time."
+        "response": "That is Facade, which hides a subsystem behind one entry point."
+      },
+      {
+        "text": "Controls access to another object, for example lazily",
+        "correct": false,
+        "response": "That is Proxy. It guards access rather than adding behaviour."
       }
     ]
   },
@@ -2212,14 +2198,14 @@
     "topic": "design_patterns",
     "answers": [
       {
-        "text": "When interfaces are compatible",
+        "text": "When two interfaces already line up perfectly",
         "correct": false,
-        "response": "Adapters are for incompatible interfaces!"
+        "response": "Then you need no adapter at all - just call the class directly."
       },
       {
-        "text": "To make incompatible interfaces work together",
+        "text": "Bridge two incompatible interfaces",
         "correct": true,
-        "response": "Correct! Adapters bridge incompatible interfaces.",
+        "response": "Correct! The adapter translates calls so an existing class fits an expected interface.",
         "reward_knowledge": "adapter"
       },
       {
@@ -2250,9 +2236,9 @@
         "reward_knowledge": "command"
       },
       {
-        "text": "Direct method calls",
+        "text": "Calling a method directly with no indirection",
         "correct": false,
-        "response": "Commands add indirection!"
+        "response": "Command adds indirection on purpose, so requests can be queued, logged, or undone."
       },
       {
         "text": "Database operations",
@@ -2266,25 +2252,25 @@
     "topic": "design_patterns",
     "answers": [
       {
-        "text": "Managing application state cleanly",
+        "text": "An object must change behaviour as its state changes",
         "correct": true,
-        "response": "Correct! State pattern avoids large conditionals.",
+        "response": "Correct! Each state becomes an object, replacing a big conditional on a state field.",
         "reward_knowledge": "state"
       },
       {
-        "text": "Storing data",
+        "text": "An object's previous state must be saved and restored",
         "correct": false,
-        "response": "State pattern is about behavior, not storage."
+        "response": "That is Memento, which snapshots state so it can be rolled back."
       },
       {
-        "text": "Threading",
+        "text": "Global application state must live in one store",
         "correct": false,
-        "response": "Not related to threads."
+        "response": "That is a state container such as Redux, not the State pattern."
       },
       {
-        "text": "Error handling",
+        "text": "A single instance must be shared across the app",
         "correct": false,
-        "response": "Not the purpose of State pattern."
+        "response": "That is Singleton, which controls instance count rather than behaviour."
       }
     ]
   },
@@ -2317,9 +2303,9 @@
         "response": "Materialized views use more space!"
       },
       {
-        "text": "Never, they're deprecated",
+        "text": "Never - a plain view performs the same",
         "correct": false,
-        "response": "Materialized views are still useful!"
+        "response": "A plain view re-runs its query every time. A materialized one stores the result."
       }
     ]
   },
@@ -2328,9 +2314,9 @@
     "topic": "databases",
     "answers": [
       {
-        "text": "Speed up reads",
+        "text": "Speed up reads by caching hot pages",
         "correct": false,
-        "response": "WAL is about durability, not read speed."
+        "response": "That is the buffer pool. The WAL is written before the data pages change."
       },
       {
         "text": "Ensure durability and recovery",
@@ -2355,25 +2341,25 @@
     "topic": "programming_fundamentals",
     "answers": [
       {
-        "text": "A closed loop",
-        "correct": false,
-        "response": "Not about loops!"
-      },
-      {
-        "text": "Function with access to outer scope",
+        "text": "A function that captures its enclosing scope",
         "correct": true,
-        "response": "Yes! Closures capture their environment.",
+        "response": "Yes! The function keeps the variables it closed over alive after that scope returns.",
         "reward_knowledge": "closure"
       },
       {
-        "text": "A finished program",
+        "text": "A function defined inside a class body",
         "correct": false,
-        "response": "That's not what closure means."
+        "response": "That is a method. A closure is about captured variables, not class membership."
       },
       {
-        "text": "A type of class",
+        "text": "A function that calls itself until a base case",
         "correct": false,
-        "response": "Closures are about functions."
+        "response": "That is recursion. A closure need not call itself at all."
+      },
+      {
+        "text": "A function stored and passed around as a value",
+        "correct": false,
+        "response": "That makes it first-class. Closures are first-class, but capture is the defining part."
       }
     ]
   },
@@ -2382,9 +2368,9 @@
     "topic": "programming_fundamentals",
     "answers": [
       {
-        "text": "Use less memory",
+        "text": "Always uses less memory than mutable data",
         "correct": false,
-        "response": "Immutability can use more memory!"
+        "response": "Usually the opposite - a change copies rather than editing in place."
       },
       {
         "text": "Easier to reason about, thread-safe",
@@ -2409,25 +2395,25 @@
     "topic": "software_engineering",
     "answers": [
       {
-        "text": "Money owed for tools",
-        "correct": false,
-        "response": "Not about financial debt!"
-      },
-      {
-        "text": "Cost of suboptimal design choices",
+        "text": "The future cost of a shortcut taken now",
         "correct": true,
-        "response": "Yes! Technical debt accumulates from shortcuts.",
+        "response": "Yes! Like financial debt it charges interest - every later change costs more.",
         "reward_knowledge": "tech_debt"
       },
       {
-        "text": "Literal debt",
+        "text": "The number of open bugs in the tracker",
         "correct": false,
-        "response": "It's a metaphor!"
+        "response": "That is the defect backlog. Debt can exist in code with no known bugs."
       },
       {
-        "text": "Bug count",
+        "text": "Work that is planned but not yet started",
         "correct": false,
-        "response": "Bugs are different from tech debt."
+        "response": "That is the product backlog, which is about scope rather than code quality."
+      },
+      {
+        "text": "The licence cost of third-party dependencies",
+        "correct": false,
+        "response": "That is a real budget line, but technical debt is a metaphor for design cost."
       }
     ]
   },
@@ -2436,9 +2422,9 @@
     "topic": "software_engineering",
     "answers": [
       {
-        "text": "Many responsibilities",
+        "text": "A module that does many unrelated things",
         "correct": false,
-        "response": "High cohesion means focused!"
+        "response": "That is low cohesion - the thing to avoid."
       },
       {
         "text": "Single, well-defined responsibility",
@@ -2517,25 +2503,25 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "Deploy to subset of users first",
+        "text": "Roll out to a small subset of users first",
         "correct": true,
-        "response": "Correct\\! Canary deployments gradually roll out to a small percentage of users first, monitoring for issues before full rollout. This reduces blast radius of bugs. Named after coal mine canaries\\!",
+        "response": "Correct! A canary limits the blast radius: watch the metrics, then ramp up or roll back.",
         "reward_knowledge": "canary_deployment"
       },
       {
-        "text": "Deploy only at night",
+        "text": "Switch all traffic between two identical environments at once",
         "correct": false,
-        "response": "Timing isn't the key aspect. Canary deploys to a subset of users first to catch issues early."
+        "response": "That is blue-green. A canary ramps traffic up gradually instead."
       },
       {
-        "text": "Deploy to yellow servers",
+        "text": "Replace instances in batches until the whole fleet is updated",
         "correct": false,
-        "response": "Not about server colors\\! Canary means releasing to a small group first to test changes safely."
+        "response": "That is a rolling update. A canary judges a small slice before going further."
       },
       {
-        "text": "Same as blue-green",
+        "text": "Deploy only during a scheduled maintenance window",
         "correct": false,
-        "response": "Different\\! Blue-green switches all traffic at once. Canary gradually increases traffic to the new version."
+        "response": "That is a scheduled release. Timing is not what makes a deployment a canary."
       }
     ]
   },
@@ -2546,23 +2532,23 @@
       {
         "text": "Run as root always",
         "correct": false,
-        "response": "Never run as root\\! Use non-root users to minimize damage if container is compromised."
+        "response": "Never run as root! Use non-root users to minimize damage if container is compromised."
       },
       {
-        "text": "Use minimal base images and scan for vulnerabilities",
+        "text": "Use minimal base images and scan them",
         "correct": true,
-        "response": "Correct\\! Use slim base images (Alpine, distroless), scan with tools like Trivy, update dependencies regularly, and never include secrets. Less software = smaller attack surface\\!",
+        "response": "Correct! Less software means a smaller attack surface, and scanners catch known CVEs.",
         "reward_knowledge": "container_security"
       },
       {
-        "text": "Include all tools for debugging",
+        "text": "Ship a shell and debugging tools for incidents",
         "correct": false,
-        "response": "Minimize tools in production images\\! Each tool is a potential vulnerability. Use separate debug images if needed."
+        "response": "Every extra tool widens the attack surface. Debug from a separate image instead."
       },
       {
         "text": "Hardcode secrets in images",
         "correct": false,
-        "response": "Never hardcode secrets\\! Use environment variables, secret managers, or mounted volumes."
+        "response": "Never hardcode secrets! Use environment variables, secret managers, or mounted volumes."
       }
     ]
   },
@@ -2571,20 +2557,20 @@
     "topic": "system_design",
     "answers": [
       {
-        "text": "Faster for large datasets, handles changes correctly",
+        "text": "Constant cost, and stable when rows change",
         "correct": true,
-        "response": "Correct\\! Cursor-based pagination uses a pointer (e.g., last ID) so performance stays constant. Offset pagination gets slower with high offsets and breaks if data changes. Cursors are stable\\!",
+        "response": "Correct! A cursor points at the last row seen, so deep pages cost the same as shallow ones.",
         "reward_knowledge": "api_pagination"
       },
       {
         "text": "Offset is always better",
         "correct": false,
-        "response": "Offset is simpler but slower at scale. Offset 1000000 requires skipping a million rows\\!"
+        "response": "Offset is simpler but slower at scale. Offset 1000000 requires skipping a million rows!"
       },
       {
-        "text": "They're identical",
+        "text": "Cursors let a client jump straight to any page number",
         "correct": false,
-        "response": "Very different\\! Cursors maintain position even as data changes. Offsets can skip or duplicate items."
+        "response": "That is what offsets do. A cursor only walks forward from where you stopped."
       },
       {
         "text": "Cursors only work with REST",
@@ -2598,15 +2584,15 @@
     "topic": "system_design",
     "answers": [
       {
-        "text": "Retry safety - same request can be sent multiple times safely",
+        "text": "So a retried request is safe to apply twice",
         "correct": true,
-        "response": "Correct\\! Networks are unreliable. Idempotency means retrying a failed request won't cause duplicates. Use idempotency keys, PUT instead of POST, or natural idempotence of operations.",
+        "response": "Correct! Networks are unreliable. Use an idempotency key, or PUT instead of POST.",
         "reward_knowledge": "idempotency"
       },
       {
-        "text": "Makes systems faster",
+        "text": "It removes the need for request timeouts",
         "correct": false,
-        "response": "Not about speed. Idempotency ensures safety when requests are retried due to timeouts or failures."
+        "response": "Timeouts are still needed. Idempotency makes the retry after one safe."
       },
       {
         "text": "Reduces server load",
@@ -2614,36 +2600,9 @@
         "response": "Load isn't the key benefit. It's about handling duplicate requests correctly without side effects."
       },
       {
-        "text": "Only needed for databases",
+        "text": "It is only a concern for database transactions",
         "correct": false,
-        "response": "All distributed operations need idempotency\\! APIs, message queues, payment systems, etc."
-      }
-    ]
-  },
-  "event_driven": {
-    "question_text": "What's a key benefit of event-driven architecture?",
-    "topic": "system_design",
-    "answers": [
-      {
-        "text": "Decoupling and asynchronous processing",
-        "correct": true,
-        "response": "Correct\\! Producers emit events without knowing consumers. Consumers react independently. Great for complex workflows and scaling. Examples: order placed → inventory, email, analytics all react.",
-        "reward_knowledge": "event_driven"
-      },
-      {
-        "text": "Simpler than synchronous calls",
-        "correct": false,
-        "response": "Actually more complex\\! Event-driven adds debugging challenges, eventual consistency, ordering issues. But gains flexibility."
-      },
-      {
-        "text": "Faster than REST APIs",
-        "correct": false,
-        "response": "Not necessarily faster. Events add latency from queues. The benefit is decoupling, not raw speed."
-      },
-      {
-        "text": "Eliminates need for databases",
-        "correct": false,
-        "response": "Still need databases\\! Event sourcing stores events as truth, but you often materialize views."
+        "response": "Every distributed operation needs it: APIs, message queues, payment systems."
       }
     ]
   },
@@ -2652,25 +2611,25 @@
     "topic": "system_design",
     "answers": [
       {
-        "text": "Prevents thundering herd, gives system time to recover",
+        "text": "It stops every client retrying at once",
         "correct": true,
-        "response": "Correct\\! If all clients retry immediately, you overwhelm the recovering system. Exponential backoff (1s, 2s, 4s, 8s...) with jitter spaces out retries. Protects both client and server\\!",
+        "response": "Correct! Growing delays plus jitter spread the retries out while the service recovers.",
         "reward_knowledge": "retry_patterns"
       },
       {
-        "text": "Makes retries faster",
+        "text": "It makes each retry arrive sooner",
         "correct": false,
-        "response": "Backoff actually waits longer between retries\\! The goal is giving systems time to recover."
+        "response": "The opposite - each wait is longer than the last. That is the point."
       },
       {
-        "text": "Prevents all errors",
+        "text": "It guarantees the request eventually succeeds",
         "correct": false,
-        "response": "Can't prevent errors. Backoff helps manage retry storms when systems are already struggling."
+        "response": "Nothing guarantees that. Backoff manages retry storms; you still need a give-up rule."
       },
       {
-        "text": "Only needed for networks",
+        "text": "It is only needed for network calls",
         "correct": false,
-        "response": "Useful anywhere with failures: APIs, databases, external services, batch jobs."
+        "response": "Useful anywhere with transient failures: databases, external services, batch jobs."
       }
     ]
   },
@@ -2681,23 +2640,23 @@
       {
         "text": "In NP and all NP problems reduce to it",
         "correct": true,
-        "response": "Correct\\! NP-complete problems are the hardest in NP - if you solve one efficiently, you solve all NP problems\\! SAT, TSP, Graph Coloring are classics. No polynomial algorithm known.",
+        "response": "Correct! NP-complete problems are the hardest in NP - if you solve one efficiently, you solve all NP problems! SAT, TSP, Graph Coloring are classics. No polynomial algorithm known.",
         "reward_knowledge": "np_complete"
       },
       {
         "text": "Can't be solved by computers",
         "correct": false,
-        "response": "NP-complete problems CAN be solved, just not efficiently (no known polynomial algorithm). They're solvable but slow\\!"
+        "response": "NP-complete problems CAN be solved, just not efficiently (no known polynomial algorithm). They're solvable but slow!"
       },
       {
         "text": "Same as undecidable",
         "correct": false,
-        "response": "Different\\! Undecidable (like halting problem) has NO algorithm. NP-complete has algorithms, just not efficient ones."
+        "response": "Different! Undecidable (like halting problem) has NO algorithm. NP-complete has algorithms, just not efficient ones."
       },
       {
         "text": "Easier than NP problems",
         "correct": false,
-        "response": "Opposite\\! NP-complete problems are the HARDEST in NP. All other NP problems reduce to them."
+        "response": "Opposite! NP-complete problems are the HARDEST in NP. All other NP problems reduce to them."
       }
     ]
   },
@@ -2743,14 +2702,14 @@
     "topic": "ai_ml",
     "answers": [
       {
-        "text": "Classification predicts categories, regression predicts numbers",
+        "text": "Classification outputs labels, regression numbers",
         "correct": true,
-        "response": "Correct! Classification outputs discrete classes, regression outputs continuous values."
+        "response": "Correct! Discrete classes versus a continuous value."
       },
       {
-        "text": "Classification is faster than regression",
+        "text": "Classification always trains faster than regression does",
         "correct": false,
-        "response": "Speed depends on the algorithm, not the task type."
+        "response": "Speed comes from the algorithm and the data, not from the kind of task."
       },
       {
         "text": "Regression only works on images",
@@ -2796,7 +2755,7 @@
     "type": "short_answer",
     "question_text": "What technique splits data into k folds for robust model evaluation?",
     "topic": "ai_ml",
-    "correct_answer": "cross-validation|k-fold|k fold|cross validation|k-fold cross-validation",
+    "correct_answer": "cross-validation|cross validation|crossvalidation|cross-validate|cross validate|k-fold|k fold|kfold|k-folds|k folds|k-fold cross-validation|k-fold cross validation|k fold cross-validation|k fold cross validation|kfold cross validation|kfold cross-validation|k-fold validation|k fold validation",
     "match_type": "exact",
     "correct_response": "Correct! K-fold cross-validation provides more reliable performance estimates.",
     "incorrect_response": "Think about validation techniques that use multiple train/test splits."
@@ -2807,15 +2766,15 @@
     "topic": "ai_ml",
     "answers": [
       {
-        "text": "True positives, false positives, true negatives, false negatives",
+        "text": "Counts of the four prediction outcomes",
         "correct": true,
-        "response": "Correct! It shows all four outcomes of a binary classifier.",
+        "response": "Correct! It tabulates true and false positives against true and false negatives.",
         "reward_knowledge": "evaluation_metrics"
       },
       {
-        "text": "The training loss over time",
+        "text": "How the training loss changed over each epoch",
         "correct": false,
-        "response": "That's a training curve, not a confusion matrix."
+        "response": "That is a training curve, not a confusion matrix."
       },
       {
         "text": "Feature importance scores",
@@ -2863,14 +2822,14 @@
     "topic": "ai_ml",
     "answers": [
       {
-        "text": "Number of samples processed before updating weights",
+        "text": "Samples processed per weight update",
         "correct": true,
-        "response": "Correct! Batch size determines how many samples are used per gradient update."
+        "response": "Correct! Larger batches give smoother gradients; smaller ones update more often."
       },
       {
-        "text": "Total number of training samples",
+        "text": "The total number of samples in the training set",
         "correct": false,
-        "response": "That's the dataset size, not batch size."
+        "response": "That is the dataset size. The batch is the slice used for one update."
       },
       {
         "text": "Number of layers in the network",
@@ -2888,10 +2847,10 @@
     "type": "short_answer",
     "question_text": "Name a common activation function used in neural networks.",
     "topic": "ai_ml",
-    "correct_answer": "ReLU|sigmoid|tanh|softmax|relu|Sigmoid|Tanh|Softmax",
+    "correct_answer": "relu|leaky relu|leaky-relu|leakyrelu|prelu|elu|selu|gelu|silu|swish|sigmoid|hard sigmoid|tanh|softmax|softplus|softsign|mish|maxout",
     "match_type": "exact",
     "correct_response": "Correct! That's a commonly used activation function.",
-    "incorrect_response": "Try ReLU, sigmoid, tanh, or softmax."
+    "incorrect_response": "Try ReLU, leaky ReLU, GELU, sigmoid, tanh, or softmax."
   },
   "reinforcement_learning": {
     "type": "multiple_choice",
@@ -2966,14 +2925,14 @@
         "response": "That's data transfer, not transfer learning."
       },
       {
-        "text": "Converting between model formats",
+        "text": "Converting a model between file formats",
         "correct": false,
         "response": "That's model conversion, not transfer learning."
       },
       {
         "text": "Teaching one model to another",
         "correct": false,
-        "response": "That's knowledge distillation, not quite transfer learning."
+        "response": "That is knowledge distillation - one narrow kind of transfer, not the general idea."
       }
     ]
   },
@@ -2981,7 +2940,7 @@
     "type": "short_answer",
     "question_text": "What type of learning groups similar data points together without labels?",
     "topic": "ai_ml",
-    "correct_answer": "unsupervised|unsupervised learning|clustering",
+    "correct_answer": "unsupervised|unsupervised learning|unsupervised-learning|clustering|cluster analysis|clustering algorithms",
     "match_type": "exact",
     "correct_response": "Correct! Unsupervised learning/clustering finds patterns without labels.",
     "incorrect_response": "Think about learning without labeled training data.",
@@ -2993,9 +2952,9 @@
     "topic": "ai_ml",
     "answers": [
       {
-        "text": "Tune hyperparameters without touching test data",
+        "text": "Tune hyperparameters off the test set",
         "correct": true,
-        "response": "Correct! Validation helps tune without biasing the test evaluation."
+        "response": "Correct! The test set stays untouched, so its score remains an honest estimate."
       },
       {
         "text": "Replace the training set",
@@ -3003,42 +2962,14 @@
         "response": "Validation supplements training, doesn't replace it."
       },
       {
-        "text": "Make the model train faster",
+        "text": "Speed up training by evaluating less often",
         "correct": false,
-        "response": "Validation is for evaluation, not speed."
+        "response": "Validation is for measuring, not for speed."
       },
       {
         "text": "Store extra training samples",
         "correct": false,
         "response": "It's used during training for monitoring, not storage."
-      }
-    ]
-  },
-  "git_merge_vs_rebase": {
-    "type": "multiple_choice",
-    "question_text": "What's the main difference between git merge and git rebase?",
-    "topic": "devops",
-    "answers": [
-      {
-        "text": "Rebase rewrites commit history, merge preserves it",
-        "correct": true,
-        "response": "Correct! Rebase creates linear history, merge preserves branch history.",
-        "reward_knowledge": "git_workflows"
-      },
-      {
-        "text": "Merge is faster than rebase",
-        "correct": false,
-        "response": "Performance isn't the key difference."
-      },
-      {
-        "text": "Rebase only works on main branch",
-        "correct": false,
-        "response": "Rebase works on any branch."
-      },
-      {
-        "text": "Merge requires pull requests",
-        "correct": false,
-        "response": "Pull requests are a workflow choice, not a merge requirement."
       }
     ]
   },
@@ -3072,11 +3003,12 @@
   },
   "event_driven_architecture": {
     "type": "yes_no",
-    "question_text": "In event-driven architecture, do services communicate through asynchronous events?",
-    "topic": "software_engineering",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Event-driven systems use async events for loose coupling.",
-    "incorrect_response": "Yes - event-driven architecture uses asynchronous event messages for communication."
+    "question_text": "In event-driven architecture, must a producer know which services consume its events?",
+    "topic": "architecture",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct! The producer publishes and moves on. Consumers subscribe independently.",
+    "incorrect_response": "No - the producer emits an event and never learns who handled it.",
+    "reward_knowledge": "event_driven"
   },
   "feature_flags": {
     "type": "multiple_choice",
@@ -3112,9 +3044,9 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "Intentionally breaking production to test resilience",
+        "text": "Injecting controlled failures into a live system",
         "correct": true,
-        "response": "Correct! Chaos engineering finds weaknesses before real outages do.",
+        "response": "Correct! A chaos experiment states a hypothesis, limits the blast radius, then verifies it.",
         "reward_knowledge": "chaos_engineering"
       },
       {
@@ -3128,9 +3060,9 @@
         "response": "It's about system resilience testing, not code changes."
       },
       {
-        "text": "Testing without documentation",
+        "text": "Randomly changing configuration to see what breaks",
         "correct": false,
-        "response": "Chaos engineering is well-documented and controlled."
+        "response": "Chaos experiments are hypothesis-driven and bounded, not random."
       }
     ]
   },
@@ -3138,7 +3070,7 @@
     "type": "short_answer",
     "question_text": "Adding more servers is called _____ scaling. (horizontal or vertical?)",
     "topic": "distributed_systems",
-    "correct_answer": "horizontal|Horizontal",
+    "correct_answer": "horizontal|horizontal scaling|horizontal-scaling|horizontally|scaling horizontally|scale horizontally|scale out|scale-out|scaling out",
     "match_type": "exact",
     "correct_response": "Correct! Horizontal scaling adds more machines. Vertical scaling adds more power to one machine.",
     "incorrect_response": "Think: horizontal = more machines, vertical = bigger machine.",
@@ -3164,19 +3096,39 @@
   },
   "process_vs_thread": {
     "type": "yes_no",
-    "question_text": "Do threads within a process share the same memory space?",
+    "question_text": "Do two separate processes share the same memory space by default?",
     "topic": "systems",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Threads share memory, making communication fast but requiring synchronization.",
-    "incorrect_response": "Yes - threads share memory within a process, unlike separate processes."
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct! Each process gets its own address space. Threads inside one process share memory.",
+    "incorrect_response": "No - processes are isolated. Threads within a process are what share memory."
   },
   "cache_miss_types": {
-    "type": "yes_no",
-    "question_text": "Is a cache miss when requested data is NOT found in the cache?",
+    "type": "multiple_choice",
+    "question_text": "Which cache miss happens when two hot addresses map to the same set?",
     "topic": "systems",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! A miss requires fetching from slower memory.",
-    "incorrect_response": "Yes - a miss means the data must be fetched from main memory."
+    "answers": [
+      {
+        "text": "A conflict miss",
+        "correct": true,
+        "response": "Correct! Limited associativity makes them evict each other even with room to spare.",
+        "reward_knowledge": "cache_misses"
+      },
+      {
+        "text": "A compulsory miss",
+        "correct": false,
+        "response": "A compulsory (cold) miss is the very first touch of a line."
+      },
+      {
+        "text": "A capacity miss",
+        "correct": false,
+        "response": "A capacity miss means the working set is simply larger than the cache."
+      },
+      {
+        "text": "A coherence miss",
+        "correct": false,
+        "response": "A coherence miss comes from another core invalidating the line."
+      }
+    ]
   },
   "normalization_purpose": {
     "type": "multiple_choice",
@@ -3184,9 +3136,9 @@
     "topic": "databases",
     "answers": [
       {
-        "text": "Reduce data redundancy and improve data integrity",
+        "text": "Reduce redundancy and protect integrity",
         "correct": true,
-        "response": "Correct! Normalization eliminates duplicate data and ensures consistency.",
+        "response": "Correct! Each fact lives in one place, so it cannot fall out of step with itself.",
         "reward_knowledge": "normalization"
       },
       {
@@ -3195,9 +3147,9 @@
         "response": "Normalization can actually slow some queries (requiring joins)."
       },
       {
-        "text": "Reduce database size on disk",
+        "text": "Make every query resolvable without a join",
         "correct": false,
-        "response": "It's about integrity, not primarily size."
+        "response": "Normalization adds joins. Removing them is denormalization."
       },
       {
         "text": "Encrypt sensitive data",
@@ -3236,37 +3188,37 @@
   },
   "greedy_algorithm": {
     "type": "yes_no",
-    "question_text": "Does a greedy algorithm always make the locally optimal choice at each step?",
+    "question_text": "Does a greedy algorithm always find the globally optimal solution?",
     "topic": "algorithms",
-    "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Greedy algorithms choose the best immediate option (not always globally optimal).",
-    "incorrect_response": "Yes - greedy algorithms make locally optimal choices, which may not be globally optimal."
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct! Greedy takes the best local step, which is optimal only for some problems.",
+    "incorrect_response": "No - greedy is locally optimal. It works for MST and Huffman, not for 0/1 knapsack."
   },
   "dynamic_programming": {
     "type": "multiple_choice",
-    "question_text": "What technique does dynamic programming use to avoid redundant calculations?",
+    "question_text": "What lets dynamic programming avoid recomputing the same work?",
     "topic": "algorithms",
     "answers": [
       {
-        "text": "Memoization (caching results)",
+        "text": "Storing subproblem solutions",
         "correct": true,
-        "response": "Correct! DP stores subproblem solutions to avoid recalculation.",
+        "response": "Correct! DP reuses stored results for overlapping subproblems.",
         "reward_knowledge": "dynamic_programming"
+      },
+      {
+        "text": "Discarding intermediate results",
+        "correct": false,
+        "response": "That is the opposite. DP keeps results so it never solves a subproblem twice."
+      },
+      {
+        "text": "Parallel processing across cores",
+        "correct": false,
+        "response": "That is parallelism. DP saves work by reusing results, not by adding hardware."
       },
       {
         "text": "Using faster hardware",
         "correct": false,
-        "response": "DP is an algorithmic technique, not hardware optimization."
-      },
-      {
-        "text": "Parallel processing",
-        "correct": false,
-        "response": "While possible, memoization is the core DP technique."
-      },
-      {
-        "text": "Skipping validation checks",
-        "correct": false,
-        "response": "DP doesn't skip checks, it caches results."
+        "response": "DP is an algorithmic technique, not a hardware change."
       }
     ]
   },
@@ -3332,9 +3284,9 @@
     "topic": "databases",
     "answers": [
       {
-        "text": "Transactions execute as if they were serial (one after another)",
+        "text": "Transactions behave as if run one at a time",
         "correct": true,
-        "response": "Correct! SERIALIZABLE is the highest isolation level - no phantom reads, non-repeatable reads, or dirty reads. But it's the slowest!",
+        "response": "Correct! No dirty reads, no non-repeatable reads, no phantoms - and the slowest level.",
         "reward_knowledge": "transaction_isolation"
       },
       {
@@ -3348,9 +3300,9 @@
         "response": "That's data serialization, not transaction isolation. SERIALIZABLE is about concurrent transaction safety."
       },
       {
-        "text": "Transactions are saved to disk immediately",
+        "text": "Every transaction is flushed to disk immediately",
         "correct": false,
-        "response": "That's durability (the D in ACID), not isolation level."
+        "response": "That is durability, the D in ACID, not an isolation level."
       }
     ]
   },
@@ -3388,20 +3340,20 @@
     "topic": "databases",
     "answers": [
       {
-        "text": "To improve read performance at the cost of write complexity",
+        "text": "To speed up reads by accepting duplicate data",
         "correct": true,
-        "response": "Correct! Denormalization reduces JOINs for faster reads, but you must maintain duplicate data on writes. It's a performance tradeoff!",
+        "response": "Correct! Fewer joins on read, but every write must keep the copies in step.",
         "reward_knowledge": "denormalization"
       },
       {
-        "text": "To eliminate all data redundancy",
+        "text": "To guarantee the database reaches third normal form",
         "correct": false,
-        "response": "That's normalization! Denormalization intentionally adds redundancy to speed up reads."
+        "response": "That is normalization, the opposite move. Denormalization adds redundancy on purpose."
       },
       {
-        "text": "To make the database smaller",
+        "text": "To make the database smaller on disk",
         "correct": false,
-        "response": "Denormalization typically increases storage due to duplicate data. It's about speed, not size."
+        "response": "Duplicated data usually makes it bigger. The gain is read speed, not size."
       },
       {
         "text": "To ensure data integrity",
@@ -3444,9 +3396,9 @@
     "topic": "version_control",
     "answers": [
       {
-        "text": "Apply a specific commit from one branch to another",
+        "text": "Copy one commit onto the current branch",
         "correct": true,
-        "response": "Correct! Cherry-pick copies a commit to your current branch. Useful for backporting fixes or selectively merging features.",
+        "response": "Correct! It replays that commit as a new one. Useful for backporting a fix.",
         "reward_knowledge": "git_advanced"
       },
       {
@@ -3455,9 +3407,9 @@
         "response": "That would be git reset or git revert. Cherry-pick copies commits, doesn't delete them."
       },
       {
-        "text": "Merge all commits from a branch",
+        "text": "Merge every commit from another branch at once",
         "correct": false,
-        "response": "That's git merge. Cherry-pick selects individual commits, not whole branches."
+        "response": "That is git merge. Cherry-pick takes individual commits."
       },
       {
         "text": "Find the best commit in a branch",
@@ -3472,15 +3424,15 @@
     "topic": "version_control",
     "answers": [
       {
-        "text": "Binary search through commits to find when a bug was introduced",
+        "text": "Binary search history for the first bad commit",
         "correct": true,
-        "response": "Correct! Bisect performs binary search: mark commits as 'good' or 'bad' until it identifies the first bad commit. O(log n) debugging!",
+        "response": "Correct! Mark commits good or bad and it converges in O(log n) steps.",
         "reward_knowledge": "git_debugging"
       },
       {
-        "text": "Split a repository into two separate repos",
+        "text": "Split one repository into two separate repositories",
         "correct": false,
-        "response": "That's git filter-branch or subtree split. Bisect is for finding bugs in history."
+        "response": "That is filter-branch or a subtree split. Bisect searches history."
       },
       {
         "text": "Merge two branches automatically",
@@ -3500,15 +3452,15 @@
     "topic": "testing",
     "answers": [
       {
-        "text": "Nothing - it only means all lines were executed, not that they're correct",
+        "text": "Nothing about correctness - only that lines ran",
         "correct": true,
-        "response": "Correct! 100% coverage means every line ran during tests, but doesn't guarantee: correct assertions, edge cases tested, or absence of logic bugs. Coverage is necessary but not sufficient!",
+        "response": "Correct! Coverage proves execution, not assertions, edge cases, or absence of logic bugs.",
         "reward_knowledge": "test_coverage"
       },
       {
-        "text": "The code has no bugs",
+        "text": "That every possible branch through the code was taken",
         "correct": false,
-        "response": "Nope! Coverage measures execution, not correctness. You can execute buggy code in tests without catching the bug."
+        "response": "That is branch coverage, a stricter measure - and it still does not prove correctness."
       },
       {
         "text": "All possible inputs have been tested",
@@ -3528,15 +3480,15 @@
     "topic": "testing",
     "answers": [
       {
-        "text": "Verifying that services meet their API contracts with consumers",
+        "text": "Checking a provider still matches its consumers",
         "correct": true,
-        "response": "Correct! Contract tests ensure provider APIs match what consumers expect. Tools like Pact detect breaking changes before deployment. Faster and more reliable than full integration tests!",
+        "response": "Correct! Tools like Pact catch a breaking API change before it reaches production.",
         "reward_knowledge": "contract_testing"
       },
       {
-        "text": "Testing legal contracts in the codebase",
+        "text": "Running the full stack end to end before release",
         "correct": false,
-        "response": "Not about legal contracts! Contract testing verifies service API agreements in distributed systems."
+        "response": "That is end-to-end testing. Contract tests check one interface at a time, and run faster."
       },
       {
         "text": "Ensuring code follows style guidelines",
@@ -3556,9 +3508,9 @@
     "topic": "testing",
     "answers": [
       {
-        "text": "Detect unintended changes in UI/output by comparing to stored snapshots",
+        "text": "Catch unintended changes in serialized output",
         "correct": true,
-        "response": "Correct! Snapshot tests save output (like rendered HTML) and fail if it changes. Great for UIs - catch unexpected regressions quickly. But beware: blindly updating snapshots defeats the purpose!",
+        "response": "Correct! The stored output is the expectation. Beware of blindly re-recording it.",
         "reward_knowledge": "snapshot_testing"
       },
       {
@@ -3567,9 +3519,9 @@
         "response": "That's database snapshot testing (different concept). UI snapshot testing compares rendered output."
       },
       {
-        "text": "Take screenshots during test execution",
+        "text": "Compare rendered screenshots of a page pixel by pixel",
         "correct": false,
-        "response": "Visual regression testing takes screenshots. Snapshot testing compares serialized output (like HTML or JSON)."
+        "response": "That is visual regression testing. Snapshot tests compare serialized text."
       },
       {
         "text": "Measure test execution time",
@@ -3596,12 +3548,340 @@
       {
         "text": "Only on trees",
         "correct": false,
-        "response": "Trees work (they're DAGs), but topological sort applies to any DAG, not just trees."
+        "response": "A rooted directed tree is a DAG and works, but any DAG does - not just trees."
       },
       {
         "text": "Only on weighted graphs",
         "correct": false,
         "response": "Weight doesn't matter! Topological sort needs a DAG (directed, no cycles), weighted or not."
+      }
+    ]
+  },
+  "dijkstra_negative_weights": {
+    "type": "multiple_choice",
+    "question_text": "Why can Dijkstra's algorithm return a wrong answer on graphs with negative edge weights?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "It settles a node's distance and never revisits it",
+        "correct": true,
+        "response": "Correct! Once a node is settled, a later negative edge can no longer lower its distance.",
+        "reward_knowledge": "shortest_paths"
+      },
+      {
+        "text": "It cannot store a negative number in the priority queue",
+        "correct": false,
+        "response": "Negative values store fine. The problem is that settled distances are never revisited."
+      },
+      {
+        "text": "It requires the graph to be undirected",
+        "correct": false,
+        "response": "Dijkstra handles directed graphs. Negative weights are the real restriction."
+      },
+      {
+        "text": "It stops as soon as it reaches the target node",
+        "correct": false,
+        "response": "Stopping early is a valid optimisation, not the reason negative weights break it."
+      }
+    ]
+  },
+  "comparison_sort_lower_bound": {
+    "type": "short_answer",
+    "question_text": "Any comparison-based sort needs at least how many comparisons in the worst case?",
+    "topic": "algorithms",
+    "correct_answer": "O(n log n)|O(nlogn)|n log n|nlogn|linearithmic|quasilinear|omega(n log n)|omega(nlogn)|log(n!)|log n!",
+    "match_type": "complexity",
+    "correct_response": "Correct! The decision tree has n! leaves, so its depth is at least log2(n!) = Omega(n log n).",
+    "incorrect_response": "Think about the decision tree: n! orderings need log2(n!) comparisons to tell apart.",
+    "reward_knowledge": "sorting_lower_bound"
+  },
+  "sorting_stability": {
+    "type": "multiple_choice",
+    "question_text": "What does it mean for a sorting algorithm to be stable?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "Equal elements keep their original relative order",
+        "correct": true,
+        "response": "Correct! Two records that compare equal come out in the order they went in.",
+        "reward_knowledge": "sorting"
+      },
+      {
+        "text": "It always runs in the same time regardless of input",
+        "correct": false,
+        "response": "That is a guaranteed worst case. Heapsort has that but is not stable."
+      },
+      {
+        "text": "It never needs more than O(1) extra memory",
+        "correct": false,
+        "response": "That is being in-place. Stability and in-place are independent properties."
+      },
+      {
+        "text": "It never crashes on already-sorted input",
+        "correct": false,
+        "response": "Robustness is not stability. Stability is about the order of equal keys."
+      }
+    ]
+  },
+  "quicksort_stable": {
+    "type": "yes_no",
+    "question_text": "Is the standard in-place quicksort a stable sort?",
+    "topic": "algorithms",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct! Partitioning swaps far-apart elements, so equal keys can change order.",
+    "incorrect_response": "No - in-place partitioning swaps distant elements and reorders equal keys.",
+    "reward_knowledge": "sorting"
+  },
+  "big_o_dominant_term": {
+    "type": "multiple_choice",
+    "question_text": "What is the Big-O of an algorithm that runs in 3n² + 100n + 50 steps?",
+    "topic": "algorithms",
+    "answers": [
+      {
+        "text": "O(n²)",
+        "correct": true,
+        "response": "Correct! Big-O drops constant factors and lower-order terms.",
+        "reward_knowledge": "asymptotic_analysis"
+      },
+      {
+        "text": "O(3n²)",
+        "correct": false,
+        "response": "Big-O drops constant factors, so the 3 disappears."
+      },
+      {
+        "text": "O(n² + n)",
+        "correct": false,
+        "response": "The n term is dominated by n², so it drops out."
+      },
+      {
+        "text": "O(100n)",
+        "correct": false,
+        "response": "100n is the lower-order term here. n² grows faster for large n."
+      }
+    ]
+  },
+  "hash_collision_resolution": {
+    "type": "multiple_choice",
+    "question_text": "In a hash table using separate chaining, what happens when two keys hash to one bucket?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "Both are stored in a list at that bucket",
+        "correct": true,
+        "response": "Correct! Each bucket holds a list (or tree) of every entry that hashed there.",
+        "reward_knowledge": "hashing"
+      },
+      {
+        "text": "The table probes for the next free slot",
+        "correct": false,
+        "response": "That is open addressing - linear or quadratic probing, not chaining."
+      },
+      {
+        "text": "The newer key overwrites the older one",
+        "correct": false,
+        "response": "That would lose data. Only an insert with an equal key replaces a value."
+      },
+      {
+        "text": "The table immediately doubles in size and rehashes",
+        "correct": false,
+        "response": "Resizing is triggered by the load factor, not by a single collision."
+      }
+    ]
+  },
+  "dynamic_array_amortized": {
+    "type": "short_answer",
+    "question_text": "What is the amortized time to append to a dynamic array that doubles when full?",
+    "topic": "data_structures",
+    "correct_answer": "O(1)|constant|1|amortized O(1)|constant time|amortised O(1)",
+    "match_type": "complexity",
+    "correct_response": "Correct! Doubling makes the occasional O(n) copy average out to O(1) per append.",
+    "incorrect_response": "A single append can copy everything, but doubling spreads that cost over n appends.",
+    "reward_knowledge": "amortized"
+  },
+  "queue_fifo": {
+    "type": "yes_no",
+    "question_text": "Does a queue remove elements in last-in-first-out order?",
+    "topic": "data_structures",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct! A queue is first-in-first-out. LIFO describes a stack.",
+    "incorrect_response": "No - a queue is FIFO. The stack is the LIFO structure.",
+    "reward_knowledge": "queues"
+  },
+  "graph_representation": {
+    "type": "multiple_choice",
+    "question_text": "When is an adjacency matrix a better choice than an adjacency list?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "On a dense graph with frequent edge lookups",
+        "correct": true,
+        "response": "Correct! O(1) edge lookup, and on a dense graph the O(V²) space is not wasted.",
+        "reward_knowledge": "graphs"
+      },
+      {
+        "text": "When you need to iterate a vertex's neighbours fast",
+        "correct": false,
+        "response": "A list wins there. A matrix has to scan a whole row of V cells."
+      },
+      {
+        "text": "On a sparse graph with millions of vertices",
+        "correct": false,
+        "response": "A sparse graph leaves nearly all of the V² cells empty. Use a list."
+      },
+      {
+        "text": "When the vertex set grows while the program runs",
+        "correct": false,
+        "response": "A matrix is sized V by V up front, so growing V means rebuilding it."
+      }
+    ]
+  },
+  "bst_worst_case": {
+    "type": "short_answer",
+    "question_text": "What is the worst-case lookup time in an unbalanced binary search tree?",
+    "topic": "data_structures",
+    "correct_answer": "O(n)|linear|n|linear time",
+    "match_type": "complexity",
+    "correct_response": "Correct! Inserting already-sorted keys degenerates the tree into a linked list.",
+    "incorrect_response": "Think about inserting sorted keys one at a time - what shape does the tree take?",
+    "reward_knowledge": "trees"
+  },
+  "bloom_filter": {
+    "type": "multiple_choice",
+    "question_text": "What kind of error can a Bloom filter return?",
+    "topic": "data_structures",
+    "answers": [
+      {
+        "text": "False positives, but never false negatives",
+        "correct": true,
+        "response": "Correct! It may claim an absent key is present, but it never misses a present one.",
+        "reward_knowledge": "probabilistic_data_structures"
+      },
+      {
+        "text": "False negatives, but never false positives",
+        "correct": false,
+        "response": "The other way round. Every inserted key sets its bits, so it always matches later."
+      },
+      {
+        "text": "Both false positives and false negatives",
+        "correct": false,
+        "response": "False negatives cannot happen - a standard Bloom filter never clears a bit."
+      },
+      {
+        "text": "Neither, if the hash functions are good",
+        "correct": false,
+        "response": "More hash functions lower the false-positive rate but never reach zero."
+      }
+    ]
+  },
+  "race_condition": {
+    "type": "multiple_choice",
+    "question_text": "What is a race condition?",
+    "topic": "systems",
+    "answers": [
+      {
+        "text": "The result depends on the interleaving of threads",
+        "correct": true,
+        "response": "Correct! Unsynchronised access to shared state makes the outcome schedule-dependent.",
+        "reward_knowledge": "concurrency"
+      },
+      {
+        "text": "Threads spend most of their time waiting on one lock",
+        "correct": false,
+        "response": "That is lock contention. It hurts throughput, but the result stays correct."
+      },
+      {
+        "text": "A thread never gets scheduled and makes no progress",
+        "correct": false,
+        "response": "That is starvation, usually from an unfair scheduler or priority scheme."
+      },
+      {
+        "text": "Two threads each wait on a lock the other holds",
+        "correct": false,
+        "response": "That is deadlock - a cycle of threads each holding what another needs."
+      }
+    ]
+  },
+  "mutex_vs_semaphore": {
+    "type": "multiple_choice",
+    "question_text": "How does a counting semaphore differ from a mutex?",
+    "topic": "systems",
+    "answers": [
+      {
+        "text": "It lets up to N holders in at once",
+        "correct": true,
+        "response": "Correct! A semaphore counts permits. A mutex is the special case of exactly one.",
+        "reward_knowledge": "concurrency"
+      },
+      {
+        "text": "It can only be released by its owner",
+        "correct": false,
+        "response": "That is the mutex rule. Any thread may post to a semaphore."
+      },
+      {
+        "text": "It blocks without ever putting a thread to sleep",
+        "correct": false,
+        "response": "That is a spinlock, which busy-waits instead of blocking."
+      },
+      {
+        "text": "It protects data from being read, not written",
+        "correct": false,
+        "response": "That is closer to a read-write lock. A semaphore just counts permits."
+      }
+    ]
+  },
+  "consistent_hashing": {
+    "type": "multiple_choice",
+    "question_text": "What problem does consistent hashing solve?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "Adding a node remaps only a few keys",
+        "correct": true,
+        "response": "Correct! Placing nodes on a ring means a join or leave moves roughly 1/N of the keys.",
+        "reward_knowledge": "consistent_hashing"
+      },
+      {
+        "text": "Hash values come out the same on every machine",
+        "correct": false,
+        "response": "Any stable hash function gives that. Consistent hashing is about membership changes."
+      },
+      {
+        "text": "Replicas agree on the order of writes",
+        "correct": false,
+        "response": "That is consensus or ordering, a different problem entirely."
+      },
+      {
+        "text": "Every key hashes to a unique bucket",
+        "correct": false,
+        "response": "That would be a perfect hash. Ring positions still collide."
+      }
+    ]
+  },
+  "dependency_injection": {
+    "type": "multiple_choice",
+    "question_text": "What does dependency injection change about a class?",
+    "topic": "software_engineering",
+    "answers": [
+      {
+        "text": "Its collaborators are supplied from outside",
+        "correct": true,
+        "response": "Correct! The class receives what it needs, so callers and tests can substitute it.",
+        "reward_knowledge": "dependency_injection"
+      },
+      {
+        "text": "Its collaborators are created on first use",
+        "correct": false,
+        "response": "That is lazy initialization. The class still decides what to build."
+      },
+      {
+        "text": "Its interface is wrapped to match another one",
+        "correct": false,
+        "response": "That is the Adapter pattern, which converts interfaces."
+      },
+      {
+        "text": "Only one instance of it ever exists",
+        "correct": false,
+        "response": "That is Singleton, which controls instance count rather than wiring."
       }
     ]
   }

@@ -194,6 +194,8 @@ class TestBackend:
             for prefix in [
                 "bold_",
                 "bright_",
+                "reverse",
+                "underline",
                 "on_",
                 "black",
                 "red",

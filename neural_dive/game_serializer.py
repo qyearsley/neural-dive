@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from neural_dive.game import Game
     from neural_dive.game_builder import GameContext
+    from neural_dive.items import ItemPickup
     from neural_dive.managers.conversation_engine import ConversationEngine
     from neural_dive.managers.npc_manager import NPCManager
     from neural_dive.managers.player_manager import PlayerManager
@@ -147,9 +148,77 @@ class GameSerializer:
             # Other game state
             "npcs_completed": list(game.npcs_completed),
             "game_won": game.game_won,
+            # Item pickups still on the ground, per floor. Without this a load
+            # regenerated every floor's items, so anything the player had
+            # collected came back -- and in an unseeded run it came back
+            # somewhere else.
+            "floor_items": {
+                str(floor): [cls._serialize_pickup(pickup) for pickup in pickups]
+                for floor, pickups in game._floor_items.items()
+            },
             # Message
             "message": game.message,
         }
+
+    @staticmethod
+    def _serialize_pickup(pickup: ItemPickup) -> dict:
+        """Serialize one item lying on the floor.
+
+        Args:
+            pickup: The pickup to record
+
+        Returns:
+            Dictionary describing the pickup's position and its item
+        """
+        from neural_dive.items import CodeSnippet, HintToken
+
+        data: dict = {
+            "x": pickup.x,
+            "y": pickup.y,
+            "item_type": pickup.item.item_type.value,
+            "name": pickup.item.name,
+        }
+        if isinstance(pickup.item, HintToken):
+            data["answers_to_eliminate"] = pickup.item.answers_to_eliminate
+        elif isinstance(pickup.item, CodeSnippet):
+            data["topic"] = pickup.item.topic
+            data["content"] = pickup.item.content
+        return data
+
+    @staticmethod
+    def _deserialize_floor_items(save_data: dict) -> dict[int, list[ItemPickup]] | None:
+        """Rebuild the per-floor item pickups from a save.
+
+        Args:
+            save_data: Dictionary containing game state
+
+        Returns:
+            Items per floor, or None for a save written before items were
+            recorded -- in which case each floor is generated as it is entered,
+            which is what that save expected.
+        """
+        from neural_dive.items import CodeSnippet, HintToken, Item, ItemPickup, ItemType
+
+        saved = save_data.get("floor_items")
+        if saved is None:
+            return None
+
+        floor_items: dict[int, list[ItemPickup]] = {}
+        for floor, pickups in saved.items():
+            restored: list[ItemPickup] = []
+            for entry in pickups:
+                item: Item
+                if entry.get("item_type") == ItemType.CODE_SNIPPET.value:
+                    item = CodeSnippet(
+                        name=entry.get("name", "Code Snippet"),
+                        topic=entry.get("topic", ""),
+                        content=entry.get("content", []),
+                    )
+                else:
+                    item = HintToken(entry.get("answers_to_eliminate", 1))
+                restored.append(ItemPickup(entry["x"], entry["y"], item))
+            floor_items[int(floor)] = restored
+        return floor_items
 
     @classmethod
     def _deserialize_game_state(cls, save_data: dict, profile: PlayerProfile | None = None) -> Game:
@@ -188,7 +257,7 @@ class GameSerializer:
         npc_manager = cls._restore_npc_manager(save_data, ctx)
         managers = GameManagers(
             npc_manager=npc_manager,
-            conversation_engine=cls._restore_conversation_engine(save_data, npc_manager),
+            conversation_engine=cls._restore_conversation_engine(save_data, npc_manager, ctx),
             player_manager=cls._restore_player_manager(save_data),
             stats_tracker=cls._restore_stats_tracker(save_data),
             quest_manager=cls._restore_quest_manager(save_data),
@@ -200,6 +269,7 @@ class GameSerializer:
             npcs_completed=set(save_data["npcs_completed"]),
             game_won=save_data["game_won"],
             message=save_data["message"],
+            floor_items=cls._deserialize_floor_items(save_data),
         )
 
         # The saved position, which overrides the floor's default start position.
@@ -226,7 +296,7 @@ class GameSerializer:
 
     @classmethod
     def _restore_conversation_engine(
-        cls, save_data: dict, npc_manager: NPCManager
+        cls, save_data: dict, npc_manager: NPCManager, ctx: GameContext
     ) -> ConversationEngine:
         """Rebuild the ConversationEngine from a save.
 
@@ -238,6 +308,7 @@ class GameSerializer:
         return ConversationEngine.from_dict(
             save_data["conversation_engine"],
             npc_conversations=npc_manager.conversations,
+            rng=ctx.rand,
         )
 
     @classmethod

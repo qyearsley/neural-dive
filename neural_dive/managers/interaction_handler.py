@@ -265,7 +265,16 @@ class InteractionHandler:
         else:
             # Check quest completion
             if self.quest_manager.is_quest_complete():
-                bonus = self.quest_manager.get_completion_bonus()
+                # Claimed, not just read: this branch runs on every Space press
+                # against the NPC, and paying the bonus each time would be
+                # unlimited coherence.
+                bonus = self.quest_manager.claim_completion_bonus()
+                if not bonus:
+                    return InteractionResult(
+                        success=True,
+                        message=f"{npc_name}: The quest is done. Go well.",
+                        action="quest",
+                    )
                 self.player_manager.gain_coherence(bonus)
                 return InteractionResult(
                     success=True,

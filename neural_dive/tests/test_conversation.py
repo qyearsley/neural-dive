@@ -7,6 +7,7 @@ import unittest
 
 from neural_dive.conversation import (
     _weighted_sample,
+    apply_answer_order,
     create_randomized_conversation,
     randomize_answers,
     wrap_text,
@@ -159,19 +160,103 @@ class TestWeightedQuestionSelection(unittest.TestCase):
 
     def test_weighted_sample_never_repeats_a_question(self):
         questions = _pool(5)
-        random.seed(1)
 
-        chosen = _weighted_sample(questions, lambda q: 1.0, 5)
+        chosen = _weighted_sample(questions, lambda q: 1.0, 5, random.Random(1))
 
         self.assertEqual(len({q.question_id for q in chosen}), 5)
 
     def test_weighted_sample_tolerates_zero_weights(self):
         questions = _pool(3)
-        random.seed(1)
 
-        chosen = _weighted_sample(questions, lambda q: 0.0, 2)
+        chosen = _weighted_sample(questions, lambda q: 0.0, 2, random.Random(1))
 
         self.assertEqual(len(chosen), 2)
+
+
+class TestSeedingIsLocal(unittest.TestCase):
+    """A ``seed=`` argument builds a private generator, it does not reseed the process.
+
+    ``randomize_answers`` and ``create_randomized_conversation`` both called
+    ``random.seed(seed)``, so the documented worked example -- ``seed=42`` --
+    reset the generator every other part of the program was drawing from.
+    """
+
+    def test_randomize_answers_leaves_the_global_rng_alone(self):
+        question = Question(
+            question_text="Test?",
+            answers=[Answer(c, c == "A", "r") for c in "ABCD"],
+            topic="test",
+        )
+
+        random.seed(7)
+        expected = [random.random() for _ in range(3)]
+
+        random.seed(7)
+        randomize_answers(question, seed=42)
+        after = [random.random() for _ in range(3)]
+
+        self.assertEqual(expected, after)
+
+    def test_the_same_seed_still_gives_the_same_order(self):
+        question = Question(
+            question_text="Test?",
+            answers=[Answer(c, c == "A", "r") for c in "ABCD"],
+            topic="test",
+        )
+
+        first = [a.text for a in randomize_answers(question, seed=42).answers]
+        second = [a.text for a in randomize_answers(question, seed=42).answers]
+
+        self.assertEqual(first, second)
+
+    def test_an_explicit_generator_beats_a_seed(self):
+        conv = _conversation(6)
+
+        from_rng = create_randomized_conversation(
+            conv, seed=1, num_questions=2, rng=random.Random(99)
+        )
+        again = create_randomized_conversation(conv, seed=2, num_questions=2, rng=random.Random(99))
+
+        self.assertEqual(
+            [q.question_id for q in from_rng.questions],
+            [q.question_id for q in again.questions],
+        )
+
+
+class TestApplyAnswerOrder(unittest.TestCase):
+    """Putting a recorded answer order back onto an authored question."""
+
+    @staticmethod
+    def _question():
+        return Question(
+            question_text="Test?",
+            answers=[Answer(c, c == "A", "r") for c in "ABCD"],
+            topic="test",
+        )
+
+    def test_it_reproduces_the_recorded_order(self):
+        restored = apply_answer_order(self._question(), ["C", "A", "D", "B"])
+
+        self.assertEqual([a.text for a in restored.answers], ["C", "A", "D", "B"])
+
+    def test_it_does_not_mutate_the_authored_question(self):
+        original = self._question()
+
+        apply_answer_order(original, ["D", "C", "B", "A"])
+
+        self.assertEqual([a.text for a in original.answers], ["A", "B", "C", "D"])
+
+    def test_an_answer_the_save_never_saw_goes_last(self):
+        """A reworded or newly added answer degrades to "shown last"."""
+        restored = apply_answer_order(self._question(), ["C", "A"])
+
+        self.assertEqual([a.text for a in restored.answers][:2], ["C", "A"])
+        self.assertEqual(sorted(a.text for a in restored.answers), ["A", "B", "C", "D"])
+
+    def test_an_answer_the_content_dropped_is_ignored(self):
+        restored = apply_answer_order(self._question(), ["C", "gone", "A", "B", "D"])
+
+        self.assertEqual([a.text for a in restored.answers], ["C", "A", "B", "D"])
 
 
 class TestWrapText(unittest.TestCase):

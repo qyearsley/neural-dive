@@ -11,9 +11,11 @@ This test module covers all NPC management functionality including:
 
 from __future__ import annotations
 
+import json
 import random
 import unittest
 
+from neural_dive.conversation import create_randomized_conversation
 from neural_dive.difficulty import DifficultyLevel, get_difficulty_settings
 from neural_dive.entities import Entity
 from neural_dive.enums import NPCType
@@ -572,13 +574,11 @@ class TestQuestionHistoryBias(unittest.TestCase):
         )
 
     def _asked(self, profile, seed):
-        """Question ids the NPC ends up asking, with the global RNG pinned.
+        """Question ids the NPC ends up asking.
 
-        ``create_randomized_conversation`` draws from the module-level
-        ``random``, so pinning it here makes the weighted and unweighted runs a
-        fair paired comparison rather than two samples of different streams.
+        Selection draws from the manager's own generator, so the seed alone
+        fixes it -- there is no process-wide RNG to pin.
         """
-        random.seed(seed)
         conversation = self._manager(profile, seed).conversations["TEST_NPC"]
         return {q.question_id for q in conversation.questions}
 
@@ -636,6 +636,214 @@ class TestQuestionHistoryBias(unittest.TestCase):
         )
 
         self.assertIs(restored.profile, profile)
+
+
+class TestConversationsSurviveALoad(unittest.TestCase):
+    """A reloaded conversation must be the same conversation.
+
+    The save used to record only ``completed`` and ``current_question_idx``.
+    Everything else was re-rolled on load, so an NPC could come back asking two
+    questions with the saved index sitting at 2. The conversation then reported
+    itself complete without ever being counted, and its floor could not be
+    finished.
+    """
+
+    def setUp(self):
+        self.difficulty_settings = get_difficulty_settings(DifficultyLevel.NORMAL)
+        self.questions = {}
+        self.npc_data = {
+            "TEST_NPC": {
+                "char": "T",
+                "color": "cyan",
+                "floor": 1,
+                "npc_type": "specialist",
+                "conversation": Conversation(
+                    npc_name="TEST_NPC",
+                    greeting="Hello!",
+                    questions=[
+                        Question(
+                            question_text=f"Question {i}?",
+                            answers=[
+                                Answer(f"a{i}", True, "Correct!"),
+                                Answer(f"b{i}", False, "No."),
+                                Answer(f"c{i}", False, "No."),
+                            ],
+                            topic="test",
+                            question_id=f"q{i}",
+                        )
+                        for i in range(8)
+                    ],
+                    npc_type=NPCType.SPECIALIST,
+                ),
+            }
+        }
+
+    def _manager(self, seed):
+        return NPCManager(
+            self.npc_data,
+            self.questions,
+            random.Random(seed),
+            self.difficulty_settings,
+            seed=seed,
+        )
+
+    def _reload(self, manager, seed=None):
+        """Round-trip through the save format, on a different RNG stream."""
+        blob = json.loads(json.dumps(manager.to_dict()))
+        return NPCManager.from_dict(
+            blob,
+            self.npc_data,
+            self.questions,
+            random.Random(seed),
+            self.difficulty_settings,
+            seed=seed,
+        )
+
+    def test_the_same_questions_come_back(self):
+        for seed in range(20):
+            manager = self._manager(seed)
+            before = [q.question_id for q in manager.conversations["TEST_NPC"].questions]
+
+            # A different RNG stream, which is what an unseeded reload gets.
+            after = [
+                q.question_id
+                for q in self._reload(manager, seed + 1000).conversations["TEST_NPC"].questions
+            ]
+
+            self.assertEqual(before, after, f"diverged on seed {seed}")
+
+    def test_the_same_answer_order_comes_back(self):
+        manager = self._manager(3)
+        before = [[a.text for a in q.answers] for q in manager.conversations["TEST_NPC"].questions]
+
+        after = [
+            [a.text for a in q.answers]
+            for q in self._reload(manager, 999).conversations["TEST_NPC"].questions
+        ]
+
+        self.assertEqual(before, after)
+
+    def test_progress_through_a_conversation_is_kept(self):
+        manager = self._manager(5)
+        manager.conversations["TEST_NPC"].current_question_idx = 2
+
+        restored = self._reload(manager, 777).conversations["TEST_NPC"]
+
+        self.assertEqual(restored.current_question_idx, 2)
+        self.assertLess(restored.current_question_idx, len(restored.questions))
+
+    def test_a_save_without_the_question_list_still_loads(self):
+        """Saves written before the draw was recorded must not crash or overrun."""
+        manager = self._manager(5)
+        blob = manager.to_dict()
+        for state in blob["conversations"].values():
+            del state["questions"]
+            state["current_question_idx"] = 99
+
+        restored = self._reload_blob(blob).conversations["TEST_NPC"]
+
+        self.assertEqual(restored.current_question_idx, len(restored.questions))
+
+    def test_a_question_the_content_no_longer_has_is_dropped(self):
+        manager = self._manager(5)
+        blob = manager.to_dict()
+        blob["conversations"]["TEST_NPC"]["questions"].append(
+            {"key": "a_question_that_was_deleted", "answers": []}
+        )
+
+        restored = self._reload_blob(blob).conversations["TEST_NPC"]
+
+        self.assertNotIn("a_question_that_was_deleted", [q.question_id for q in restored.questions])
+
+    def test_losing_every_question_falls_back_to_a_fresh_draw(self):
+        manager = self._manager(5)
+        blob = manager.to_dict()
+        blob["conversations"]["TEST_NPC"]["questions"] = [{"key": "gone", "answers": []}]
+
+        restored = self._reload_blob(blob).conversations["TEST_NPC"]
+
+        self.assertGreater(len(restored.questions), 0)
+
+    def _reload_blob(self, blob):
+        return NPCManager.from_dict(
+            json.loads(json.dumps(blob)),
+            self.npc_data,
+            self.questions,
+            random.Random(4321),
+            self.difficulty_settings,
+            seed=4321,
+        )
+
+
+class TestSeededQuestionSelectionIsReproducible(unittest.TestCase):
+    """``--seed`` has to fix which questions an NPC asks, not just how many.
+
+    Selection used to draw from the module-level ``random``, so two identically
+    seeded games picked different questions depending on what else in the
+    process had touched that generator.
+    """
+
+    def setUp(self):
+        self.difficulty_settings = get_difficulty_settings(DifficultyLevel.NORMAL)
+        self.npc_data = {
+            "TEST_NPC": {
+                "char": "T",
+                "color": "cyan",
+                "floor": 1,
+                "npc_type": "specialist",
+                "conversation": Conversation(
+                    npc_name="TEST_NPC",
+                    greeting="Hello!",
+                    questions=[
+                        Question(
+                            question_text=f"Question {i}?",
+                            answers=[
+                                Answer(f"a{i}", True, "Correct!"),
+                                Answer(f"b{i}", False, "No."),
+                                Answer(f"c{i}", False, "No."),
+                                Answer(f"d{i}", False, "No."),
+                            ],
+                            topic="test",
+                            question_id=f"q{i}",
+                        )
+                        for i in range(10)
+                    ],
+                    npc_type=NPCType.SPECIALIST,
+                ),
+            }
+        }
+
+    def _drawn(self):
+        manager = NPCManager(
+            self.npc_data, {}, random.Random(42), self.difficulty_settings, seed=42
+        )
+        conversation = manager.conversations["TEST_NPC"]
+        return [(q.question_id, [a.text for a in q.answers]) for q in conversation.questions]
+
+    def test_the_global_rng_does_not_change_the_draw(self):
+        random.seed(1)
+        first = self._drawn()
+
+        # Disturb the process-wide generator the way any other code would.
+        random.seed(99)
+        random.random()
+        second = self._drawn()
+
+        self.assertEqual(first, second)
+
+    def test_building_a_conversation_does_not_reseed_the_global_rng(self):
+        """A seeded conversation used to call ``random.seed`` on the process."""
+        template = self.npc_data["TEST_NPC"]["conversation"]
+        assert isinstance(template, Conversation)
+
+        random.seed(7)
+        expected = [random.random() for _ in range(3)]
+
+        random.seed(7)
+        create_randomized_conversation(template, seed=42, num_questions=3)
+        after = [random.random() for _ in range(3)]
+
+        self.assertEqual(expected, after)
 
 
 if __name__ == "__main__":

@@ -29,6 +29,8 @@ class ColorScheme:
         ui_warning: Color for warning messages
         ui_error: Color for error messages
         ui_success: Color for success messages
+        npc_boss: Color for boss NPCs. Declared last, with a default, so that
+            existing schemes keep working without naming it.
     """
 
     # Entity colors
@@ -52,6 +54,10 @@ class ColorScheme:
     ui_warning: str
     ui_error: str
     ui_success: str
+
+    # Bosses are the win condition, so they get their own colour rather than
+    # falling through to the specialist colour and looking like one.
+    npc_boss: str = "bright_red"
 
 
 @dataclass
@@ -127,6 +133,7 @@ CYBERPUNK_DARK = ColorScheme(
     ui_warning="yellow",
     ui_error="red",
     ui_success="green",
+    npc_boss="bright_red",  # The three layer-3 bosses
 )
 
 

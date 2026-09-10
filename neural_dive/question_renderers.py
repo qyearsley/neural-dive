@@ -42,6 +42,60 @@ def get_display_width(text: str) -> int:
     return width
 
 
+def truncate_to_display_width(text: str, max_width: int) -> str:
+    """Cut ``text`` down to at most ``max_width`` terminal cells.
+
+    Wide characters count as two cells, so the result can be shorter than
+    ``max_width`` when the next character would straddle the edge.
+
+    This replaced a ``while get_display_width(t) > max_width: t = t[:-1]`` loop.
+    On a terminal narrower than 14 columns the overlay is small enough that
+    ``max_width`` goes negative, and an empty string is never narrower than a
+    negative width, so the loop spun forever on ``""[:-1]``.
+
+    Args:
+        text: Text to truncate
+        max_width: Maximum display width in cells; zero or less returns ""
+
+    Returns:
+        The longest prefix of ``text`` that fits in ``max_width`` cells
+    """
+    if max_width <= 0:
+        return ""
+    width = 0
+    for index, char in enumerate(text):
+        char_width = get_display_width(char)
+        if width + char_width > max_width:
+            return text[:index]
+        width += char_width
+    return text
+
+
+def answer_key_hint(question: Question, eliminated: set[int]) -> str:
+    """Describe the number keys that actually answer this question.
+
+    The footer used to be a hardcoded "Press 1-4", which stayed wrong in two
+    ways: questions can have fewer than four answers, and using a hint token
+    removes an option without renumbering the rest.
+
+    Args:
+        question: Question being displayed
+        eliminated: Indices of answers a hint has removed
+
+    Returns:
+        A fragment such as "Press 1-3" or "Press 1/3/4", or "" when nothing is
+        selectable
+    """
+    live = [i + 1 for i in range(len(question.answers)) if i not in eliminated]
+    if not live:
+        return ""
+    if len(live) == 1:
+        return f"Press {live[0]}"
+    if live == list(range(live[0], live[-1] + 1)):
+        return f"Press {live[0]}-{live[-1]}"
+    return "Press " + "/".join(str(number) for number in live)
+
+
 class QuestionRenderer(Protocol):
     """Protocol for question rendering strategies.
 
@@ -139,10 +193,12 @@ class MultipleChoiceRenderer:
 
         hint_text = " | H: Use Hint" if has_hints else ""
         snippet_text = " | S: View Snippet" if has_snippets else ""
+        key_hint = answer_key_hint(question, eliminated)
+        answer_text = f"{key_hint} to answer" if key_hint else "No answers left"
         term.draw_text(
             start_x + 2,
             start_y + overlay_height - 2,
-            f"Press 1-4 to answer{hint_text}{snippet_text} | ESC/Q to exit",
+            f"{answer_text}{hint_text}{snippet_text} | ESC/Q to exit",
             colors.ui_error,
             bold=True,
         )
@@ -192,7 +248,8 @@ class TextInputRenderer:
         current_y += 1
 
         # Input box top
-        term.draw_text(start_x + 2, current_y, "┌" + "─" * (overlay_width - 6) + "┓", "blue")
+        border_width = max(0, overlay_width - 6)
+        term.draw_text(start_x + 2, current_y, "┌" + "─" * border_width + "┓", "blue")
         current_y += 1
 
         # Input area with user's typed text. The row is three segments -- the left
@@ -201,12 +258,10 @@ class TextInputRenderer:
         max_display_width = overlay_width - 10
 
         # Truncate text to fit display width (accounting for wide chars)
-        display_text = text_buffer
-        while get_display_width(display_text) > max_display_width:
-            display_text = display_text[:-1]
+        display_text = truncate_to_display_width(text_buffer, max_display_width)
 
         text_display_width = get_display_width(display_text)
-        padding_width = overlay_width - 8 - text_display_width
+        padding_width = max(0, overlay_width - 8 - text_display_width)
 
         term.draw_text(start_x + 2, current_y, "│ ", "blue")
         term.draw_text(start_x + 4, current_y, display_text, "black")
@@ -216,7 +271,7 @@ class TextInputRenderer:
         current_y += 1
 
         # Input box bottom
-        term.draw_text(start_x + 2, current_y, "└" + "─" * (overlay_width - 6) + "┘", "blue")
+        term.draw_text(start_x + 2, current_y, "└" + "─" * border_width + "┘", "blue")
         current_y += 1
 
         return current_y
@@ -259,11 +314,13 @@ class ShortAnswerRenderer(TextInputRenderer):
             term, "Your answer:", text_buffer, start_x, current_y, overlay_width
         )
 
-        # Instructions at bottom
+        # Instructions at bottom. ConversationHandler exits on ESC, or on "x"
+        # while the input box is empty -- "Q" types a letter here, it does not
+        # leave.
         term.draw_text(
             start_x + 2,
             start_y + overlay_height - 2,
-            "Type your answer and press ENTER | ESC/Q to exit",
+            "Type your answer and press ENTER | ESC/X to exit",
             colors.ui_error,
             bold=True,
         )
@@ -303,14 +360,17 @@ class YesNoRenderer(TextInputRenderer):
         # Render text input box
         text_buffer = game.conversation_engine.text_input_buffer
         current_y = self._render_text_input_box(
-            term, "Answer (yes/no):", text_buffer, start_x, current_y, overlay_width
+            term, "Answer (Y/N):", text_buffer, start_x, current_y, overlay_width
         )
 
-        # Instructions at bottom
+        # Instructions at bottom. ConversationHandler submits on the first "y"
+        # or "n", so the word "yes" can never reach the input box -- the old
+        # "or type answer and press ENTER" was an instruction that could not be
+        # followed.
         term.draw_text(
             start_x + 2,
             start_y + overlay_height - 2,
-            "Press Y/N or type answer and press ENTER | ESC/Q to exit",
+            "Press Y for yes or N for no | ESC/X to exit",
             colors.ui_error,
             bold=True,
         )

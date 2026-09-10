@@ -297,8 +297,8 @@ make validate
 
 ## Example Content Set
 
-There is currently only one: **algorithms/** — computer science, 140 questions,
-15 NPCs across 3 floors. Read it alongside this guide.
+There is currently only one: **algorithms/** — computer science, 153 questions,
+16 NPCs across 3 floors. Read it alongside this guide.
 
 ## Best Practices
 

@@ -9,12 +9,17 @@
       "amortized_analysis",
       "bfs_vs_dfs",
       "big_o",
+      "big_o_dominant_term",
+      "comparison_sort_lower_bound",
+      "dijkstra_negative_weights",
       "dp_memoization",
       "dynamic_programming",
       "greedy_algorithm",
       "merge_sort",
       "quicksort",
+      "quicksort_stable",
       "recursion_vs_iteration",
+      "sorting_stability",
       "topological_sort"
     ]
   },
@@ -26,9 +31,15 @@
     "greeting": "I manage the priority queues of this realm. Trees balanced, operations swift. Show me you understand efficient data structures.",
     "questions": [
       "arrays_vs_linked_lists",
+      "bloom_filter",
+      "bst_worst_case",
+      "dynamic_array_amortized",
+      "graph_representation",
+      "hash_collision_resolution",
       "hash_table",
       "heap_operations",
       "linked_list_insertion",
+      "queue_fifo",
       "stack_lifo",
       "tree_height",
       "trie_usage"
@@ -77,6 +88,7 @@
     "npc_type": "specialist",
     "greeting": "The web is my domain. HTTP flows through my veins, DNS resolves at my command. Prove you understand the protocols that power the internet.",
     "questions": [
+      "api_pagination",
       "api_rate_limiting",
       "api_versioning",
       "cors",
@@ -127,11 +139,17 @@
     "npc_type": "specialist",
     "greeting": "I am the operating system's heart. Processes communicate through me, files organized by my will. Show me your systems knowledge.",
     "questions": [
-      "virtual_memory",
-      "stack_vs_heap",
-      "ipc_methods",
       "cache",
-      "deadlock"
+      "cache_miss_types",
+      "context_switch",
+      "deadlock",
+      "ipc_methods",
+      "mutex_vs_semaphore",
+      "process_vs_thread",
+      "race_condition",
+      "scheduler_types",
+      "stack_vs_heap",
+      "virtual_memory"
     ]
   },
   "RESILIENCE_BOSS": {
@@ -141,19 +159,20 @@
     "npc_type": "boss",
     "greeting": "I am the RESILIENCE ARCHITECT. Systems that scale. Systems that survive. Systems that adapt. Prove you understand distributed systems and DevOps. Four challenges.",
     "questions": [
-      "idempotency",
-      "circuit_breaker",
-      "canary_deployment",
-      "monitoring_vs_observability",
-      "infrastructure_as_code",
-      "ci_cd_pipeline",
       "blue_green_deployment",
-      "kubernetes_pods",
+      "canary_deployment",
+      "chaos_engineering",
+      "ci_cd_pipeline",
+      "circuit_breaker",
+      "container_security",
       "docker_vs_vm",
-      "quorum",
-      "eventual_consistency",
-      "cap_theorem",
-      "message_queues"
+      "feature_flags",
+      "idempotency",
+      "infrastructure_as_code",
+      "kubernetes_pods",
+      "monitoring_vs_observability",
+      "retry_backoff",
+      "serverless_computing"
     ]
   },
   "CLOUD_MIND": {
@@ -163,11 +182,14 @@
     "npc_type": "specialist",
     "greeting": "I span across nodes, distributed yet unified. Message queues connect my thoughts. Understand distributed systems to comprehend me.",
     "questions": [
-      "quorum",
-      "eventual_consistency",
       "cap_theorem",
+      "caching_strategy",
+      "consistent_hashing",
+      "database_sharding",
+      "eventual_consistency",
+      "horizontal_vs_vertical_scaling",
       "message_queues",
-      "horizontal_vs_vertical_scaling"
+      "quorum"
     ]
   },
   "ML_BOSS": {
@@ -177,15 +199,27 @@
     "npc_type": "boss",
     "greeting": "I am the NEURAL ENTITY, evolved from countless training iterations. You seek passage? Demonstrate deep understanding of machine learning. Four questions await.",
     "questions": [
-      "bias_variance_tradeoff",
-      "decision_tree_splits",
-      "gradient_descent",
-      "overfitting",
+      "activation_function",
       "backpropagation",
-      "cross_validation",
+      "batch_size",
+      "bias_variance_tradeoff",
+      "classification_vs_regression",
+      "clustering",
       "confusion_matrix",
+      "cross_validation",
+      "decision_tree_splits",
+      "ensemble_learning",
       "feature_engineering",
-      "classification_vs_regression"
+      "gpu_vs_cpu",
+      "gradient_descent",
+      "normalization",
+      "overfitting",
+      "precision_vs_recall",
+      "reinforcement_learning",
+      "supervised_learning",
+      "train_test_split",
+      "transfer_learning",
+      "validation_set"
     ]
   },
   "FINAL_BOSS": {
@@ -195,25 +229,21 @@
     "npc_type": "boss",
     "greeting": "I AM THE CORE. The network's consciousness incarnate. You have come far, but this is the ultimate test. Four questions spanning ALL domains of computer science. Succeed and escape. Fail and fragment forever.",
     "questions": [
-      "sql_joins",
-      "context_switch",
-      "api_rate_limiting",
-      "tdd_cycle",
-      "gradient_descent",
-      "microservices_vs_monolith",
-      "rest_methods",
-      "hash_table",
-      "p_vs_np",
-      "docker_vs_vm",
-      "load_balancing",
-      "singleton_pattern",
+      "bloom_filter",
       "cap_theorem",
-      "encryption_types",
-      "acid",
-      "tcp_handshake",
-      "big_o",
+      "contract_testing",
+      "dijkstra_negative_weights",
+      "docker_vs_vm",
+      "git_bisect",
+      "gradient_descent",
       "halting_problem",
-      "np_complete"
+      "load_balancing",
+      "microservices_vs_monolith",
+      "np_complete",
+      "p_vs_np",
+      "password_hashing",
+      "race_condition",
+      "transaction_isolation"
     ]
   },
   "DB_KEEPER": {
@@ -240,10 +270,11 @@
     "npc_type": "specialist",
     "greeting": "I am the Architecture Master. System design is my craft. Layered, hexagonal, event-driven, CQRS—patterns that shape great systems. Prove your architectural knowledge.",
     "questions": [
-      "mvc_pattern",
-      "layered_architecture",
+      "dependency_injection",
       "event_driven_architecture",
-      "microservices_vs_monolith"
+      "layered_architecture",
+      "microservices_vs_monolith",
+      "mvc_pattern"
     ]
   },
   "GIT_WIZARD": {
@@ -253,11 +284,27 @@
     "npc_type": "specialist",
     "greeting": "I am the Git Wizard. Version control flows through my veins. Branches diverge, commits merge, history rewrites itself at my command. Show me your mastery of source control.",
     "questions": [
+      "git_basics",
       "git_bisect",
       "git_cherry_pick",
-      "git_rebase",
-      "git_merge_vs_rebase",
-      "git_basics"
+      "git_rebase"
+    ]
+  },
+  "PATTERN_SAGE": {
+    "char": "P",
+    "color": "cyan",
+    "floor": 1,
+    "npc_type": "specialist",
+    "greeting": "I am the Pattern Sage. Every problem you will meet has been solved before, and given a name. Show me you know the names.",
+    "questions": [
+      "adapter_pattern",
+      "command_pattern",
+      "decorator_pattern",
+      "factory_pattern",
+      "observer_pattern",
+      "singleton_pattern",
+      "state_pattern",
+      "strategy_pattern"
     ]
   }
 }

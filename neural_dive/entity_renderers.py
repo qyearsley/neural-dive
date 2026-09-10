@@ -6,11 +6,17 @@ Each renderer is responsible for drawing a specific entity type on the game map.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from neural_dive.backends import RenderBackend
     from neural_dive.themes import CharacterSet, ColorScheme
+
+
+def _identity(text: str) -> str:
+    return text
 
 
 class EntityRenderer(Protocol):
@@ -39,6 +45,68 @@ class EntityRenderer(Protocol):
         ...
 
 
+def _resolve_style(term: RenderBackend, *candidates: str) -> Callable[[str], str]:
+    """Return the first style attribute the backend actually has.
+
+    Blessed composes attribute names ("bold_reverse_bright_red"), but a backend
+    is free not to expose one. Each candidate is tried in order and a plain
+    identity function is the last resort, so an unknown style degrades to
+    unstyled text rather than raising.
+
+    Args:
+        term: Render backend instance
+        *candidates: Attribute names to try, most specific first
+
+    Returns:
+        A callable that applies the style to a string
+    """
+    for name in candidates:
+        style = getattr(term, name, None)
+        if callable(style):
+            return cast("Callable[[str], str]", style)
+    return _identity
+
+
+def npc_style_name(npc_type: str, colors: ColorScheme, is_required: bool) -> str:
+    """Name the terminal style an NPC is drawn in.
+
+    Three tiers, each visibly different on both light and dark backgrounds:
+
+    - boss: bold + underline + reverse video, in the boss colour.
+    - required (specialist, enemy): bold + reverse video, in the type colour.
+    - optional (helper, quest): bold, in the type colour.
+
+    Reverse video swaps foreground and background, so a required NPC reads as a
+    filled cell rather than a slightly different shade. The previous rule asked
+    for "bright_<colour>" when required and "<colour>" otherwise, but every
+    theme colour already starts with "bright_", so both branches produced the
+    identical escape sequence and no shipped NPC ever looked required.
+
+    Args:
+        npc_type: NPC type from the content data
+        colors: Colour scheme to take the base colour from
+        is_required: Whether this NPC gates floor completion
+
+    Returns:
+        A backend style attribute name, e.g. "bold_reverse_bright_magenta"
+    """
+    if npc_type == "boss":
+        return f"bold_underline_reverse_{colors.npc_boss}"
+
+    color_name = _NPC_TYPE_COLORS.get(npc_type, "npc_specialist")
+    base = getattr(colors, color_name)
+    return f"bold_reverse_{base}" if is_required else f"bold_{base}"
+
+
+# NPC type -> the ColorScheme field holding its colour.
+_NPC_TYPE_COLORS = {
+    "specialist": "npc_specialist",
+    "helper": "npc_helper",
+    "enemy": "npc_enemy",
+    "quest": "npc_quest",
+}
+
+
 class NPCRenderer:
     """Renderer for NPC entities."""
 
@@ -50,7 +118,7 @@ class NPCRenderer:
         colors: ColorScheme,
         **kwargs: Any,
     ) -> None:
-        """Render an NPC with type-based coloring and required NPC highlighting.
+        """Render an NPC, distinguishing bosses and required NPCs.
 
         Args:
             term: Render backend instance for output
@@ -59,33 +127,11 @@ class NPCRenderer:
             colors: Color scheme for NPC colors
             **kwargs: Must include 'is_required' bool for required NPC highlighting
         """
-        is_required = kwargs.get("is_required", False)
-
-        # Get color based on NPC type
+        is_required = bool(kwargs.get("is_required", False))
         npc_type = entity.npc_type or "specialist"
-        if npc_type == "specialist":
-            color_name = colors.npc_specialist
-        elif npc_type == "helper":
-            color_name = colors.npc_helper
-        elif npc_type == "enemy":
-            color_name = colors.npc_enemy
-        elif npc_type == "quest":
-            color_name = colors.npc_quest
-        else:
-            color_name = colors.npc_specialist
 
-        # Use bold for required NPCs, bright_ prefix if available
-        if is_required:
-            # Try bright variant first for required NPCs
-            bright_color = (
-                f"bright_{color_name}" if not color_name.startswith("bright_") else color_name
-            )
-            npc_color = getattr(
-                term, f"bold_{bright_color}", getattr(term, f"bold_{color_name}", term.bold_magenta)
-            )
-        else:
-            # Regular bold for optional NPCs
-            npc_color = getattr(term, f"bold_{color_name}", term.bold_magenta)
+        style_name = npc_style_name(npc_type, colors, is_required)
+        npc_color = _resolve_style(term, style_name, "bold_magenta")
 
         print(term.move_xy(entity.x, entity.y) + npc_color(entity.char), end="")
 

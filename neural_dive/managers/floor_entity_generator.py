@@ -73,16 +73,48 @@ class FloorEntityGenerator:
         Returns:
             Tuple of (stairs, terminals, item_pickups)
         """
-        # Generate each entity type
-        terminals = self._generate_terminals(floor)
-        stairs = self._generate_stairs(
+        stairs, terminals = self.generate_fixtures(
             floor, max_floors, game_map, map_width, map_height, player_pos, random_placement
         )
-        item_pickups = self._generate_items(
+        item_pickups = self.generate_items(
             floor, game_map, map_width, map_height, player_pos, random_placement
         )
 
         return stairs, terminals, item_pickups
+
+    def generate_fixtures(
+        self,
+        floor: int,
+        max_floors: int,
+        game_map: list[list[str]],
+        map_width: int,
+        map_height: int,
+        player_pos: tuple[int, int],
+        random_placement: bool,
+    ) -> tuple[list[Stairs], list[InfoTerminal]]:
+        """Generate the entities a floor always has: its stairs and terminals.
+
+        These are safe to rebuild every time the player walks onto the floor.
+        Items are not -- a collected item must stay collected -- so they are a
+        separate call.
+
+        Args:
+            floor: Current floor number
+            max_floors: Maximum number of floors in game
+            game_map: Current floor's map grid
+            map_width: Width of the map
+            map_height: Height of the map
+            player_pos: Player's (x, y) position
+            random_placement: Whether to use random placement
+
+        Returns:
+            Tuple of (stairs, terminals)
+        """
+        terminals = self._generate_terminals(floor)
+        stairs = self._generate_stairs(
+            floor, max_floors, game_map, map_width, map_height, player_pos, random_placement
+        )
+        return stairs, terminals
 
     def _generate_terminals(self, floor: int) -> list[InfoTerminal]:
         """Generate and place info terminals for the current floor.
@@ -225,7 +257,7 @@ class FloorEntityGenerator:
 
         return stairs
 
-    def _generate_items(
+    def generate_items(
         self,
         floor: int,
         game_map: list[list[str]],
@@ -235,6 +267,10 @@ class FloorEntityGenerator:
         random_placement: bool,
     ) -> list[ItemPickup]:
         """Generate and place item pickups for the current floor.
+
+        Call this once per floor per run. Calling it again respawns items the
+        player has already collected; :class:`~neural_dive.game.Game` keeps the
+        list it got the first time and hands that back instead.
 
         Args:
             floor: Current floor number

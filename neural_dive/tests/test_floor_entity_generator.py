@@ -208,7 +208,7 @@ class TestItemGeneration(unittest.TestCase):
 
     def test_generate_items_floor_1(self):
         """Test item generation on floor 1."""
-        items = self.generator._generate_items(
+        items = self.generator.generate_items(
             floor=1,
             game_map=self.game_map,
             map_width=self.map_width,
@@ -223,7 +223,7 @@ class TestItemGeneration(unittest.TestCase):
 
     def test_generate_items_floor_2(self):
         """Test item generation on floor 2."""
-        items = self.generator._generate_items(
+        items = self.generator.generate_items(
             floor=2,
             game_map=self.game_map,
             map_width=self.map_width,
@@ -243,7 +243,7 @@ class TestItemGeneration(unittest.TestCase):
 
     def test_generate_items_floor_3(self):
         """Test item generation on floor 3."""
-        items = self.generator._generate_items(
+        items = self.generator.generate_items(
             floor=3,
             game_map=self.game_map,
             map_width=self.map_width,
@@ -265,7 +265,7 @@ class TestItemGeneration(unittest.TestCase):
         """Test item generation when no snippets are available."""
         generator = FloorEntityGenerator({}, {}, random.Random(42))
 
-        items = generator._generate_items(
+        items = generator.generate_items(
             floor=2,
             game_map=self.game_map,
             map_width=self.map_width,
@@ -280,7 +280,7 @@ class TestItemGeneration(unittest.TestCase):
 
     def test_generate_items_positions_away_from_player(self):
         """Test that items are placed away from player."""
-        items = self.generator._generate_items(
+        items = self.generator.generate_items(
             floor=1,
             game_map=self.game_map,
             map_width=self.map_width,

@@ -575,3 +575,211 @@ class TestItemPickedUpIsPublished(unittest.TestCase):
                 self.game.move_player(dx, dy)
                 break
         self.assertEqual(self.heard, [])
+
+
+class TestHintEliminationsAreScopedToOneQuestion(unittest.TestCase):
+    """A hint token must hide an answer for one question, not for the run.
+
+    ``eliminated_answers`` holds answer *indices*. Carried past the question
+    they were computed for they hide an arbitrary slot, and when the next
+    question's correct answer lands on that slot the player is shown three
+    options and no right one.
+
+    The engine had methods that cleared the set, but nothing outside the tests
+    called them: the live path assigned ``active_conversation`` directly.
+    """
+
+    def _talk_to(self, game, npc_name):
+        """Stand next to an NPC and start its conversation."""
+        npc = next(n for n in game.npc_manager.npcs if n.name == npc_name)
+        game.player.x, game.player.y = npc.x + 1, npc.y
+        game.interact()
+        conversation = game.conversation_engine.active_conversation
+        assert conversation is not None, f"{npc_name} did not start talking"
+        self.assertEqual(conversation.npc_name, npc_name)
+        return conversation
+
+    @staticmethod
+    def _spend_a_hint(game):
+        game.player_manager.add_item(HintToken())
+        return game.use_hint()
+
+    @staticmethod
+    def _answer_correctly(game):
+        conversation = game.conversation_engine.active_conversation
+        question = conversation.get_current_question()
+        correct_idx = next(i for i, a in enumerate(question.answers) if a.correct)
+        return game.answer_question(correct_idx)
+
+    def test_answering_clears_the_eliminated_answers(self):
+        game = Game(seed=42, random_npcs=False)
+        self._talk_to(game, "TEST_ORACLE")
+
+        used, _ = self._spend_a_hint(game)
+        self.assertTrue(used)
+        self.assertTrue(game.conversation_engine.eliminated_answers)
+
+        self._answer_correctly(game)
+
+        self.assertEqual(game.conversation_engine.eliminated_answers, set())
+
+    def test_a_hint_does_not_follow_the_player_to_the_next_npc(self):
+        game = Game(seed=42, random_npcs=False)
+        self._talk_to(game, "TEST_ORACLE")
+        self._spend_a_hint(game)
+        self.assertTrue(game.conversation_engine.eliminated_answers)
+
+        game.exit_conversation()
+        self._talk_to(game, "GIT_WIZARD")
+
+        self.assertEqual(game.conversation_engine.eliminated_answers, set())
+
+    def test_leaving_a_conversation_clears_the_eliminated_answers(self):
+        game = Game(seed=42, random_npcs=False)
+        self._talk_to(game, "TEST_ORACLE")
+        self._spend_a_hint(game)
+
+        game.exit_conversation()
+
+        self.assertEqual(game.conversation_engine.eliminated_answers, set())
+
+
+class TestCollectedItemsStayCollected(unittest.TestCase):
+    """Items are generated once per floor, not once per visit.
+
+    ``_generate_floor`` used to rebuild ``item_pickups`` from scratch every
+    time, and it runs on every stairs transition. Floor 2's start tile is
+    next to its up-stairs, so stepping up and back down restocked the floor --
+    an unlimited supply of hint tokens.
+    """
+
+    @staticmethod
+    def _go_to_floor_2(game):
+        game.floor_manager.move_to_next_floor(game.player)
+        game._generate_floor()
+
+    @staticmethod
+    def _go_to_floor_1(game):
+        game.floor_manager.move_to_previous_floor(game.player)
+        game._generate_floor()
+
+    @staticmethod
+    def _collect_the_first_item(game):
+        """Walk the player onto an item the way the game would."""
+        pickup = game.item_pickups[0]
+        game.player.x, game.player.y = pickup.x - 1, pickup.y
+        game.move_player(1, 0)
+        return pickup
+
+    def test_an_item_does_not_come_back_when_the_floor_is_re_entered(self):
+        game = Game(seed=42, random_npcs=True)
+        self._go_to_floor_2(game)
+        self.assertTrue(game.item_pickups, "floor 2 should have items to collect")
+
+        collected = self._collect_the_first_item(game)
+        left_behind = sorted((item.x, item.y) for item in game.item_pickups)
+
+        self._go_to_floor_1(game)
+        self._go_to_floor_2(game)
+
+        self.assertEqual(sorted((item.x, item.y) for item in game.item_pickups), left_behind)
+        self.assertNotIn((collected.x, collected.y), [(i.x, i.y) for i in game.item_pickups])
+
+    def test_an_item_does_not_come_back_after_a_save_and_load(self):
+        game1 = Game(seed=42, random_npcs=True)
+        self._go_to_floor_2(game1)
+        collected = self._collect_the_first_item(game1)
+        left_behind = sorted((item.x, item.y) for item in game1.item_pickups)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "collected.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(sorted((item.x, item.y) for item in game2.item_pickups), left_behind)
+        self.assertNotIn((collected.x, collected.y), [(i.x, i.y) for i in game2.item_pickups])
+
+    def test_an_unseeded_game_restores_its_entities_where_they_were(self):
+        """The seeded test passed by replaying the RNG; a real run has no seed.
+
+        Loading builds ``random.Random(None)``, so anything re-rolled during a
+        load lands somewhere else. Items and NPCs must be restored, not redrawn.
+        """
+        game1 = Game(random_npcs=True)
+        saved_items = sorted((item.x, item.y) for item in game1.item_pickups)
+        saved_npcs = sorted((npc.name, npc.x, npc.y) for npc in game1.npc_manager.npcs)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "unseeded.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(sorted((item.x, item.y) for item in game2.item_pickups), saved_items)
+        self.assertEqual(
+            sorted((npc.name, npc.x, npc.y) for npc in game2.npc_manager.npcs), saved_npcs
+        )
+
+    def test_a_save_written_before_items_were_recorded_still_loads(self):
+        game1 = Game(seed=42, random_npcs=True)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "old_format.json"
+            game1.save_game(str(save_path))
+            save_data = json.loads(save_path.read_text())
+            del save_data["floor_items"]
+            save_path.write_text(json.dumps(save_data))
+
+            game2 = Game.load_game(str(save_path))
+
+        assert game2 is not None  # Type narrowing for mypy
+        self.assertEqual(
+            sorted((item.x, item.y) for item in game2.item_pickups),
+            sorted((item.x, item.y) for item in game1.item_pickups),
+        )
+
+
+class TestNPCPositionsKeepBeingSaved(unittest.TestCase):
+    """There is exactly one Entity per NPC, so the save records the live one.
+
+    ``NPCSpawner._build`` used to construct a fresh Entity every time a floor
+    was generated but only append the first one to ``all_npcs``. After a load,
+    or after leaving and returning to a floor, the wandering AI moved one object
+    while ``to_dict`` serialized the other.
+    """
+
+    def test_the_floor_and_the_save_hold_the_same_objects(self):
+        game = Game(seed=42, random_npcs=False)
+        game._generate_floor()
+
+        by_name = {npc.name: npc for npc in game.npc_manager.spawner.all_npcs}
+        for npc in game.npc_manager.npcs:
+            self.assertIs(npc, by_name[npc.name])
+
+    def test_movement_after_a_reload_is_what_gets_saved(self):
+        game1 = Game(seed=42, random_npcs=False)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "wander.json"
+            game1.save_game(str(save_path))
+            game2 = Game.load_game(str(save_path))
+            assert game2 is not None  # Type narrowing for mypy
+
+            npc = game2.npc_manager.npcs[0]
+            npc.wander_state = "wandering"
+            npc.wander_ticks_remaining = 7
+
+            resave_path = Path(tmpdir) / "wander2.json"
+            game2.save_game(str(resave_path))
+            save_data = json.loads(resave_path.read_text())
+
+        saved = next(
+            entry for entry in save_data["npc_manager"]["npcs"] if entry["name"] == npc.name
+        )
+        self.assertEqual(saved["wander_state"], "wandering")
+        self.assertEqual(saved["wander_ticks_remaining"], 7)
+
+
+if __name__ == "__main__":
+    unittest.main()

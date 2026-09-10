@@ -102,7 +102,9 @@ class AnswerProcessor:
             Tuple of (success, message, game_was_won)
         """
         # Validate conversation state
-        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
+        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state(
+            npcs_completed
+        )
         if not valid:
             # Return True for "Conversation completed!" as it's not an error
             return "completed" in error_msg, error_msg, False
@@ -143,7 +145,9 @@ class AnswerProcessor:
             Tuple of (correct, response_message, game_was_won)
         """
         # Validate conversation state
-        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state()
+        valid, error_msg, conv, question, is_enemy = self._validate_conversation_state(
+            npcs_completed
+        )
         if not valid:
             # Return True for "Conversation completed!" as it's not an error
             return "completed" in error_msg, error_msg, False
@@ -206,8 +210,12 @@ class AnswerProcessor:
 
     def _validate_conversation_state(
         self,
+        npcs_completed: set[str],
     ) -> tuple[bool, str, Conversation | None, Question | None, bool]:
         """Validate conversation state and return common data needed for answering.
+
+        Args:
+            npcs_completed: Set of completed NPC names (mutable, updated in place)
 
         Returns:
             Tuple of (valid, error_message, conversation, question, is_enemy)
@@ -221,8 +229,8 @@ class AnswerProcessor:
 
         # Check if conversation is already complete
         if conv.current_question_idx >= len(conv.questions):
-            conv.completed = True
-            self.conversation_engine.active_conversation = None
+            self._mark_complete(conv, npcs_completed)
+            self.conversation_engine.end_conversation()
             return False, "Conversation completed!", None, None, False
 
         # Get current question
@@ -232,6 +240,22 @@ class AnswerProcessor:
         is_enemy = conv.npc_type == NPCType.ENEMY
 
         return True, "", conv, question, is_enemy
+
+    def _mark_complete(self, conv: Conversation, npcs_completed: set[str]) -> None:
+        """Finish a conversation off: flag it, count it, and credit the quest.
+
+        These three belong together. Setting ``completed`` on its own is what
+        soft-locked a run: the NPC stopped talking but was never added to
+        ``npcs_completed``, so its floor could never be finished.
+
+        Args:
+            conv: The conversation that has run out of questions
+            npcs_completed: Set of completed NPC names (mutable, updated in place)
+        """
+        conv.completed = True
+        npcs_completed.add(conv.npc_name)
+        if conv.npc_type == NPCType.SPECIALIST:
+            self.quest_manager.complete_npc_objective(conv.npc_name)
 
     def _handle_correct_answer(
         self,
@@ -278,18 +302,19 @@ class AnswerProcessor:
         else:
             response += f"\n\n[+{coherence_gain} Coherence]"
 
-        # Move to next question
+        # Move to next question. The eliminated-answer indices belong to the
+        # question we are leaving, so they go with it -- carried over, a hint
+        # spent on question 1 hid a slot on every question after it, for the
+        # rest of the run.
         conv.current_question_idx += 1
+        self.conversation_engine.clear_eliminated_answers()
 
         # Initialize game_won flag
         game_was_won = False
 
         # Check if conversation is complete
         if conv.current_question_idx >= len(conv.questions):
-            conv.completed = True
-
-            # Track completion
-            npcs_completed.add(npc_name)
+            self._mark_complete(conv, npcs_completed)
 
             # Give item rewards based on NPC type
             response = self._give_npc_rewards(conv.npc_type, response)
@@ -298,11 +323,7 @@ class AnswerProcessor:
             if is_final_floor and npc_name in VICTORY_BOSS_NAMES:
                 game_was_won = True
 
-            # Track quest completion for specialists
-            if conv.npc_type == NPCType.SPECIALIST:
-                self.quest_manager.complete_npc_objective(npc_name)
-
-            self.conversation_engine.active_conversation = None
+            self.conversation_engine.end_conversation()
 
             # Add completion message
             response += f"\n\n{npc_name}: You have proven your worth. I grant you passage."
@@ -337,7 +358,9 @@ class AnswerProcessor:
         # Track score
         self.stats_tracker.record_wrong_answer()
 
-        # Build response
+        # Build response. The question is deliberately not advanced, so say so
+        # -- without this line the same question simply reappeared and looked
+        # like the game had ignored the answer.
         if is_enemy:
             response = f"{answer.response}\n\n[CRITICAL ERROR! -{penalty} Coherence]"
         else:
@@ -346,7 +369,9 @@ class AnswerProcessor:
         # Check for game over
         if self.player_manager.coherence <= 0:
             response += "\n\n[SYSTEM FAILURE - COHERENCE LOST]"
-            self.conversation_engine.active_conversation = None
+            self.conversation_engine.end_conversation()
+        else:
+            response += "\n\nThe same question comes around again. Try another answer."
 
         return False, response, False
 
