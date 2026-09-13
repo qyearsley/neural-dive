@@ -21,7 +21,7 @@ jobs:
   check:
     strategy:
       # Both ends of the supported range. `requires-python` says ">=3.10" and
-      # the classifiers claim 3.10 through 3.13, and until this job existed
+      # the classifiers claim 3.10 through 3.14, and until this job existed
       # nothing had ever run the code on anything but the developer's 3.13 --
       # the floor was asserted, not tested.
       fail-fast: false
