@@ -59,7 +59,10 @@ class BlessedBackend:
             x: X coordinate
             y: Y coordinate
             text: Text to draw
-            color: Color name (e.g., "red", "blue", "green")
+            color: Style attribute name, without the "bold_" prefix. Plain
+                colours ("red", "blue") are the common case, but any composed
+                blessed attribute works -- "reverse_bright_magenta",
+                "underline_reverse_bright_red".
             bold: Whether to draw in bold
         """
         # Move to position
@@ -73,7 +76,10 @@ class BlessedBackend:
         elif bold:
             print(self._term.bold(text), end="")
         else:
-            print(text, end="")
+            # Reset first. Blessed's own style functions end with a reset, so a
+            # styled draw cannot leak -- but a raw escape written by anything
+            # else can, and unstyled text is exactly what would inherit it.
+            print(self._term.normal + text, end="")
 
     def draw_with_bg(self, x: int, y: int, text: str, fg: str, bg: str) -> None:
         """Draw text with foreground and background colors.

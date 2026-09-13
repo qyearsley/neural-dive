@@ -72,7 +72,7 @@ neural_dive/
 ├── map_renderer.py          # Tiles, entities, erasing what moved
 ├── ui_renderer.py           # Bottom status panel
 ├── overlay_renderer.py      # Modal panels + victory screen
-├── render_helpers.py        # Shared colour / wrapped-text primitives
+├── render_helpers.py        # draw_wrapped_text -- the shared wrapping primitive
 ├── question_renderers.py    # Strategy per QuestionType
 ├── entity_renderers.py      # Strategy per EntityType
 ├── models.py                # Question, Answer, Conversation dataclasses
@@ -282,8 +282,11 @@ Conventions:
 - Use `TestBackend` from `neural_dive.backends.test_backend` to verify
   rendering (it records draw calls and accepts blessed-style attribute access
   via `__getattr__`).
-- Capture stdout with `redirect_stdout(io.StringIO())` for renderers that
-  `print()` directly (see `tests/test_question_renderers.py`).
+- No renderer writes to stdout. Assert on the recorded draw calls: on one
+  `DrawCall` for position, colour and bold, or on `backend.rendered_text()` for
+  the wording of a whole panel. Do not add a `redirect_stdout` capture -- the
+  one left, in `tests/test_entity_renderers.py`, is there because it checks real
+  escape sequences through a `BlessedBackend`.
 - Use fixed seeds for any test that exercises randomness.
 
 ## Pointers

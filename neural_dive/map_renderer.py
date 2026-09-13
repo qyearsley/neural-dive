@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from neural_dive.render_helpers import get_color_func
-
 if TYPE_CHECKING:
     from neural_dive.backends import RenderBackend
     from neural_dive.game import Game
@@ -129,12 +127,12 @@ def clear_old_npc_positions(
             continue
         if not _is_position_occupied(game, old_x, old_y):
             char = _tile_at(game, old_x, old_y)
+            # The same two draws `draw_map` makes for these tiles, deliberately:
+            # a repainted tile has to be indistinguishable from a fresh one.
             if char == ".":
-                color_func = get_color_func(backend, colors.floor, "cyan")
-                print(backend.move_xy(old_x, old_y) + color_func(chars.floor), end="")
+                backend.draw_text(old_x, old_y, chars.floor, colors.floor)
             elif char == "#":
-                color_func = get_color_func(backend, f"bold_{colors.wall}", "bold_blue")
-                print(backend.move_xy(old_x, old_y) + color_func(chars.wall), end="")
+                backend.draw_text(old_x, old_y, chars.wall, colors.wall, bold=True)
 
     # Clear the tracking dictionary after processing
     game.npc_manager.movement.old_positions.clear()

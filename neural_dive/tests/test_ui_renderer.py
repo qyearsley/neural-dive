@@ -1,14 +1,11 @@
 """Tests for the bottom status panel.
 
-The panel prints escape sequences directly rather than going through
-``backend.draw_text``, so these tests capture stdout. ``TestBackend`` emits no
-escapes, which makes the captured text readable.
+The panel draws through ``backend.draw_text``, so these tests read the draw
+calls ``TestBackend`` recorded rather than capturing stdout.
 """
 
 from __future__ import annotations
 
-from contextlib import redirect_stdout
-import io
 import unittest
 from unittest.mock import Mock
 
@@ -50,10 +47,8 @@ def _game(
 
 def _render(backend: TestBackend, game: Mock) -> str:
     _chars, colors = get_theme()
-    buffer = io.StringIO()
-    with redirect_stdout(buffer):
-        draw_ui(backend, game, colors)
-    return buffer.getvalue()
+    draw_ui(backend, game, colors)
+    return backend.rendered_text()
 
 
 class TestCoherenceMeter(unittest.TestCase):

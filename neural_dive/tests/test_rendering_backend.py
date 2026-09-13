@@ -1,11 +1,9 @@
 """Integration tests for rendering with different backends.
 
-This module demonstrates the backend abstraction by testing rendering
-with TestBackend and verifying backend swapping works correctly.
-
-NOTE: Many of these tests are currently skipped because they require
-full conversion of rendering.py to use backend.draw_text() instead of
-print() statements. This is a future enhancement (Phase 5F).
+Every renderer draws through the backend, so a whole frame is recordable:
+these tests run ``draw_game`` against ``TestBackend`` and assert on the
+``DrawCall`` list. Twelve of them used to be ``@unittest.skip``ped, waiting on
+that conversion.
 """
 
 from __future__ import annotations
@@ -35,7 +33,6 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         )
         self.chars, self.colors = get_theme()
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_draw_game_with_test_backend(self):
         """Test that draw_game works with TestBackend."""
         # Should not raise an error
@@ -44,10 +41,13 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         # Should have recorded draw calls
         self.assertGreater(len(self.backend.draw_calls), 0)
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_map_rendering_records_calls(self):
-        """Test that map rendering records draw calls for walls and floors."""
-        draw_game(self.backend, self.game, self.chars, self.colors)
+        """Test that map rendering records draw calls for walls and floors.
+
+        `redraw_all` matters: a partial frame only repaints the tiles something
+        vacated, so the tiles are drawn on a full redraw and nowhere else.
+        """
+        draw_game(self.backend, self.game, self.chars, self.colors, redraw_all=True)
 
         # Check that walls were drawn (look for '#' character calls)
         wall_calls = [
@@ -57,7 +57,6 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         ]
         self.assertGreater(len(wall_calls), 0, "Should have drawn at least one wall")
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_player_rendering(self):
         """Test that player entity is rendered."""
         px, py = self.game.player.x, self.game.player.y
@@ -68,7 +67,6 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         assert player_call is not None, f"Should have drawn player at ({px}, {py})"
         self.assertEqual(player_call.text, self.chars.player)
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_npc_rendering(self):
         """Test that NPCs are rendered."""
         if not self.game.npc_manager.npcs:
@@ -82,7 +80,6 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         assert npc_call is not None, f"Should have drawn NPC at ({npc.x}, {npc.y})"
         self.assertEqual(npc_call.text, npc.char)
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_stairs_rendering(self):
         """Test that stairs are rendered."""
         if not self.game.stairs:
@@ -95,7 +92,6 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         stair_call = self.backend.get_draw_at(stair.x, stair.y)
         assert stair_call is not None, f"Should have drawn stairs at ({stair.x}, {stair.y})"
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_status_bar_rendering(self):
         """Test that status bar is rendered at bottom."""
         draw_game(self.backend, self.game, self.chars, self.colors)
@@ -109,20 +105,22 @@ class TestRenderingBackendIntegration(unittest.TestCase):
         ]
         self.assertGreater(len(status_calls), 0, "Should have rendered coherence in status bar")
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_floor_indicator_rendering(self):
-        """Test that floor indicator is rendered."""
+        """Test that the floor indicator is rendered.
+
+        The status panel calls a floor a "Layer" -- the test was written against
+        a wording the panel has never used, and it was skipped, so nothing
+        caught that.
+        """
         draw_game(self.backend, self.game, self.chars, self.colors)
 
-        # Look for floor indicator (e.g., "Floor 1")
         floor_calls = [
             call
             for call in self.backend.draw_calls
-            if call.call_type == "text" and "Floor" in call.text
+            if call.call_type == "text" and "Layer" in call.text
         ]
         self.assertGreater(len(floor_calls), 0, "Should have rendered floor indicator")
 
-    @unittest.skip("Requires full backend conversion - rendering.py still uses print()")
     def test_redraw_all_clears_screen(self):
         """Test that redraw_all=True clears screen before drawing."""
         draw_game(self.backend, self.game, self.chars, self.colors, redraw_all=True)
@@ -155,11 +153,7 @@ class TestRenderingBackendIntegration(unittest.TestCase):
 
 
 class TestEntityRenderingWithBackend(unittest.TestCase):
-    """Test entity renderers work with backend abstraction.
-
-    NOTE: These tests are skipped because entity renderers still use print()
-    directly instead of backend.draw_text(). This is a future enhancement.
-    """
+    """Test entity renderers work with backend abstraction."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -167,7 +161,6 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         _, self.colors = get_theme()
         self.chars, _ = get_theme()
 
-    @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
     def test_player_renderer_with_backend(self):
         """Test PlayerRenderer works with TestBackend."""
         player = Entity(10, 5, "@", "green", "Player")
@@ -179,7 +172,6 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         assert call is not None
         self.assertEqual(call.text, self.chars.player)
 
-    @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
     def test_npc_renderer_with_backend(self):
         """Test NPCRenderer works with TestBackend."""
         npc = Entity(15, 8, "N", "magenta", "Test NPC", npc_type="specialist")
@@ -191,7 +183,6 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         assert call is not None
         self.assertEqual(call.text, "N")
 
-    @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
     def test_terminal_renderer_with_backend(self):
         """Test TerminalRenderer works with TestBackend."""
         from neural_dive.entities import InfoTerminal
@@ -205,7 +196,6 @@ class TestEntityRenderingWithBackend(unittest.TestCase):
         assert call is not None
         self.assertEqual(call.text, self.chars.terminal)
 
-    @unittest.skip("Entity renderers use print() instead of backend.draw_text()")
     def test_stairs_renderer_with_backend(self):
         """Test StairsRenderer works with TestBackend."""
         from neural_dive.entities import Stairs
@@ -262,12 +252,11 @@ class TestBackendColorHandling(unittest.TestCase):
 
 
 class TestDrawGameFrameComposition(unittest.TestCase):
-    """The parts of `draw_game` that are observable through TestBackend.
+    """`draw_game` as a whole frame.
 
-    Most of `draw_game` still `print()`s, so the tests above stay skipped. The
-    screen clear and the help overlay go through the backend, and both are
-    load-bearing: the clear is how a resize recovers, and the help overlay is
-    the piece the key binding hangs off.
+    The screen clear and the help overlay are both load-bearing: the clear is
+    how a resize recovers, and the help overlay is the piece the key binding
+    hangs off.
     """
 
     def setUp(self):
@@ -281,13 +270,8 @@ class TestDrawGameFrameComposition(unittest.TestCase):
         self.chars, self.colors = get_theme()
 
     def _draw(self, backend, redraw_all=False):
-        from contextlib import redirect_stdout
-        import io
-
-        buffer = io.StringIO()
-        with redirect_stdout(buffer):
-            draw_game(backend, self.game, self.chars, self.colors, redraw_all=redraw_all)
-        return buffer.getvalue()
+        draw_game(backend, self.game, self.chars, self.colors, redraw_all=redraw_all)
+        return backend.rendered_text()
 
     def test_full_redraw_clears_the_screen(self):
         backend = TestBackend(width=80, height=40)

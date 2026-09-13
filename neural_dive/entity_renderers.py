@@ -2,21 +2,19 @@
 
 This module implements the Strategy pattern for rendering different entity types.
 Each renderer is responsible for drawing a specific entity type on the game map.
+
+Every renderer draws through ``backend.draw_text``, so what it drew is
+recordable: ``TestBackend`` keeps a ``DrawCall`` per entity, and a test can
+assert on the glyph and the style rather than on captured stdout.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from neural_dive.backends import RenderBackend
     from neural_dive.themes import CharacterSet, ColorScheme
-
-
-def _identity(text: str) -> str:
-    return text
 
 
 class EntityRenderer(Protocol):
@@ -45,26 +43,23 @@ class EntityRenderer(Protocol):
         ...
 
 
-def _resolve_style(term: RenderBackend, *candidates: str) -> Callable[[str], str]:
-    """Return the first style attribute the backend actually has.
+def split_bold(style_name: str) -> tuple[str, bool]:
+    """Split a whole style name into the ``(color, bold)`` ``draw_text`` takes.
 
-    Blessed composes attribute names ("bold_reverse_bright_red"), but a backend
-    is free not to expose one. Each candidate is tried in order and a plain
-    identity function is the last resort, so an unknown style degrades to
-    unstyled text rather than raising.
+    ``npc_style_name`` names a style the way blessed does, as one composed
+    attribute ("bold_reverse_bright_magenta"). ``draw_text`` takes bold as a
+    flag and composes the "bold_" prefix itself, so the two have to be pulled
+    apart before the call.
 
     Args:
-        term: Render backend instance
-        *candidates: Attribute names to try, most specific first
+        style_name: A blessed style attribute name
 
     Returns:
-        A callable that applies the style to a string
+        Tuple of (style name without the "bold_" prefix, whether it had one)
     """
-    for name in candidates:
-        style = getattr(term, name, None)
-        if callable(style):
-            return cast("Callable[[str], str]", style)
-    return _identity
+    if style_name.startswith("bold_"):
+        return style_name[len("bold_") :], True
+    return style_name, False
 
 
 def npc_style_name(npc_type: str, colors: ColorScheme, is_required: bool) -> str:
@@ -130,10 +125,8 @@ class NPCRenderer:
         is_required = bool(kwargs.get("is_required", False))
         npc_type = entity.npc_type or "specialist"
 
-        style_name = npc_style_name(npc_type, colors, is_required)
-        npc_color = _resolve_style(term, style_name, "bold_magenta")
-
-        print(term.move_xy(entity.x, entity.y) + npc_color(entity.char), end="")
+        style, bold = split_bold(npc_style_name(npc_type, colors, is_required))
+        term.draw_text(entity.x, entity.y, entity.char, style, bold=bold)
 
 
 class TerminalRenderer:
@@ -156,8 +149,7 @@ class TerminalRenderer:
             colors: Color scheme for terminal color
             **kwargs: Additional arguments (unused)
         """
-        terminal_color = getattr(term, f"bold_{colors.terminal}", term.bold_cyan)
-        print(term.move_xy(entity.x, entity.y) + terminal_color(chars.terminal), end="")
+        term.draw_text(entity.x, entity.y, chars.terminal, colors.terminal, bold=True)
 
 
 class StairsRenderer:
@@ -182,8 +174,7 @@ class StairsRenderer:
         """
         # entity.direction should be "up" or "down" for Stairs
         stair_char = chars.stairs_up if entity.direction == "up" else chars.stairs_down
-        stair_color = getattr(term, f"bold_{colors.stairs}", term.bold_yellow)
-        print(term.move_xy(entity.x, entity.y) + stair_color(stair_char), end="")
+        term.draw_text(entity.x, entity.y, stair_char, colors.stairs, bold=True)
 
 
 class ItemPickupRenderer:
@@ -206,8 +197,7 @@ class ItemPickupRenderer:
             colors: Color scheme (unused, item has its own color)
             **kwargs: Additional arguments (unused)
         """
-        pickup_color = getattr(term, f"bold_{entity.color}", term.bold_yellow)
-        print(term.move_xy(entity.x, entity.y) + pickup_color(entity.char), end="")
+        term.draw_text(entity.x, entity.y, entity.char, entity.color, bold=True)
 
 
 class PlayerRenderer:
@@ -230,8 +220,7 @@ class PlayerRenderer:
             colors: Color scheme for player color
             **kwargs: Additional arguments (unused)
         """
-        player_color = getattr(term, f"bold_{colors.player}", term.bold_green)
-        print(term.move_xy(entity.x, entity.y) + player_color(chars.player), end="")
+        term.draw_text(entity.x, entity.y, chars.player, colors.player, bold=True)
 
 
 # Entity type enum for registry

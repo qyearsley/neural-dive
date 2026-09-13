@@ -54,8 +54,13 @@ class TestBlessedBackend(unittest.TestCase):
             mock_print.assert_called_once_with("MOVE_10_5", end="", flush=False)
 
     def test_draw_text_basic(self):
-        """Test draw_text without color or bold."""
+        """Test draw_text without color or bold.
+
+        Unstyled text is drawn after a reset, so it cannot inherit a lingering
+        attribute from whatever was drawn before it.
+        """
         self.mock_term.move_xy.return_value = "MOVE_5_10"
+        self.mock_term.normal = "RESET"
 
         with patch("builtins.print") as mock_print:
             self.backend.draw_text(5, 10, "Hello")
@@ -63,7 +68,7 @@ class TestBlessedBackend(unittest.TestCase):
             # Should call print twice: once for move, once for text
             self.assertEqual(mock_print.call_count, 2)
             mock_print.assert_any_call("MOVE_5_10", end="")
-            mock_print.assert_any_call("Hello", end="")
+            mock_print.assert_any_call("RESETHello", end="")
 
     def test_draw_text_with_color(self):
         """Test draw_text with color."""

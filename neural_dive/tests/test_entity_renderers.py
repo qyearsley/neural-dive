@@ -51,10 +51,29 @@ def _fake_colors() -> Mock:
 
 
 def _render_and_capture(fn) -> str:
+    """Capture stdout.
+
+    Only used for the ``BlessedBackend`` check at the bottom of this file,
+    which has to look at real escape sequences. Everything else reads the draw
+    calls a ``TestBackend`` recorded.
+    """
     buf = io.StringIO()
     with redirect_stdout(buf):
         fn()
     return buf.getvalue()
+
+
+def _drawn(renderer, entity, **kwargs) -> str:
+    """Render one entity and return what it drew."""
+    backend = TestBackend()
+    renderer.render(
+        term=backend,
+        entity=entity,
+        chars=_fake_chars(),
+        colors=_fake_colors(),
+        **kwargs,
+    )
+    return backend.rendered_text()
 
 
 class TestEntityRendererRegistry(unittest.TestCase):
@@ -94,77 +113,34 @@ class TestEntityRendererRegistry(unittest.TestCase):
 
 class TestEntityRendererOutput(unittest.TestCase):
     def test_player_renderer_emits_player_char(self):
-        entity = Mock(x=5, y=3)
-        output = _render_and_capture(
-            lambda: PlayerRenderer().render(
-                term=TestBackend(),
-                entity=entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-            )
-        )
-        self.assertIn("@", output)
+        self.assertIn("@", _drawn(PlayerRenderer(), Mock(x=5, y=3)))
 
     def test_terminal_renderer_emits_terminal_char(self):
-        entity = Mock(x=2, y=2)
-        output = _render_and_capture(
-            lambda: TerminalRenderer().render(
-                term=TestBackend(),
-                entity=entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-            )
-        )
-        self.assertIn("T", output)
+        self.assertIn("T", _drawn(TerminalRenderer(), Mock(x=2, y=2)))
 
     def test_stairs_renderer_picks_up_or_down(self):
-        up_entity = Mock(x=1, y=1, direction="up")
-        down_entity = Mock(x=1, y=1, direction="down")
-
-        up_output = _render_and_capture(
-            lambda: StairsRenderer().render(
-                term=TestBackend(),
-                entity=up_entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-            )
-        )
-        down_output = _render_and_capture(
-            lambda: StairsRenderer().render(
-                term=TestBackend(),
-                entity=down_entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-            )
-        )
-
-        self.assertIn("<", up_output)
-        self.assertIn(">", down_output)
+        self.assertIn("<", _drawn(StairsRenderer(), Mock(x=1, y=1, direction="up")))
+        self.assertIn(">", _drawn(StairsRenderer(), Mock(x=1, y=1, direction="down")))
 
     def test_item_pickup_renderer_uses_entity_char(self):
         entity = Mock(x=0, y=0, char="?", color="magenta")
-        output = _render_and_capture(
-            lambda: ItemPickupRenderer().render(
-                term=TestBackend(),
-                entity=entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-            )
-        )
-        self.assertIn("?", output)
+
+        self.assertIn("?", _drawn(ItemPickupRenderer(), entity))
 
     def test_npc_renderer_emits_npc_char(self):
         entity = Mock(x=4, y=4, char="N", npc_type="specialist")
-        output = _render_and_capture(
-            lambda: NPCRenderer().render(
-                term=TestBackend(),
-                entity=entity,
-                chars=_fake_chars(),
-                colors=_fake_colors(),
-                is_required=False,
-            )
+
+        self.assertIn("N", _drawn(NPCRenderer(), entity, is_required=False))
+
+    def test_each_renderer_draws_at_the_entity_position(self):
+        backend = TestBackend()
+        PlayerRenderer().render(
+            term=backend, entity=Mock(x=7, y=11), chars=_fake_chars(), colors=_fake_colors()
         )
-        self.assertIn("N", output)
+
+        call = backend.get_draw_at(7, 11)
+        assert call is not None
+        self.assertEqual(call.text, "@")
 
 
 class TestNPCHighlighting(unittest.TestCase):

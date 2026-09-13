@@ -11,8 +11,9 @@ This test module covers rendering functionality including:
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
+from neural_dive.backends.test_backend import TestBackend
 from neural_dive.entities import Entity, Stairs
 from neural_dive.entity_renderers import (
     EntityType,
@@ -190,23 +191,21 @@ class TestOverlayRenderer(unittest.TestCase):
         # Verify dimensions match overlay height
         self.assertEqual(len(draw_calls), renderer.height)
 
-    @patch("neural_dive.overlay_renderer.print")
-    def test_overlay_renderer_draw_border(self, mock_print):
+    def test_overlay_renderer_draw_border(self):
         """Test drawing overlay border."""
+        backend = TestBackend(width=80, height=24)
         renderer = OverlayRenderer(
-            backend=self.mock_term,
+            backend=backend,
             max_width=60,
             max_height=20,
             border_color="blue",
         )
 
-        # Mock terminal methods
-        self.mock_term.move_xy.return_value = ""
-
         renderer.draw_border()
 
-        # Should call print for border elements
-        self.assertGreater(mock_print.call_count, 0)
+        # A top row, a bottom row, and two sides per interior row.
+        self.assertEqual(len(backend.draw_calls), 2 + 2 * (renderer.height - 2))
+        self.assertTrue(all(call.color == "blue" for call in backend.draw_calls))
 
 
 class TestOverlayDimensions(unittest.TestCase):
@@ -426,21 +425,17 @@ class TestPositionOccupancy(unittest.TestCase):
 
 
 class TestEntityRenderers(unittest.TestCase):
-    """Test entity renderer strategies."""
+    """Test entity renderer strategies.
+
+    Each renderer makes exactly one ``draw_text`` call, at the entity's
+    position. These used to patch ``print`` and count calls; the renderers now
+    draw through the backend, so the recorded ``DrawCall`` says both where and
+    what.
+    """
 
     def setUp(self):
         """Set up test fixtures."""
-        self.mock_term = MagicMock()
-        self.mock_term.width = 80
-        self.mock_term.height = 24
-
-        # Mock terminal color methods
-        self.mock_term.move_xy.return_value = ""
-        self.mock_term.bold_magenta = MagicMock(return_value="")
-        self.mock_term.bold_green = MagicMock(return_value="")
-        self.mock_term.bold_red = MagicMock(return_value="")
-        self.mock_term.bold_yellow = MagicMock(return_value="")
-        self.mock_term.bold_cyan = MagicMock(return_value="")
+        self.backend = TestBackend(width=80, height=24)
 
         self.colors = ColorScheme(
             wall="blue",
@@ -475,113 +470,102 @@ class TestEntityRenderers(unittest.TestCase):
             separator="─",
         )
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_npc_renderer_specialist(self, mock_print):
+    def _only_call(self):
+        """The one draw call the renderer should have made."""
+        self.assertEqual(len(self.backend.draw_calls), 1)
+        return self.backend.draw_calls[0]
+
+    def test_npc_renderer_specialist(self):
         """Test NPCRenderer renders specialist NPC correctly."""
         npc = Entity(10, 15, "S", "magenta", "Specialist")
         npc.npc_type = "specialist"
 
-        renderer = NPCRenderer()
-        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+        NPCRenderer().render(self.backend, npc, self.chars, self.colors, is_required=False)
 
-        # Should call print once for the NPC
-        self.assertEqual(mock_print.call_count, 1)
-        # Should move to correct position
-        self.mock_term.move_xy.assert_called_with(10, 15)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (10, 15, "S"))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_npc_renderer_helper(self, mock_print):
+    def test_npc_renderer_helper(self):
         """Test NPCRenderer renders helper NPC correctly."""
         npc = Entity(5, 8, "H", "green", "Helper")
         npc.npc_type = "helper"
 
-        renderer = NPCRenderer()
-        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+        NPCRenderer().render(self.backend, npc, self.chars, self.colors, is_required=False)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(5, 8)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (5, 8, "H"))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_npc_renderer_enemy(self, mock_print):
+    def test_npc_renderer_enemy(self):
         """Test NPCRenderer renders enemy NPC correctly."""
         npc = Entity(20, 12, "E", "red", "Enemy")
         npc.npc_type = "enemy"
 
-        renderer = NPCRenderer()
-        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=False)
+        NPCRenderer().render(self.backend, npc, self.chars, self.colors, is_required=False)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(20, 12)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (20, 12, "E"))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_npc_renderer_required_npc(self, mock_print):
-        """Test NPCRenderer highlights required NPCs."""
+    def test_npc_renderer_required_npc(self):
+        """A required NPC is drawn in a different style from an optional one."""
         npc = Entity(10, 10, "S", "magenta", "RequiredNPC")
         npc.npc_type = "specialist"
 
-        renderer = NPCRenderer()
-        renderer.render(self.mock_term, npc, self.chars, self.colors, is_required=True)
+        NPCRenderer().render(self.backend, npc, self.chars, self.colors, is_required=True)
+        required = self._only_call()
 
-        # Should still call print once
-        self.assertEqual(mock_print.call_count, 1)
-        # Should use bright/bold variant for required NPCs
-        # (Implementation detail - just verify it was called)
+        self.backend.clear_calls()
+        NPCRenderer().render(self.backend, npc, self.chars, self.colors, is_required=False)
+        optional = self._only_call()
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_terminal_renderer(self, mock_print):
+        self.assertEqual(required.text, "S")
+        self.assertNotEqual(required.color, optional.color)
+
+    def test_terminal_renderer(self):
         """Test TerminalRenderer renders terminal correctly."""
         terminal = Entity(12, 18, "T", "cyan", "Terminal")
 
-        renderer = TerminalRenderer()
-        renderer.render(self.mock_term, terminal, self.chars, self.colors)
+        TerminalRenderer().render(self.backend, terminal, self.chars, self.colors)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(12, 18)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (12, 18, self.chars.terminal))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_stairs_renderer_up(self, mock_print):
+    def test_stairs_renderer_up(self):
         """Test StairsRenderer renders up stairs correctly."""
         stairs = Stairs(8, 6, "up")
 
-        renderer = StairsRenderer()
-        renderer.render(self.mock_term, stairs, self.chars, self.colors)
+        StairsRenderer().render(self.backend, stairs, self.chars, self.colors)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(8, 6)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (8, 6, self.chars.stairs_up))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_stairs_renderer_down(self, mock_print):
+    def test_stairs_renderer_down(self):
         """Test StairsRenderer renders down stairs correctly."""
         stairs = Stairs(15, 20, "down")
 
-        renderer = StairsRenderer()
-        renderer.render(self.mock_term, stairs, self.chars, self.colors)
+        StairsRenderer().render(self.backend, stairs, self.chars, self.colors)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(15, 20)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (15, 20, self.chars.stairs_down))
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_item_pickup_renderer(self, mock_print):
+    def test_item_pickup_renderer(self):
         """Test ItemPickupRenderer renders item correctly."""
         item = Entity(25, 14, "i", "yellow", "Item")
-        item.color = "yellow"
 
-        renderer = ItemPickupRenderer()
-        renderer.render(self.mock_term, item, self.chars, self.colors)
+        ItemPickupRenderer().render(self.backend, item, self.chars, self.colors)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(25, 14)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (25, 14, "i"))
+        self.assertEqual(call.color, "yellow")
 
-    @patch("neural_dive.entity_renderers.print")
-    def test_player_renderer(self, mock_print):
+    def test_player_renderer(self):
         """Test PlayerRenderer renders player correctly."""
         player = Entity(40, 30, "@", "green", "Player")
 
-        renderer = PlayerRenderer()
-        renderer.render(self.mock_term, player, self.chars, self.colors)
+        PlayerRenderer().render(self.backend, player, self.chars, self.colors)
 
-        self.assertEqual(mock_print.call_count, 1)
-        self.mock_term.move_xy.assert_called_with(40, 30)
+        call = self._only_call()
+        self.assertEqual((call.x, call.y, call.text), (40, 30, self.chars.player))
+        self.assertEqual(call.color, self.colors.player)
 
     def test_get_entity_renderer_npc(self):
         """Test get_entity_renderer returns NPCRenderer for NPC type."""
@@ -620,40 +604,6 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class _StubBackend:
-    """The blessed-shaped surface the end screens actually use.
-
-    `draw_victory_screen` and `draw_game_over_screen` build escape sequences as
-    strings and `print` them, rather than going through `backend.draw_text` --
-    which is why `TestBackend` cannot record them and why the twelve tests in
-    `test_rendering_backend.py` are still skipped. Until that conversion
-    happens, the honest way to test these two is to give them the attributes
-    they read and capture stdout.
-    """
-
-    width = 100
-    height = 40
-    home = ""
-    clear = ""
-
-    def move_xy(self, x, y):
-        return ""
-
-    def bold_black(self, text):
-        return text
-
-    def black_on_white(self, text):
-        return text
-
-    def get_color_func(self, color, bold=False):
-        return lambda text: text
-
-    def __getattr__(self, name):
-        # Colour helpers are looked up by name (`bold_green`, `bold_red`, ...),
-        # so anything else this reads is an identity function too.
-        return lambda text="": text
-
-
 class TestEndScreens(unittest.TestCase):
     """Both endings show the run summary. Only one of them used to.
 
@@ -685,16 +635,13 @@ class TestEndScreens(unittest.TestCase):
         return game
 
     def _render(self, draw):
-        from contextlib import redirect_stdout
-        import io
-
+        from neural_dive.backends.test_backend import TestBackend
         from neural_dive.themes import get_theme
 
         _chars, colors = get_theme()
-        buffer = io.StringIO()
-        with redirect_stdout(buffer):
-            draw(_StubBackend(), self._game(), colors)
-        return buffer.getvalue()
+        backend = TestBackend(width=100, height=40)
+        draw(backend, self._game(), colors)
+        return backend.rendered_text()
 
     def test_victory_screen_shows_the_summary(self):
         from neural_dive.overlay_renderer import draw_victory_screen
@@ -877,18 +824,13 @@ def _stats_game(with_weak_areas: bool = False):
 
 
 def _render_end_screen(draw, height: int, with_weak_areas: bool = False) -> str:
-    from contextlib import redirect_stdout
-    import io
-
+    from neural_dive.backends.test_backend import TestBackend
     from neural_dive.themes import get_theme
 
-    backend = _StubBackend()
-    backend.height = height
+    backend = TestBackend(width=100, height=height)
     _chars, colors = get_theme()
-    buffer = io.StringIO()
-    with redirect_stdout(buffer):
-        draw(backend, _stats_game(with_weak_areas), colors)
-    return buffer.getvalue()
+    draw(backend, _stats_game(with_weak_areas), colors)
+    return backend.rendered_text()
 
 
 class TestHelpOverlay(unittest.TestCase):
@@ -899,18 +841,14 @@ class TestHelpOverlay(unittest.TestCase):
     """
 
     def _render(self, width: int = 100, height: int = 40) -> str:
-        from contextlib import redirect_stdout
-        import io
-
         from neural_dive.backends.test_backend import TestBackend
         from neural_dive.overlay_renderer import draw_help_overlay
         from neural_dive.themes import get_theme
 
         chars, colors = get_theme()
-        buffer = io.StringIO()
-        with redirect_stdout(buffer):
-            draw_help_overlay(TestBackend(width=width, height=height), chars, colors)
-        return buffer.getvalue()
+        backend = TestBackend(width=width, height=height)
+        draw_help_overlay(backend, chars, colors)
+        return backend.rendered_text()
 
     def test_names_itself(self):
         self.assertIn("HELP", self._render())
@@ -992,9 +930,6 @@ class TestInventoryTruncation(unittest.TestCase):
     """Item lists used to stop after three with no sign of the rest."""
 
     def _render(self, hint_count: int, snippet_count: int) -> str:
-        from contextlib import redirect_stdout
-        import io
-
         from neural_dive.backends.test_backend import TestBackend
         from neural_dive.items import ItemType
         from neural_dive.overlay_renderer import draw_inventory_overlay
@@ -1013,10 +948,9 @@ class TestInventoryTruncation(unittest.TestCase):
         )
 
         _chars, colors = get_theme()
-        buffer = io.StringIO()
-        with redirect_stdout(buffer):
-            draw_inventory_overlay(TestBackend(width=100, height=40), game, colors)
-        return buffer.getvalue()
+        backend = TestBackend(width=100, height=40)
+        draw_inventory_overlay(backend, game, colors)
+        return backend.rendered_text()
 
     def test_three_or_fewer_items_show_no_indicator(self):
         output = self._render(hint_count=3, snippet_count=0)

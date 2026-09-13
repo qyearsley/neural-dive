@@ -20,17 +20,18 @@ from neural_dive.config import (
     COHERENCE_WARNING_FRACTION,
     UI_BOTTOM_OFFSET,
 )
-from neural_dive.render_helpers import get_color_func
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from neural_dive.backends import RenderBackend
     from neural_dive.game import Game
     from neural_dive.themes import ColorScheme
 
 STATUS_SEPARATOR = " | "
 STATUS_START_X = 2
+
+# One piece of the status line: the text, the colour name to draw it in (None
+# for the terminal's default attribute), and whether it is bold.
+Segment = tuple[str, "str | None", bool]
 
 # Order matters: segments are dropped from the end when the window is narrow,
 # so the keys a stuck player needs most come first.
@@ -121,58 +122,45 @@ def floor_progress(game: Game) -> tuple[int, int]:
     return completed, len(required)
 
 
-def _plain_style(backend: RenderBackend) -> Callable[[str], str]:
-    """A style function that resets to the terminal's default attribute."""
-    reset = str(backend.normal)
-
-    def plain(text: str) -> str:
-        return reset + text
-
-    return plain
-
-
-def _segments_width(start_x: int, segments: list[tuple[str, Callable[[str], str]]]) -> int:
+def _segments_width(start_x: int, segments: list[Segment]) -> int:
     """The column the last segment would end at."""
     if not segments:
         return start_x
-    text_width = sum(len(text) for text, _style in segments)
+    text_width = sum(len(text) for text, _color, _bold in segments)
     return start_x + text_width + len(STATUS_SEPARATOR) * (len(segments) - 1)
 
 
-def _print_segments(
+def _draw_segments(
     backend: RenderBackend,
     start_x: int,
     y: int,
-    segments: list[tuple[str, Callable[[str], str]]],
+    segments: list[Segment],
 ) -> None:
-    """Print separator-joined segments, dropping any that would overflow.
+    """Draw separator-joined segments, dropping any that would overflow.
 
     Args:
         backend: Render backend instance
         start_x: Column the first segment starts at
-        y: Row to print on
-        segments: (text, colour function) pairs in priority order
+        y: Row to draw on
+        segments: (text, colour name, bold) triples in priority order
     """
     x = start_x
     first = True
-    for text, color_func in segments:
+    for text, color, bold in segments:
         prefix = "" if first else STATUS_SEPARATOR
         if x + len(prefix) + len(text) > backend.width:
             return
         if prefix:
-            print(backend.move_xy(x, y) + str(backend.normal) + prefix, end="")
+            backend.draw_text(x, y, prefix)
             x += len(prefix)
-        print(backend.move_xy(x, y) + color_func(text), end="")
+        backend.draw_text(x, y, text, color, bold=bold)
         x += len(text)
         first = False
 
 
-def _hint_segments(
-    backend: RenderBackend, hints: tuple[str, ...]
-) -> list[tuple[str, Callable[[str], str]]]:
+def _hint_segments(hints: tuple[str, ...]) -> list[Segment]:
     """Wrap plain hint strings as unstyled segments."""
-    plain = _plain_style(backend)
-    return [(hint, plain) for hint in hints]
+    return [(hint, None, False) for hint in hints]
 
 
 def draw_ui(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
@@ -192,39 +180,30 @@ def draw_ui(backend: RenderBackend, game: Game, colors: ColorScheme) -> None:
     if ui_y < 0:
         return
 
-    # Separator line - use non-bold for light backgrounds to ensure visibility
-    ui_color = get_color_func(backend, colors.ui_primary, "normal")
-    print(backend.move_xy(0, ui_y) + ui_color("─" * min(backend.width, 80)), end="")
+    # Separator line - non-bold, so it stays visible on light backgrounds
+    backend.draw_text(0, ui_y, "─" * min(backend.width, 80), colors.ui_primary)
 
     _draw_status_line(backend, game, colors, ui_y + 1)
     _draw_message_line(backend, game, colors, ui_y + 2)
     _draw_hint_line(backend, game, backend.height - 1)
 
 
-def _status_segments(
-    backend: RenderBackend, game: Game, colors: ColorScheme, with_bar: bool
-) -> list[tuple[str, Callable[[str], str]]]:
+def _status_segments(game: Game, colors: ColorScheme, with_bar: bool) -> list[Segment]:
     """Build the status segments, in the order they are drawn and dropped.
 
     Coherence sits second on purpose. Segments are dropped from the right, and
     coherence is the one number the player cannot afford to lose sight of.
 
     Args:
-        backend: Render backend instance
         game: Game instance
         colors: Colour scheme
         with_bar: Whether to append the meter to the coherence readout
 
     Returns:
-        (text, style) pairs
+        (text, colour name, bold) triples
     """
-    plain = _plain_style(backend)
     player = game.player_manager
-    coherence_color = get_color_func(
-        backend,
-        f"bold_{coherence_color_name(player.coherence, player.max_coherence, colors)}",
-        "normal",
-    )
+    coherence_color = coherence_color_name(player.coherence, player.max_coherence, colors)
     completed, required = floor_progress(game)
 
     coherence_text = f"Coherence {player.coherence}/{player.max_coherence}"
@@ -232,11 +211,11 @@ def _status_segments(
         coherence_text += " " + coherence_bar(player.coherence, player.max_coherence)
 
     return [
-        (f"Layer {game.floor_manager.current_floor}/{game.floor_manager.max_floors}", plain),
-        (coherence_text, coherence_color),
-        (f"NPCs {completed}/{required}", plain),
-        (f"Knowledge: {len(player.knowledge_modules)}", plain),
-        (f"Score: {game.get_current_score()}", plain),
+        (f"Layer {game.floor_manager.current_floor}/{game.floor_manager.max_floors}", None, False),
+        (coherence_text, coherence_color, True),
+        (f"NPCs {completed}/{required}", None, False),
+        (f"Knowledge: {len(player.knowledge_modules)}", None, False),
+        (f"Score: {game.get_current_score()}", None, False),
     ]
 
 
@@ -247,18 +226,17 @@ def _draw_status_line(backend: RenderBackend, game: Game, colors: ColorScheme, y
     keeps all five readings visible at the minimum supported width, where
     keeping it would cost the last two segments instead.
     """
-    segments = _status_segments(backend, game, colors, with_bar=True)
+    segments = _status_segments(game, colors, with_bar=True)
     if _segments_width(STATUS_START_X, segments) > backend.width:
-        segments = _status_segments(backend, game, colors, with_bar=False)
-    _print_segments(backend, STATUS_START_X, y, segments)
+        segments = _status_segments(game, colors, with_bar=False)
+    _draw_segments(backend, STATUS_START_X, y, segments)
 
 
 def _draw_message_line(backend: RenderBackend, game: Game, colors: ColorScheme, y: int) -> None:
     """Draw (and first blank) the transient message row."""
     room = max(0, backend.width - 4)
-    print(backend.move_xy(2, y) + " " * room, end="")
-    msg_color = get_color_func(backend, f"bold_{colors.ui_warning}", "bold_yellow")
-    print(backend.move_xy(2, y) + msg_color(game.message[:room]), end="")
+    backend.draw_text(2, y, " " * room)
+    backend.draw_text(2, y, game.message[:room], colors.ui_warning, bold=True)
 
 
 def _draw_hint_line(backend: RenderBackend, game: Game, y: int) -> None:
@@ -266,4 +244,4 @@ def _draw_hint_line(backend: RenderBackend, game: Game, y: int) -> None:
     if y < 0:
         return
     hints = CONVERSATION_HINTS if game.conversation_engine.active_conversation else CONTROL_HINTS
-    _print_segments(backend, 0, y, _hint_segments(backend, hints))
+    _draw_segments(backend, 0, y, _hint_segments(hints))

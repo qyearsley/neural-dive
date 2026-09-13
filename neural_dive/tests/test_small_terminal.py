@@ -8,8 +8,6 @@ these tests, which is where the hang lived.
 
 from __future__ import annotations
 
-from contextlib import redirect_stdout
-import io
 import signal
 import unittest
 from unittest.mock import Mock
@@ -317,11 +315,9 @@ class TestEntityClipping(unittest.TestCase):
         game.floor_manager.current_floor = 1
         return game
 
-    def _render(self, backend, game) -> str:
-        buffer = io.StringIO()
-        with redirect_stdout(buffer):
-            draw_entities(backend, game, self.chars, self.colors)
-        return buffer.getvalue()
+    def _render(self, backend: TestBackend, game) -> str:
+        draw_entities(backend, game, self.chars, self.colors)
+        return backend.rendered_text()
 
     def test_offscreen_npcs_are_not_drawn(self):
         backend = TestBackend(width=80, height=24)

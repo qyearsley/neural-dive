@@ -50,7 +50,11 @@ class RenderBackend(Protocol):
             x: X coordinate
             y: Y coordinate
             text: Text to draw
-            color: Color name (e.g., "red", "blue", "green")
+            color: Style attribute name. Usually a plain colour ("red", "blue"),
+                but any composed blessed attribute works -- "bright_magenta",
+                "reverse_bright_magenta", "underline_reverse_bright_red". The
+                backend prepends "bold_" when ``bold`` is set, so pass the style
+                without that prefix.
             bold: Whether to draw in bold
         """
         ...

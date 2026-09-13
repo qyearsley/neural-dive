@@ -3,20 +3,13 @@
 Architectural debt and maintainability issues identified for future cleanup.
 Distinct from `known-issues.md` (runtime bugs).
 
-Last audited: 2026-09-05.
+Last audited: 2026-09-13.
 
 ---
 
 ## Highest Impact
 
-- **Two renderer modules never made it onto the backend.** `ui_renderer.py` has
-  six `print(` calls and zero `draw_text`, and `entity_renderers.py` has five
-  and zero. Twelve tests in `test_rendering_backend.py` are hard-skipped for
-  exactly this reason, and their skip messages are accurate. It is also why the
-  two end screens have to be tested by capturing stdout against a stub backend
-  rather than through `TestBackend`. The conversion of the *question* renderers
-  is filed under Resolved below, which reads as if the whole job were done; it
-  is not.
+Nothing open. The renderer/backend split that sat here is resolved below.
 
 ## Notes
 
@@ -46,6 +39,40 @@ Last audited: 2026-09-05.
   is a couple of KB.
 
 ## Resolved
+
+- **Every renderer is on the backend** (2026-09-13). `overlay_renderer.py` (22
+  `print(`), `ui_renderer.py` (5) and `entity_renderers.py` (5) wrote straight to
+  stdout, and the two `print(` calls left in `map_renderer.py`'s partial-redraw
+  path drew the same two tiles `draw_map` already drew through the backend. All
+  of it now goes through `backend.draw_text` / `draw_with_bg`; `grep -c "print("`
+  over the six rendering modules is zero.
+
+  This is what the twelve `@unittest.skip`s in `test_rendering_backend.py` were
+  waiting for. All twelve are gone and the suite has no skips left. Two of them
+  turned out to be asserting the wrong thing, which being skipped had hidden:
+  one looked for "Floor" in the status panel, which has always said "Layer", and
+  one expected map tiles from a partial frame, which by design only repaints
+  what moved.
+
+  Three things made the conversion fit the existing `draw_text(x, y, text,
+  color, bold)` signature rather than needing a new one:
+
+  - `color` is a blessed style attribute name, not just a colour. Passing
+    `"reverse_bright_magenta"` with `bold=True` composes
+    `bold_reverse_bright_magenta`, which is how NPC highlighting survived.
+    `entity_renderers.split_bold` pulls `npc_style_name`'s whole name apart.
+  - `BlessedBackend.draw_text` now writes `term.normal` before unstyled text.
+    That is what `ui_renderer._plain_style` used to do, and the status panel
+    relies on it.
+  - The colour-*function* helpers are deleted: `render_helpers.get_color_func`,
+    `draw_wrapped_lines` and `draw_text_block`, plus
+    `entity_renderers._resolve_style`. They existed only to build a string for
+    `print`, and keeping them would have left a second, unrecordable way to draw.
+
+  Verified beyond the suite: the map frame, the help overlay, the inventory
+  overlay and the victory screen were rendered through a real `BlessedBackend`
+  into a pty on this commit and on `02c6ca4`, and every cell matches in both
+  glyph and SGR attributes.
 
 - **CI exists** (2026-09-05). `.github/workflows/ci.yml` runs ruff, mypy, pytest
   and `validate_questions.py` on push and pull request, over a Python matrix of
@@ -174,8 +201,9 @@ Last audited: 2026-09-05.
   `dict` was expected now build the real objects. `EventBus.subscribe` typing
   was left alone — narrowing at the call sites turned out to be enough.
 - **Duplicated text wrapping in `rendering.py`** — consolidated into
-  `_draw_wrapped_lines` plus the `_draw_text_block` convenience wrapper.
-  `question_renderers.py` still has its own copies (see above).
+  `_draw_wrapped_lines` plus the `_draw_text_block` convenience wrapper. Both
+  were later deleted in favour of `render_helpers.draw_wrapped_text`, the one
+  wrapping helper left, when the renderers moved onto the backend.
 - **Two competing pre-commit configs** — `.prek.yaml` used a schema prek cannot
   parse (`missing field 'repos'`), so it had never run; deleted. The remaining
   `.pre-commit-config.yaml` now shells out to the same uv commands as

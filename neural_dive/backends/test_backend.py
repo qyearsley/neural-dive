@@ -166,6 +166,20 @@ class TestBackend:
         """
         return [call for call in self.draw_calls if call.call_type == call_type]
 
+    def rendered_text(self) -> str:
+        """Everything drawn, in draw order, as one string.
+
+        For asserting that some wording reached the screen, without caring
+        where. Positions are dropped, so two draws on different rows run
+        together -- assert on a fragment that fits inside one draw call.
+
+        Returns:
+            The concatenated text of every "text" and "text_bg" call
+        """
+        return "".join(
+            call.text for call in self.draw_calls if call.call_type in ("text", "text_bg")
+        )
+
     def __getattr__(self, name: str):
         """Provide default attributes for backwards compatibility.
 
