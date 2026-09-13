@@ -77,8 +77,16 @@ neural_dive/
 ├── entity_renderers.py      # Strategy per EntityType
 ├── models.py                # Question, Answer, Conversation dataclasses
 ├── entities.py              # Entity / Player / Stairs / InfoTerminal
+├── config.py                # Tuning constants — but see DifficultySettings below
+├── difficulty.py            # DifficultySettings: runtime source of truth for
+│                            # per-answer coherence gains/penalties
+├── conversation.py          # create_randomized_conversation
+├── question_types.py        # QuestionType enum
 └── tests/                   # pytest test suite
 ```
+
+Not exhaustive — `answer_matching.py`, `enums.py`, `items.py`,
+`map_generation.py` and `placement.py` are also top-level modules.
 
 ## Architecture notes
 
@@ -112,7 +120,7 @@ content set remains. Edit `data/content/algorithms/levels.py`, not
 `data/levels.py`.
 
 `data/levels.py` re-exports from that canonical file, but do not read "shim" as
-"dead". Three live call sites import through it — `data_loader.py:187`
+"dead". Three live call sites import through it — `data_loader.py:192`
 (`PARSED_LEVELS`), `managers/npc_manager.py:20` (`BOSS_NPCS`), and
 `managers/floor_entity_generator.py:19` (`ZONE_TERMINALS`) — and each hardcodes
 the algorithms set, so terminal content and the level fallback ignore
