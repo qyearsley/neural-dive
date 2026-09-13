@@ -12,7 +12,7 @@
 
 ## Features
 
-- **Computer Science learning content** - 153 questions across algorithms, systems, web, ML, and more
+- **Computer Science learning content** - 180 questions across algorithms, systems, web, ML, and more
 - **Roguelike gameplay** with wandering NPCs and procedural maps
 - **Cyberpunk theme** with Unicode graphics
 - **Save/Load system** - save your progress and continue later
@@ -247,7 +247,7 @@ ndive                         # Launcher
 ## Topics Covered
 
 ### Computer Science (algorithms content)
-153 questions covering AI/ML, DevOps, algorithms, systems programming, web
+180 questions covering AI/ML, DevOps, algorithms, systems programming, web
 development, databases, design patterns, security, software engineering, system
 design, data structures, testing, networking, distributed systems, programming
 fundamentals, version control, architecture, and computability theory.

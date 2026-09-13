@@ -73,12 +73,15 @@
     "greeting": "Testing is not just verification—it's design. I am the Test Oracle, guardian of quality. Prove your understanding of test-driven practices.",
     "questions": [
       "contract_testing",
+      "flaky_test",
       "integration_testing",
       "mocking_vs_stubs",
+      "regression_test",
       "snapshot_testing",
       "tdd_cycle",
       "test_coverage",
-      "test_pyramid"
+      "test_pyramid",
+      "unit_test_isolation"
     ]
   },
   "WEB_ARCHITECT": {
@@ -110,9 +113,13 @@
       "cdn",
       "dns_resolution",
       "http_methods",
+      "http_status_classes",
       "load_balancer_algorithms",
       "nat",
-      "tcp_handshake"
+      "packet_loss_tcp",
+      "tcp_handshake",
+      "tcp_vs_udp",
+      "websockets_vs_polling"
     ]
   },
   "CRYPTO_GUARDIAN": {
@@ -126,9 +133,11 @@
       "encryption_types",
       "oauth2",
       "password_hashing",
+      "password_salt",
       "sql_injection",
       "symmetric_vs_asymmetric",
       "tls_handshake",
+      "xss_defence",
       "zero_trust"
     ]
   },
@@ -160,6 +169,7 @@
     "greeting": "I am the RESILIENCE ARCHITECT. Systems that scale. Systems that survive. Systems that adapt. Prove you understand distributed systems and DevOps. Four challenges.",
     "questions": [
       "blue_green_deployment",
+      "bulkhead_pattern",
       "canary_deployment",
       "chaos_engineering",
       "ci_cd_pipeline",
@@ -182,14 +192,16 @@
     "npc_type": "specialist",
     "greeting": "I span across nodes, distributed yet unified. Message queues connect my thoughts. Understand distributed systems to comprehend me.",
     "questions": [
-      "cap_theorem",
       "caching_strategy",
+      "cap_theorem",
       "consistent_hashing",
       "database_sharding",
       "eventual_consistency",
       "horizontal_vs_vertical_scaling",
       "message_queues",
-      "quorum"
+      "quorum",
+      "split_brain",
+      "two_phase_commit"
     ]
   },
   "ML_BOSS": {
@@ -256,7 +268,9 @@
       "acid",
       "database_indexes",
       "denormalization",
+      "index_write_cost",
       "materialized_views",
+      "n_plus_one_query",
       "normalization_purpose",
       "sql_joins",
       "transaction_isolation",
@@ -270,11 +284,16 @@
     "npc_type": "specialist",
     "greeting": "I am the Architecture Master. System design is my craft. Layered, hexagonal, event-driven, CQRS—patterns that shape great systems. Prove your architectural knowledge.",
     "questions": [
+      "coupling_and_cohesion",
+      "cqrs",
       "dependency_injection",
       "event_driven_architecture",
+      "hexagonal_architecture",
       "layered_architecture",
       "microservices_vs_monolith",
-      "mvc_pattern"
+      "mvc_pattern",
+      "shared_database_microservices",
+      "strangler_fig"
     ]
   },
   "GIT_WIZARD": {
@@ -287,7 +306,13 @@
       "git_basics",
       "git_bisect",
       "git_cherry_pick",
-      "git_rebase"
+      "git_detached_head",
+      "git_force_push_shared",
+      "git_merge_conflict",
+      "git_rebase",
+      "git_revert_vs_reset",
+      "git_staging_area",
+      "git_stash"
     ]
   },
   "PATTERN_SAGE": {
@@ -298,8 +323,10 @@
     "greeting": "I am the Pattern Sage. Every problem you will meet has been solved before, and given a name. Show me you know the names.",
     "questions": [
       "adapter_pattern",
+      "builder_pattern",
       "command_pattern",
       "decorator_pattern",
+      "facade_pattern",
       "factory_pattern",
       "observer_pattern",
       "singleton_pattern",

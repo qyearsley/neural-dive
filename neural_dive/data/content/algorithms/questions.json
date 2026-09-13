@@ -3884,5 +3884,622 @@
         "response": "That is Singleton, which controls instance count rather than wiring."
       }
     ]
+  },
+  "git_staging_area": {
+    "type": "multiple_choice",
+    "question_text": "What does 'git add' do to a modified file?",
+    "topic": "version_control",
+    "answers": [
+      {
+        "text": "Stages it for the next commit",
+        "correct": true,
+        "response": "Correct! Staging is a separate step from committing."
+      },
+      {
+        "text": "Records it in the commit history",
+        "correct": false,
+        "response": "That is what 'git commit' does. Staging comes first."
+      },
+      {
+        "text": "Sends it to the remote repository",
+        "correct": false,
+        "response": "That is 'git push'. Nothing has left your machine yet."
+      },
+      {
+        "text": "Restores it to its committed state",
+        "correct": false,
+        "response": "That is closer to 'git restore'."
+      }
+    ]
+  },
+  "git_revert_vs_reset": {
+    "type": "multiple_choice",
+    "question_text": "What does 'git revert' do that 'git reset' does not?",
+    "topic": "version_control",
+    "answers": [
+      {
+        "text": "Adds a new commit that undoes an old one",
+        "correct": true,
+        "response": "Correct! Revert is safe on shared history: it adds, it never rewrites."
+      },
+      {
+        "text": "Discards every change since the last push",
+        "correct": false,
+        "response": "Neither command is defined in terms of what you have pushed."
+      },
+      {
+        "text": "Moves the branch pointer without a commit",
+        "correct": false,
+        "response": "That is what 'git reset' does, which is the contrast here."
+      },
+      {
+        "text": "Rewrites the message of an earlier commit",
+        "correct": false,
+        "response": "That is 'git commit --amend'."
+      }
+    ]
+  },
+  "git_merge_conflict": {
+    "type": "multiple_choice",
+    "question_text": "When does Git report a merge conflict?",
+    "topic": "version_control",
+    "answers": [
+      {
+        "text": "Both branches changed the same lines",
+        "correct": true,
+        "response": "Correct! Git merges edits that do not overlap on its own."
+      },
+      {
+        "text": "The two branches have different commits",
+        "correct": false,
+        "response": "Differing commits are the normal case, and merge handles them."
+      },
+      {
+        "text": "A branch is behind the one it merges into",
+        "correct": false,
+        "response": "Being behind is normal. Git fast-forwards or merges."
+      },
+      {
+        "text": "A file was renamed on only one branch",
+        "correct": false,
+        "response": "Git detects renames and usually merges them cleanly."
+      }
+    ]
+  },
+  "git_detached_head": {
+    "type": "multiple_choice",
+    "question_text": "What does 'detached HEAD' state mean?",
+    "topic": "version_control",
+    "answers": [
+      {
+        "text": "HEAD points at a commit, not a branch",
+        "correct": true,
+        "response": "Correct! New commits here belong to no branch and are easy to lose."
+      },
+      {
+        "text": "The branch has no remote to track yet",
+        "correct": false,
+        "response": "That is an untracked branch, which is a different thing."
+      },
+      {
+        "text": "The working tree has uncommitted edits",
+        "correct": false,
+        "response": "That is just a dirty working tree."
+      },
+      {
+        "text": "The repository has no commits at all",
+        "correct": false,
+        "response": "That is an empty repository."
+      }
+    ]
+  },
+  "git_force_push_shared": {
+    "type": "yes_no",
+    "question_text": "Is force-pushing to a branch other people work on safe?",
+    "topic": "version_control",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct. It rewrites history your teammates have already pulled.",
+    "incorrect_response": "Actually it is not. It rewrites history your teammates already have."
+  },
+  "git_stash": {
+    "type": "short_answer",
+    "question_text": "Which Git command shelves uncommitted changes so you can switch branches?",
+    "topic": "version_control",
+    "correct_answer": "git stash|stash",
+    "match_type": "exact",
+    "correct_response": "Correct! 'git stash' sets your changes aside and cleans the working tree.",
+    "incorrect_response": "Not quite. The command shelves changes and gives you a clean tree."
+  },
+  "coupling_and_cohesion": {
+    "type": "multiple_choice",
+    "question_text": "What does 'low coupling, high cohesion' describe?",
+    "topic": "software_engineering",
+    "answers": [
+      {
+        "text": "Modules depend little and focus tightly",
+        "correct": true,
+        "response": "Correct! Each module owns one job and leans on few others."
+      },
+      {
+        "text": "Modules share state to stay in agreement",
+        "correct": false,
+        "response": "Shared mutable state is coupling, which is what you want less of."
+      },
+      {
+        "text": "Modules are merged to reduce their count",
+        "correct": false,
+        "response": "Merging usually lowers cohesion rather than raising it."
+      },
+      {
+        "text": "Modules expose all their internals freely",
+        "correct": false,
+        "response": "That couples callers to details you then cannot change."
+      }
+    ]
+  },
+  "hexagonal_architecture": {
+    "type": "multiple_choice",
+    "question_text": "In hexagonal (ports and adapters) architecture, what do adapters do?",
+    "topic": "architecture",
+    "answers": [
+      {
+        "text": "Connect the core to the outside world",
+        "correct": true,
+        "response": "Correct! The domain defines ports; adapters wire them to real technology."
+      },
+      {
+        "text": "Hold the business rules of the system",
+        "correct": false,
+        "response": "Those live in the core. Adapters stay outside it."
+      },
+      {
+        "text": "Split the domain into six subsystems",
+        "correct": false,
+        "response": "The hexagon is a drawing convention, not a count of parts."
+      },
+      {
+        "text": "Cache the results of expensive calls",
+        "correct": false,
+        "response": "An adapter might cache, but that is not what makes it an adapter."
+      }
+    ]
+  },
+  "cqrs": {
+    "type": "multiple_choice",
+    "question_text": "What does CQRS separate?",
+    "topic": "architecture",
+    "answers": [
+      {
+        "text": "Read models from write models",
+        "correct": true,
+        "response": "Correct! Commands change state; queries read it, often from another model."
+      },
+      {
+        "text": "Business logic from validation",
+        "correct": false,
+        "response": "Validation normally sits with the command side, not opposite it."
+      },
+      {
+        "text": "Services from their databases",
+        "correct": false,
+        "response": "That is a deployment concern, not the split CQRS names."
+      },
+      {
+        "text": "Synchronous from async calls",
+        "correct": false,
+        "response": "CQRS is often async, but that is not the division it makes."
+      }
+    ]
+  },
+  "strangler_fig": {
+    "type": "multiple_choice",
+    "question_text": "What is the strangler fig approach to replacing a legacy system?",
+    "topic": "architecture",
+    "answers": [
+      {
+        "text": "Route features to the new system one at a time",
+        "correct": true,
+        "response": "Correct! The new system grows around the old one until nothing is left."
+      },
+      {
+        "text": "Freeze the old system and rewrite it completely",
+        "correct": false,
+        "response": "That is the big-bang rewrite the pattern exists to avoid."
+      },
+      {
+        "text": "Run both systems and keep whichever is faster",
+        "correct": false,
+        "response": "Speed is not the criterion. The old system is retired piece by piece."
+      },
+      {
+        "text": "Wrap the old system in an API and leave it",
+        "correct": false,
+        "response": "That is a facade. Useful, but nothing gets replaced."
+      }
+    ]
+  },
+  "shared_database_microservices": {
+    "type": "yes_no",
+    "question_text": "Should two microservices normally write to the same database tables?",
+    "topic": "architecture",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct. A shared schema couples them: neither can change it alone.",
+    "incorrect_response": "Actually no. A shared schema couples them and blocks independent change."
+  },
+  "tcp_vs_udp": {
+    "type": "short_answer",
+    "question_text": "Which transport protocol gives ordered, reliable delivery: TCP or UDP?",
+    "topic": "networking",
+    "correct_answer": "TCP|Transmission Control Protocol",
+    "match_type": "exact",
+    "correct_response": "Correct! TCP retransmits what is lost and reorders what arrives out of order.",
+    "incorrect_response": "Not quite. One of the two retransmits and reorders; the other just sends."
+  },
+  "http_status_classes": {
+    "type": "multiple_choice",
+    "question_text": "What does an HTTP 5xx status code tell the client?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "The server failed to handle a valid request",
+        "correct": true,
+        "response": "Correct! 5xx is the server's fault, so the same request may work later."
+      },
+      {
+        "text": "The request was malformed and should be fixed",
+        "correct": false,
+        "response": "That is 4xx. The client would need to change something."
+      },
+      {
+        "text": "The resource has moved to a new location",
+        "correct": false,
+        "response": "That is 3xx, a redirect."
+      },
+      {
+        "text": "The client must authenticate before retrying",
+        "correct": false,
+        "response": "That is 401, which is in the 4xx class."
+      }
+    ]
+  },
+  "websockets_vs_polling": {
+    "type": "multiple_choice",
+    "question_text": "What do WebSockets give you that repeated HTTP polling does not?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "A connection the server can push over",
+        "correct": true,
+        "response": "Correct! The socket stays open, so the server sends without being asked."
+      },
+      {
+        "text": "Encryption of the data in transit",
+        "correct": false,
+        "response": "Both can run over TLS. That is independent."
+      },
+      {
+        "text": "Guaranteed delivery of every message",
+        "correct": false,
+        "response": "WebSockets run over TCP but promise nothing above it."
+      },
+      {
+        "text": "Automatic retries when a request fails",
+        "correct": false,
+        "response": "Retries are still something you write yourself."
+      }
+    ]
+  },
+  "packet_loss_tcp": {
+    "type": "multiple_choice",
+    "question_text": "What does TCP do when a segment is lost in transit?",
+    "topic": "networking",
+    "answers": [
+      {
+        "text": "Retransmits it and slows its sending rate",
+        "correct": true,
+        "response": "Correct! Loss is read as congestion, so TCP backs off as well as retries."
+      },
+      {
+        "text": "Drops the connection and reports an error",
+        "correct": false,
+        "response": "TCP recovers from ordinary loss without tearing the connection down."
+      },
+      {
+        "text": "Asks the application to resend the data",
+        "correct": false,
+        "response": "Recovery happens below the application, which never sees the loss."
+      },
+      {
+        "text": "Delivers the remaining bytes out of order",
+        "correct": false,
+        "response": "TCP always hands bytes to the application in order."
+      }
+    ]
+  },
+  "flaky_test": {
+    "type": "multiple_choice",
+    "question_text": "What is a flaky test?",
+    "topic": "testing",
+    "answers": [
+      {
+        "text": "One that passes or fails without code changes",
+        "correct": true,
+        "response": "Correct! Usually timing, ordering, or shared state - and it kills trust."
+      },
+      {
+        "text": "One that takes far longer to run than the others",
+        "correct": false,
+        "response": "A slow test is a problem, but a predictable one."
+      },
+      {
+        "text": "One that covers more than a single unit",
+        "correct": false,
+        "response": "That is an integration test, which can still be reliable."
+      },
+      {
+        "text": "One that was written after the code shipped",
+        "correct": false,
+        "response": "When it was written says nothing about whether it is stable."
+      }
+    ]
+  },
+  "regression_test": {
+    "type": "multiple_choice",
+    "question_text": "Why add a test when you fix a bug?",
+    "topic": "testing",
+    "answers": [
+      {
+        "text": "It fails if the bug ever comes back",
+        "correct": true,
+        "response": "Correct! The test pins the behaviour so the fix cannot quietly come undone."
+      },
+      {
+        "text": "It proves the rest of the code is correct",
+        "correct": false,
+        "response": "One test proves one thing. It says nothing about the rest."
+      },
+      {
+        "text": "It raises the project's coverage number",
+        "correct": false,
+        "response": "Coverage goes up, but that is a side effect, not the point."
+      },
+      {
+        "text": "It documents the fix for the release notes",
+        "correct": false,
+        "response": "Release notes are prose. The test is a guard that runs."
+      }
+    ]
+  },
+  "unit_test_isolation": {
+    "type": "yes_no",
+    "question_text": "Should a unit test normally call a real network service?",
+    "topic": "testing",
+    "correct_answer": "no|false|n",
+    "correct_response": "Correct. That makes it slow and flaky. Stub the boundary instead.",
+    "incorrect_response": "Actually no. A real call makes the test slow and flaky."
+  },
+  "split_brain": {
+    "type": "multiple_choice",
+    "question_text": "What is 'split brain' in a replicated cluster?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "Two partitions both act as the leader",
+        "correct": true,
+        "response": "Correct! Each side accepts writes, and the two histories then conflict."
+      },
+      {
+        "text": "A replica falls behind the write stream",
+        "correct": false,
+        "response": "That is replication lag, which is normal and recoverable."
+      },
+      {
+        "text": "The cluster loses more than half its nodes",
+        "correct": false,
+        "response": "Losing quorum usually stops writes rather than splitting them."
+      },
+      {
+        "text": "A node holds data no other node has seen",
+        "correct": false,
+        "response": "That can happen, but it is a symptom rather than the condition."
+      }
+    ]
+  },
+  "two_phase_commit": {
+    "type": "multiple_choice",
+    "question_text": "What is the main weakness of two-phase commit?",
+    "topic": "distributed_systems",
+    "answers": [
+      {
+        "text": "A coordinator crash can block participants",
+        "correct": true,
+        "response": "Correct! Participants hold locks until the coordinator returns and decides."
+      },
+      {
+        "text": "It cannot span more than two databases at once",
+        "correct": false,
+        "response": "It scales to many participants. The coordinator is the problem."
+      },
+      {
+        "text": "It gives up consistency to stay available",
+        "correct": false,
+        "response": "The opposite: 2PC favours consistency over availability."
+      },
+      {
+        "text": "It requires every node to run the same engine",
+        "correct": false,
+        "response": "Mixed participants are supported through XA."
+      }
+    ]
+  },
+  "password_salt": {
+    "type": "multiple_choice",
+    "question_text": "What does a unique salt on each password hash prevent?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Reuse of precomputed hash tables",
+        "correct": true,
+        "response": "Correct! A per-user salt forces an attacker to attack each hash separately."
+      },
+      {
+        "text": "Brute force against a single password",
+        "correct": false,
+        "response": "A salt does not slow one guess down. A slow hash function does."
+      },
+      {
+        "text": "Interception of the password in transit",
+        "correct": false,
+        "response": "That is TLS's job, not the hash's."
+      },
+      {
+        "text": "Users choosing the same password twice",
+        "correct": false,
+        "response": "They still can. Only the stored hashes end up different."
+      }
+    ]
+  },
+  "xss_defence": {
+    "type": "multiple_choice",
+    "question_text": "Your page echoes user input back into HTML. What stops it running as code?",
+    "topic": "security",
+    "answers": [
+      {
+        "text": "Escaping the output for its context",
+        "correct": true,
+        "response": "Correct! Encode on the way out, and pick the encoding for where it lands."
+      },
+      {
+        "text": "Validating the input length on submit",
+        "correct": false,
+        "response": "A length limit does not make the content safe."
+      },
+      {
+        "text": "Storing the input in a database first",
+        "correct": false,
+        "response": "Stored input is just as dangerous when it is rendered."
+      },
+      {
+        "text": "Serving the page over HTTPS instead",
+        "correct": false,
+        "response": "HTTPS protects the channel, not the content."
+      }
+    ]
+  },
+  "n_plus_one_query": {
+    "type": "multiple_choice",
+    "question_text": "What is an N+1 query problem?",
+    "topic": "databases",
+    "answers": [
+      {
+        "text": "One query per row of an earlier result",
+        "correct": true,
+        "response": "Correct! Fetch a list, then query per item. Fix it by joining or batching."
+      },
+      {
+        "text": "A query that scans one row too many",
+        "correct": false,
+        "response": "The name counts queries, not rows scanned."
+      },
+      {
+        "text": "A join that duplicates rows in its output",
+        "correct": false,
+        "response": "That is fan-out from a join, a different problem."
+      },
+      {
+        "text": "A transaction that retries once on failure",
+        "correct": false,
+        "response": "Retries are unrelated to how many queries you send."
+      }
+    ]
+  },
+  "index_write_cost": {
+    "type": "yes_no",
+    "question_text": "Can adding an index to a table make writes slower?",
+    "topic": "databases",
+    "correct_answer": "yes|true|y",
+    "correct_response": "Correct! Every insert and update has to maintain the index too.",
+    "incorrect_response": "Actually yes. The index is another structure each write must keep current."
+  },
+  "builder_pattern": {
+    "type": "multiple_choice",
+    "question_text": "What problem does the Builder pattern address?",
+    "topic": "design_patterns",
+    "answers": [
+      {
+        "text": "Constructors with too many parameters",
+        "correct": true,
+        "response": "Correct! Build the object step by step instead of in one huge call."
+      },
+      {
+        "text": "Interfaces that do not quite match a client",
+        "correct": false,
+        "response": "That is Adapter."
+      },
+      {
+        "text": "Classes that need a single instance",
+        "correct": false,
+        "response": "That is Singleton, which controls how many instances exist."
+      },
+      {
+        "text": "Objects that must be copied cheaply",
+        "correct": false,
+        "response": "That is Prototype, which clones an existing instance."
+      }
+    ]
+  },
+  "facade_pattern": {
+    "type": "multiple_choice",
+    "question_text": "What does the Facade pattern provide?",
+    "topic": "design_patterns",
+    "answers": [
+      {
+        "text": "A simple entry point to a subsystem",
+        "correct": true,
+        "response": "Correct! It hides how many moving parts sit behind it."
+      },
+      {
+        "text": "A shared interface for a family of objects",
+        "correct": false,
+        "response": "That is closer to Abstract Factory."
+      },
+      {
+        "text": "A stand-in that defers the real work",
+        "correct": false,
+        "response": "That is Proxy, which controls access to one object."
+      },
+      {
+        "text": "A way to add behaviour at runtime",
+        "correct": false,
+        "response": "That is Decorator, which wraps one object in another."
+      }
+    ]
+  },
+  "bulkhead_pattern": {
+    "type": "multiple_choice",
+    "question_text": "What does the bulkhead pattern isolate?",
+    "topic": "system_design",
+    "answers": [
+      {
+        "text": "Resources, so one failure cannot drain them all",
+        "correct": true,
+        "response": "Correct! Separate pools stop a slow dependency eating every thread."
+      },
+      {
+        "text": "Deployments, so a release reaches a subset of users",
+        "correct": false,
+        "response": "That is canary deployment."
+      },
+      {
+        "text": "Secrets, so a leak exposes only one environment",
+        "correct": false,
+        "response": "Sound practice, but not what the bulkhead names."
+      },
+      {
+        "text": "Traffic, so retries do not overwhelm a service",
+        "correct": false,
+        "response": "That is closer to rate limiting or a circuit breaker."
+      }
+    ]
   }
 }

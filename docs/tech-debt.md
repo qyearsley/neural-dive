@@ -15,7 +15,7 @@ Nothing open. The renderer/backend split that sat here is resolved below.
 
 - Pruning of stale NPCs/questions completed 2026-05-21. The counts that note
   used to quote (15 NPCs, 140 questions) were a snapshot of that day, not a
-  target; the content set is 16 NPCs and 153 questions now. `make validate`
+  target; the content set is 16 NPCs and 180 questions now. `make validate`
   prints the live figures, so do not restate them here.
 - Stale `data/npcs.json` and `data/questions.json` deleted; canonical lives at
   `data/content/algorithms/`.

@@ -22,8 +22,8 @@ Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Ne
 
 ### Current Question Type Mix
 
-The algorithms set is currently 133 multiple choice, 12 yes/no, and 8 short
-answer -- 153 in total. Multiple choice dominates; adding short-answer and
+The algorithms set is currently 154 multiple choice, 16 yes/no, and 10 short
+answer -- 180 in total. Multiple choice dominates; adding short-answer and
 yes/no questions is the easiest way to add variety.
 
 **Minimal Multiple Choice Example:**
@@ -71,7 +71,7 @@ yes/no questions is the easiest way to add variety.
 
 ## Question Types
 
-### 1. Multiple Choice (133 of 153 questions)
+### 1. Multiple Choice (154 of 180 questions)
 
 **Best for:**
 - Teaching through wrong answers
@@ -90,7 +90,7 @@ yes/no questions is the easiest way to add variety.
 - Multiple concepts could be confused
 - Beginner to medium difficulty
 
-### 2. Short Answer (8 of 153 questions)
+### 2. Short Answer (10 of 180 questions)
 
 **Best for:**
 - Big-O complexity (most common in interviews!)
@@ -118,7 +118,7 @@ Accept ALL correct variations that show understanding:
 - Interview-style questions
 - Medium to hard difficulty
 
-### 3. Yes/No (12 of 153 questions)
+### 3. Yes/No (16 of 180 questions)
 
 **Best for:**
 - True/false facts
@@ -197,20 +197,20 @@ question counts:
 - `ai_ml` (21) - ML and AI concepts, models
 - `algorithms` (15) - Algorithm analysis, complexity
 - `data_structures` (13) - Arrays, trees, graphs, etc.
-- `devops` (11) - CI/CD, deployment, monitoring
 - `systems` (11) - Operating systems, memory, processes
+- `devops` (11) - CI/CD, deployment, monitoring
+- `networking` (10) - Protocols, HTTP, TCP/IP
+- `databases` (10) - SQL, NoSQL, transactions
+- `security` (10) - Cryptography, auth, vulnerabilities
+- `design_patterns` (10) - Software design patterns
+- `testing` (10) - Test strategies, TDD
+- `version_control` (10) - Git, branching, history
 - `web_development` (9) - HTTP, REST, APIs
-- `databases` (8) - SQL, NoSQL, transactions
-- `design_patterns` (8) - Software design patterns
-- `security` (8) - Cryptography, auth, vulnerabilities
-- `software_engineering` (8) - SOLID, refactoring
-- `system_design` (7) - Scaling, caching, trade-offs
-- `testing` (7) - Test strategies, TDD
-- `distributed_systems` (6) - CAP, consensus, replication
-- `networking` (6) - Protocols, HTTP, TCP/IP
+- `software_engineering` (9) - SOLID, refactoring
+- `distributed_systems` (8) - CAP, consensus, replication
+- `system_design` (8) - Scaling, caching, trade-offs
+- `architecture` (7) - System and software architecture
 - `programming_fundamentals` (5) - Basics, paradigms
-- `version_control` (4) - Git, branching, history
-- `architecture` (3) - System and software architecture
 - `theory` (3) - Computability, complexity theory
 
 ### Answers
