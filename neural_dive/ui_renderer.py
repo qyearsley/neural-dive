@@ -31,7 +31,7 @@ STATUS_START_X = 2
 
 # One piece of the status line: the text, the colour name to draw it in (None
 # for the terminal's default attribute), and whether it is bold.
-Segment = tuple[str, "str | None", bool]
+Segment = tuple[str, str | None, bool]
 
 # Order matters: segments are dropped from the end when the window is narrow,
 # so the keys a stuck player needs most come first.

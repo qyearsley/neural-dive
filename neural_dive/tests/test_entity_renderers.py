@@ -24,6 +24,7 @@ from neural_dive.entity_renderers import (
     TerminalRenderer,
     get_entity_renderer,
     npc_style_name,
+    split_bold,
 )
 from neural_dive.themes import get_theme
 
@@ -141,6 +142,32 @@ class TestEntityRendererOutput(unittest.TestCase):
         call = backend.get_draw_at(7, 11)
         assert call is not None
         self.assertEqual(call.text, "@")
+
+
+class TestSplitBold(unittest.TestCase):
+    """`draw_text` takes bold as a flag, but style names are written whole."""
+
+    def test_strips_a_leading_bold(self):
+        self.assertEqual(
+            split_bold("bold_reverse_bright_magenta"), ("reverse_bright_magenta", True)
+        )
+
+    def test_leaves_an_unbolded_name_alone(self):
+        self.assertEqual(split_bold("bright_magenta"), ("bright_magenta", False))
+
+    def test_only_the_leading_prefix_is_removed(self):
+        self.assertEqual(split_bold("bold_bold_red"), ("bold_red", True))
+
+    def test_every_npc_style_splits_back_to_a_bold_draw(self):
+        """Recomposing the two halves must give the original attribute name."""
+        colors = get_theme()[1]
+        for npc_type in ("specialist", "helper", "enemy", "quest", "boss"):
+            for required in (True, False):
+                style = npc_style_name(npc_type, colors, required)
+                color, bold = split_bold(style)
+                with self.subTest(npc_type=npc_type, required=required):
+                    self.assertTrue(bold)
+                    self.assertEqual(f"bold_{color}", style)
 
 
 class TestNPCHighlighting(unittest.TestCase):
