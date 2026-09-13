@@ -48,8 +48,8 @@ def extract_big_o(answer: str) -> str | None:
         'n'
         >>> extract_big_o("O(log n)")
         'logn'
-        >>> extract_big_o("linear")
-        None
+        >>> extract_big_o("linear") is None
+        True
     """
     # Match O(...) or o(...)
     match = re.search(r"o\s*\(\s*([^)]+)\s*\)", answer.lower())
@@ -59,7 +59,8 @@ def extract_big_o(answer: str) -> str | None:
     return None
 
 
-# Common synonyms for algorithm complexities.
+# Common synonyms for algorithm complexities. The key is the canonical word; the
+# list holds the other spellings of the same complexity.
 COMPLEXITY_SYNONYMS = {
     "constant": ["1", "o(1)", "constanttime"],
     "linear": ["n", "o(n)", "lineartime"],
@@ -69,6 +70,15 @@ COMPLEXITY_SYNONYMS = {
     "cubic": ["n3", "n^3", "o(n3)", "o(n^3)", "cubictime"],
     "exponential": ["2n", "2^n", "o(2n)", "o(2^n)", "exponentialtime"],
 }
+
+# The same data as one set per complexity, with the key folded in.
+#
+# `matches_complexity` asks whether both answers are in the same group, so the
+# key has to be a member of its own group. It was not, and so the canonical word
+# never matched its own notation: `matches_complexity("linear", "O(n)")` was
+# False. Deriving the groups instead of repeating each key in its own list means
+# a new entry cannot reintroduce the bug.
+_COMPLEXITY_GROUPS = [frozenset({key, *synonyms}) for key, synonyms in COMPLEXITY_SYNONYMS.items()]
 
 
 def matches_complexity(user_answer: str, correct_answer: str) -> bool:
@@ -92,6 +102,10 @@ def matches_complexity(user_answer: str, correct_answer: str) -> bool:
         True
         >>> matches_complexity("O(log n)", "O(logn)|logarithmic")
         True
+        >>> matches_complexity("linear", "O(n)")
+        True
+        >>> matches_complexity("O(1)", "constant")
+        True
     """
     user_normalized = normalize_answer(user_answer)
     user_big_o = extract_big_o(user_answer)
@@ -112,14 +126,9 @@ def matches_complexity(user_answer: str, correct_answer: str) -> bool:
             return True
 
         # Check complexity synonyms
-        for _, synonyms in COMPLEXITY_SYNONYMS.items():
-            if acceptable_normalized in synonyms:
-                # Check if user answer is also a synonym
-                if user_normalized in synonyms:
-                    return True
-                # Check if user's Big-O matches
-                if user_big_o in synonyms:
-                    return True
+        for group in _COMPLEXITY_GROUPS:
+            if acceptable_normalized in group and (user_normalized in group or user_big_o in group):
+                return True
 
     return False
 
