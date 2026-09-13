@@ -87,7 +87,7 @@ Space, `q`, or the key that opened it.
 ### Terminal size
 
 The map does not scroll, so the game needs a window of at least **50 columns by
-34 rows**. It refuses to start in anything smaller, and pauses behind a resize
+29 rows**. It refuses to start in anything smaller, and pauses behind a resize
 prompt if you shrink the window mid-run.
 
 ---

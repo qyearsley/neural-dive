@@ -189,26 +189,26 @@ class TestRequiredTerminalSize(unittest.TestCase):
         self.assertEqual(width, 120)
 
     def test_the_shipped_content_needs_more_than_a_stock_80x24_window(self):
-        """Floor 3 is 30 rows on its own, so 24 rows was never enough."""
+        """Every floor is 25 rows, plus 4 for the panel, so 24 is not enough."""
         from neural_dive.data.levels import PARSED_LEVELS
 
         width, height = required_terminal_size(self._game_with_levels(PARSED_LEVELS))
 
-        self.assertEqual((width, height), (50, 34))
+        self.assertEqual((width, height), (50, 29))
         self.assertGreater(height, 24)
 
     def test_too_small_is_reported_on_either_axis(self):
-        required = (50, 34)
+        required = (50, 29)
         self.assertTrue(terminal_is_too_small(TestBackend(width=49, height=40), required))
-        self.assertTrue(terminal_is_too_small(TestBackend(width=80, height=33), required))
-        self.assertFalse(terminal_is_too_small(TestBackend(width=50, height=34), required))
+        self.assertTrue(terminal_is_too_small(TestBackend(width=80, height=28), required))
+        self.assertFalse(terminal_is_too_small(TestBackend(width=50, height=29), required))
         self.assertFalse(terminal_is_too_small(TestBackend(width=200, height=60), required))
 
 
 class TestTooSmallScreen(unittest.TestCase):
     """The message a player gets instead of a corrupted display."""
 
-    def _render(self, width: int, height: int, required=(50, 34)) -> TestBackend:
+    def _render(self, width: int, height: int, required=(50, 29)) -> TestBackend:
         backend = TestBackend(width=width, height=height)
         draw_too_small_screen(backend, required)
         return backend
@@ -219,7 +219,7 @@ class TestTooSmallScreen(unittest.TestCase):
     def test_states_both_the_requirement_and_the_current_size(self):
         text = self._text(self._render(80, 24))
 
-        self.assertIn("50 x 34", text)
+        self.assertIn("50 x 29", text)
         self.assertIn("80 x 24", text)
 
     def test_says_how_to_leave(self):
@@ -384,7 +384,7 @@ class TestResizeWatcher(unittest.TestCase):
     def test_shrinking_below_the_minimum_and_growing_back_both_register(self):
         backend = self._Resizable(80, 40)
         watcher = ResizeWatcher(backend)
-        required = (50, 34)
+        required = (50, 29)
 
         backend.resize(40, 20)
         self.assertTrue(watcher.poll())

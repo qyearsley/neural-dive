@@ -78,8 +78,8 @@ def required_terminal_size(game: Game) -> tuple[int, int]:
     ``data/content/algorithms/levels.py`` and the game does not scroll, so the
     window has to be as wide as the widest floor and as tall as the tallest
     floor plus the ``UI_BOTTOM_OFFSET`` rows the status panel owns. For the
-    shipped content that is 50x34 -- floor 3 is 30 rows on its own, which is
-    why a stock 80x24 window could never show the last layer.
+    shipped content that is 50x29: every floor is 25 rows, plus 4 for the
+    panel. A stock 80x24 window is still one row short.
 
     Floors that are generated rather than authored fall back to the configured
     default map size.

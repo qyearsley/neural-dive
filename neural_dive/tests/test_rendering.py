@@ -833,6 +833,18 @@ def _render_end_screen(draw, height: int, with_weak_areas: bool = False) -> str:
     return backend.rendered_text()
 
 
+def _minimum_window() -> tuple[int, int]:
+    """The smallest window the shipped content will start in."""
+    from unittest.mock import Mock
+
+    from neural_dive.data.levels import PARSED_LEVELS
+    from neural_dive.rendering import required_terminal_size
+
+    game = Mock()
+    game.level_data = PARSED_LEVELS
+    return required_terminal_size(game)
+
+
 class TestHelpOverlay(unittest.TestCase):
     """There was no in-game legend at all before this.
 
@@ -890,9 +902,9 @@ class TestHelpOverlay(unittest.TestCase):
         self.assertIn("close", self._render())
 
     def test_renders_in_a_short_window_without_raising(self):
-        # 34 rows is the minimum the game will start at; the overlay must not
-        # need more than the window it lives in.
-        self.assertTrue(self._render(width=50, height=34))
+        # The overlay must not need more than the smallest window the game
+        # will start in.
+        self.assertTrue(self._render(*_minimum_window()))
 
     def test_renders_in_a_very_short_window_without_raising(self):
         self.assertIsInstance(self._render(width=30, height=10), str)
@@ -909,7 +921,12 @@ class TestHelpOverlay(unittest.TestCase):
             self.assertLessEqual(len(line), limit, msg=line)
 
     def test_every_line_fits_the_minimum_supported_window(self):
-        """34 rows is the floor the game starts at, so help must fit in 34."""
+        """Help has to fit the smallest window the game will start in.
+
+        Derived from the shipped level layouts rather than hardcoded: the
+        minimum used to be 34 rows and is now 29, and a literal here would
+        have gone on passing against the old number.
+        """
         from neural_dive.config import (
             HELP_OVERLAY_MAX_HEIGHT,
             OVERLAY_FOOTER_MARGIN,
@@ -919,7 +936,8 @@ class TestHelpOverlay(unittest.TestCase):
         from neural_dive.themes import get_theme
 
         chars, _colors = get_theme()
-        overlay_height = min(HELP_OVERLAY_MAX_HEIGHT, 34 - OVERLAY_SCREEN_MARGIN)
+        _width, min_height = _minimum_window()
+        overlay_height = min(HELP_OVERLAY_MAX_HEIGHT, min_height - OVERLAY_SCREEN_MARGIN)
         # Content runs from row 2 of the overlay to the footer margin.
         rows = overlay_height - 2 - OVERLAY_FOOTER_MARGIN
 
