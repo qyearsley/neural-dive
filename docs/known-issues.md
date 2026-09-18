@@ -1,7 +1,7 @@
 # Known Issues
 
 Runtime bugs in Neural Dive. Architectural debt lives in
-[`tech-debt.md`](tech-debt.md).
+[`improvements.md`](improvements.md).
 
 Last reviewed: 2026-09-10.
 

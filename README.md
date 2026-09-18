@@ -240,6 +240,7 @@ ndive                         # Launcher
 - **[Content Guide](docs/content-guide.md)** - How to create new content sets
 - **[Development Guide](CLAUDE.md)** - For AI assistants and contributors
 - **[Known Issues](docs/known-issues.md)** - Bug tracker
+- **[Improvements](docs/improvements.md)** - Maintenance backlog: debt, test gaps, and what was turned down
 - **[Scripts README](scripts/README.md)** - Helper utilities
 
 ---

@@ -291,7 +291,7 @@ Conventions:
 
 ## Pointers
 
-- Open architectural debt: `docs/tech-debt.md`
+- Open architectural debt: `docs/improvements.md`
 - Runtime bugs: `docs/known-issues.md`
 - Question authoring: `docs/question-guide.md`
 - Content set authoring: `docs/content-guide.md`

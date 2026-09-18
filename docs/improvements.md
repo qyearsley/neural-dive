@@ -1,15 +1,36 @@
-# Tech Debt
+# Improvements
 
-Architectural debt and maintainability issues identified for future cleanup.
-Distinct from `known-issues.md` (runtime bugs).
+> **Status: audited 2026-09-13 against `main` @ `6481c46`, which is still HEAD.**
+> Renamed from `tech-debt.md` on 2026-09-18, when every personal repo moved to
+> the same backlog convention. Content is unchanged apart from this header and
+> the section names.
 
-Last audited: 2026-09-13.
+This file is the maintenance backlog: architectural debt, test gaps and doc
+drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 
----
+## At a glance
 
-## Highest Impact
+1. The player profile assumes one game process at a time — S · open, low priority
 
-Nothing open. The renderer/backend split that sat here is resolved below.
+## Working on these
+
+- Tests: `make test` · Lint and types: `make check` · Content: `make validate`
+- Everything at once: `make ci`
+- Public repo. Never commit a work hostname, address, tool name or ticket ID.
+
+## 1. The player profile assumes one game process at a time
+
+**S · open, low priority**
+
+`neural_dive/player_profile.py` reads `~/.neural_dive/profile.json` at startup
+and rewrites the whole file after every answer. The write itself is atomic (temp
+file plus `os.replace`), so the file is never half-written, but two concurrent
+runs would still end with whichever finished last — the other run's answers are
+lost.
+
+Fine for a single-player terminal game; worth knowing before anything else
+starts writing that file. The per-answer write is also deliberate: a run killed
+with Ctrl-C must not lose its history, and the file is a couple of KB.
 
 ## Notes
 
@@ -26,19 +47,7 @@ Nothing open. The renderer/backend split that sat here is resolved below.
 - One-time migration scripts (`generate_questions.py`, `redistribute_questions.py`)
   removed.
 
-## Open, low priority
-
-- **The player profile assumes one game process at a time.**
-  `neural_dive/player_profile.py` reads `~/.neural_dive/profile.json` at
-  startup and rewrites the whole file after every answer. The write itself is
-  atomic (temp file plus `os.replace`), so the file is never half-written, but
-  two concurrent runs would still end with whichever finished last — the other
-  run's answers are lost. Fine for a single-player terminal game; worth knowing
-  before anything else starts writing that file. The per-answer write is also
-  deliberate: a run killed with Ctrl-C must not lose its history, and the file
-  is a couple of KB.
-
-## Resolved
+## Settled
 
 - **Every renderer is on the backend** (2026-09-13). `overlay_renderer.py` (22
   `print(`), `ui_renderer.py` (5) and `entity_renderers.py` (5) wrote straight to
@@ -228,3 +237,27 @@ Nothing open. The renderer/backend split that sat here is resolved below.
   rewards, victory detection, NPC opinions) and
   `tests/test_question_renderers.py` (13 tests covering all three
   `QuestionRenderer` strategies and the registry).
+
+## Not looked at
+
+Content quality beyond what `make validate` checks. The game has not been played
+end to end since `6481c46`; the renderer conversion was verified by rendering
+four frames through a real `BlessedBackend` into a pty and diffing cells, which
+is not the same as playing it.
+
+One pre-existing commit, `ef78d50` ("first commit", 2025-11-11), carries the work
+email address. Rewriting it means rewriting every commit after it and
+force-pushing a public repo, and would not remove anything — GitHub keeps
+orphaned commits reachable by SHA. Left alone deliberately.
+
+---
+
+**Conventions**
+
+- Size: `S` under an hour · `M` half a day · `L` more, or needs a design
+  decision.
+- State: `open` · `decision owed` · `blocked on <thing>`.
+- `## At a glance` is the only place an item is restated. Renumber it in the same
+  edit that renumbers a section.
+- Every claim carries its evidence and a date. Say when something was not
+  verified.
