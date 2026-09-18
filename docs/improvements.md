@@ -49,194 +49,75 @@ with Ctrl-C must not lose its history, and the file is a couple of KB.
 
 ## Settled
 
-- **Every renderer is on the backend** (2026-09-13). `overlay_renderer.py` (22
-  `print(`), `ui_renderer.py` (5) and `entity_renderers.py` (5) wrote straight to
-  stdout, and the two `print(` calls left in `map_renderer.py`'s partial-redraw
-  path drew the same two tiles `draw_map` already drew through the backend. All
-  of it now goes through `backend.draw_text` / `draw_with_bg`; `grep -c "print("`
-  over the six rendering modules is zero.
+One line each: the verdict and the fact that stops it being rediscovered. The
+reasoning behind each is in the commit that made it.
 
-  This is what the twelve `@unittest.skip`s in `test_rendering_backend.py` were
-  waiting for. All twelve are gone and the suite has no skips left. Two of them
-  turned out to be asserting the wrong thing, which being skipped had hidden:
-  one looked for "Floor" in the status panel, which has always said "Layer", and
-  one expected map tiles from a partial frame, which by design only repaints
-  what moved.
-
-  Three things made the conversion fit the existing `draw_text(x, y, text,
-  color, bold)` signature rather than needing a new one:
-
-  - `color` is a blessed style attribute name, not just a colour. Passing
-    `"reverse_bright_magenta"` with `bold=True` composes
-    `bold_reverse_bright_magenta`, which is how NPC highlighting survived.
-    `entity_renderers.split_bold` pulls `npc_style_name`'s whole name apart.
-  - `BlessedBackend.draw_text` now writes `term.normal` before unstyled text.
-    That is what `ui_renderer._plain_style` used to do, and the status panel
-    relies on it.
-  - The colour-*function* helpers are deleted: `render_helpers.get_color_func`,
-    `draw_wrapped_lines` and `draw_text_block`, plus
-    `entity_renderers._resolve_style`. They existed only to build a string for
-    `print`, and keeping them would have left a second, unrecordable way to draw.
-
-  Verified beyond the suite: the map frame, the help overlay, the inventory
-  overlay and the victory screen were rendered through a real `BlessedBackend`
-  into a pty on this commit and on `02c6ca4`, and every cell matches in both
-  glyph and SGR attributes.
-
-- **CI exists** (2026-09-05). `.github/workflows/ci.yml` runs ruff, mypy, pytest
-  and `validate_questions.py` on push and pull request, over a Python matrix of
-  3.10 and 3.14 -- the two ends of the range `requires-python` and the
-  classifiers claim, neither of which anything had ever run before. The
-  lockfile-index check is a second job. The pre-commit hooks stay: they are the
-  faster feedback, and what they cannot do is check a machine that is not
-  yours. The five "there is no CI" notes are gone -- for the record, the entry
-  this replaces said there were two.
-
-- **`terminals.json` was authored and unwired** (deleted 2026-09-05). Each
-  content set shipped one with 10 reference entries that no code read; terminal
-  text comes from `ZONE_TERMINALS` in `levels.py`. Deleted rather than wired up,
-  because the carrying cost had overtaken the file: it was documented as unused
-  in `README.md`, twice in `docs/content-guide.md`, and here, and
-  `data_loader.py`'s module docstring claimed it was loaded. Four explanations
-  for 147 lines nothing used. `ZONE_TERMINALS` remains the one place terminal
-  text lives, which is now simply true rather than true-with-a-caveat.
-- **`ItemPickedUp` is now published** (2026-09-05). It was the one event in
-  `events.py` with no publisher, because the pickup happens in
-  `movement_controller`, which has no event bus. Rather than give it one,
-  `MoveResult` grew a `picked_up` field and `Game.move_player` publishes from
-  there -- the controller reports, the orchestrator announces.
-
-- **`CLAUDE.md` contradicted the `data/levels.py` note above** (fixed
-  2026-08-30). Its Architecture notes called the file "a thin re-export shim for
-  legacy imports", which invited treating it as dead code. The imports are live:
-  `data_loader.py:187`, `managers/npc_manager.py:20`, and
-  `managers/floor_entity_generator.py:19` all reach level data through it, and
-  each hardcodes the algorithms set. `CLAUDE.md` now names the three call sites
-  and says changing what the module re-exports changes runtime behaviour. The
-  underlying design issue — the hardcoded content set — is unchanged and still
-  recorded in Notes above.
-
-- **`Game` was a forwarding facade** — 21 properties and 16 setters forwarding to
-  manager state, so every mutation flowed through `Game` and a reader had to trace
-  the property layer to find where state actually lived. All of them are gone;
-  call sites now reach the owning manager directly. 235 call sites were migrated
-  across 16 production modules and the test suite, driven by mypy: with the
-  properties deleted, every typed access became an `attr-defined` error naming the
-  attribute, and the remaining Mock-based test fixtures surfaced as test failures.
-
-  Two things a regex sweep would have missed. `Game`'s own methods assigned
-  `self.active_conversation` / `active_terminal` / `active_snippet`, which after
-  the removal would have silently created shadowing instance attributes on `Game`
-  — writes landing there instead of on `ConversationEngine`, leaving two copies of
-  the conversation state to disagree. And five dynamic accesses
-  (`getattr(game, "text_input_buffer", "")` in the question renderers, three
-  `hasattr(game, ...)` guards in `__main__` and `input_handler`) would have kept
-  working while quietly returning the default: the typed answer would never have
-  displayed and the response-dismissal branch would never have run. The guards
-  were vestigial anyway — those attributes always exist on the engine — so they
-  are now direct reads.
-
-- **`npc_manager.py` mixed concerns** — 558 lines covering generation, placement,
-  movement AI, conversations, and opinion tracking. Split into
-  `npc_spawning.NPCSpawner` (places NPCs per floor, owns `all_npcs`),
-  `npc_movement.NPCMovement` (wandering AI, owns `old_positions`), and
-  `npc_relationships.NPCRelationships` (opinions). `NPCManager` is now a 268-line
-  composition root that owns the save format and the current floor's `npcs`.
-  Call sites reach the owning unit (`manager.movement.old_positions`,
-  `manager.spawner.all_npcs`) rather than going through forwarding properties.
-  `AnswerProcessor` no longer pokes the opinion dict directly — six raw accesses
-  including two "seed the key to 0" blocks became two `update_opinion` calls,
-  since that method starts an unknown NPC from neutral. New
-  `tests/test_npc_units.py` covers the three units without building a Game
-  (19 tests: layout vs random placement, the level-data copy, movement staying on
-  walkable tiles and off the player and other NPCs, returning home, opinion
-  accumulation).
-
-- **Question renderers bypassed the shared wrapping helpers** — they called
-  `wrap_text` directly and `print()`ed their own lines, so their tests had to
-  capture stdout. They now draw through `backend.draw_text` via a new
-  `render_helpers.draw_wrapped_text`, which takes a colour *name* rather than a
-  colour *function* so `TestBackend` records each line as a `DrawCall`. The three
-  `getattr(term, f"bold_{colors.ui_error}", term.bold_red)` lookups are gone, and
-  the text-input box now draws its border, text, and padding as three positioned
-  segments instead of one concatenated coloured string.
-  `tests/test_question_renderers.py` asserts on recorded draw calls and gained
-  coverage that stdout capture couldn't express: colour and bold per element,
-  the footer's pinned row, that answers stop at the overlay bottom, and that
-  overlong typed input is truncated to the box width.
-
-- **`rendering.py` was monolithic** — 962 lines and 26 functions covering map,
-  UI, and overlay drawing. Split into `map_renderer.py` (tiles, entities, erasing
-  what moved), `ui_renderer.py` (status panel), `overlay_renderer.py` (modal
-  panels and the victory screen), and `render_helpers.py` (colour lookup and
-  wrapped-text primitives, previously private to `rendering.py`). `rendering.py`
-  is now 99 lines: `draw_game` owns the frame's draw order and re-exports the
-  overlay entry points that callers and tests reach for through it.
-
-- **Loading a save constructed a `Game` and then mutated it into shape** —
-  `_deserialize_game_state` used to call `Game(...)`, which built every manager
-  and generated floor 1, then overwrite `current_floor`, replace five managers,
-  rebuild the `EventBus` and `StateManager`, repair the collaborators that had
-  captured the discarded managers, and regenerate the floor. Correctness depended
-  on ordering that nothing enforced, and it caused three bugs (see
-  `known-issues.md`): the "Not in a conversation" staleness, floor-1 saves losing
-  every NPC, and floor-2+ saves coming back with floor 1's map.
-
-  Construction is now one pass. `GameContext.create` builds the settings,
-  content, floor manager, and player — positioned on the floor being restored —
-  and `GameManagers` bundles the five managers a save restores.
-  `Game.from_context(ctx, managers)` assembles from either a fresh or a restored
-  set through the same `_assemble` path, wires the collaborators once the managers
-  are final, and generates floor entities exactly once at the end.
-  `wire_manager_dependencies` is private again, and `GameInitializer.initialize_stats`
-  is gone (the stats it returned live in `StatsTracker`).
-
-- **Dead code swept** — deleted `data_loader.list_content_sets` /
-  `load_content_metadata`, `difficulty.get_all_difficulties`, the unused
-  `Renderable` protocol, `themes.CYBERPUNK_LIGHT` and the `Theme` dataclass, and
-  four unused `TERMINAL_*` constants in `config.py`. `get_theme()` no longer takes
-  the two arguments it ignored. `content.json` metadata corrected (45 → 140
-  questions, 5 → 3 floors, real topic list) — it is not read by any code.
-- **`uv.lock` churn** — `uv run` re-resolved on every invocation and rewrote every
-  URL to whatever index the environment pointed at, so running tests dirtied the
-  tree and could leak an internal mirror into this public repo. The Makefile now
-  exports `UV_FROZEN=1` and the pre-commit hooks prefix `env UV_FROZEN=1`;
-  `make relock` regenerates against public PyPI when dependencies change.
-- **Type errors in test files** — `make check` is now clean across all 70 files.
-  `assertIsNotNone` / `assertIsInstance` don't narrow `Optional` or union types
-  for mypy, so the affected call sites use plain `assert x is not None` /
-  `assert isinstance(x, T)` instead. Empty collections in fixtures got
-  annotations, and two tests that assigned `str` where an `InfoTerminal` or a
-  `dict` was expected now build the real objects. `EventBus.subscribe` typing
-  was left alone — narrowing at the call sites turned out to be enough.
-- **Duplicated text wrapping in `rendering.py`** — consolidated into
-  `_draw_wrapped_lines` plus the `_draw_text_block` convenience wrapper. Both
-  were later deleted in favour of `render_helpers.draw_wrapped_text`, the one
-  wrapping helper left, when the renderers moved onto the backend.
-- **Two competing pre-commit configs** — `.prek.yaml` used a schema prek cannot
-  parse (`missing field 'repos'`), so it had never run; deleted. The remaining
-  `.pre-commit-config.yaml` now shells out to the same uv commands as
-  `make ci`, so the hooks and the Makefile can't drift apart.
-- **`TestBackend` collection warning** — set `__test__ = False` so pytest stops
-  trying to collect the helper as a test class.
-- **`RenderBackend` protocol incomplete** — added `__getattr__` to the protocol
-  so blessed-style attribute access (`move_xy`, `bold_black`, etc.) is typed;
-  fixed `_identity` fallback in `BlessedBackend`. Production-code mypy errors
-  dropped from ~134 to 0.
-- **`validate_npc_layout_consistency` cried wolf** — `parse_level` now
-  distinguishes single-letter NPC chars from multi-letter text labels
-  (`"ARENA"`, `"INFRASTRUCTURE"`); validator includes `boss`/`helper`/`quest`
-  NPC types. False-positive warnings eliminated.
-- **State-unsafe state mutations** — deleted dead `show_terminal`/`show_snippet`
-  methods on `StateManager` (uncalled, wrong types). Added `assert old_pos is
-  not None` to narrow `move_player` event payload type.
-- **CLAUDE.md outdated** — rewritten (1076 → ~150 lines) reflecting current
-  manager layout, EventBus pattern, and dynamic floor requirements.
-- **Missing tests for critical paths** — added
-  `tests/test_answer_processor.py` (16 tests covering MC/text answers,
-  rewards, victory detection, NPC opinions) and
-  `tests/test_question_renderers.py` (13 tests covering all three
-  `QuestionRenderer` strategies and the registry).
+- **Every renderer is on the backend** (2026-09-13). All six rendering modules
+  draw through `backend.draw_text` / `draw_with_bg`; `grep -c "print("` over them
+  is zero. This is what the twelve `@unittest.skip`s in
+  `test_rendering_backend.py` were waiting for -- all gone, no skips left, and
+  two had been asserting the wrong thing, which being skipped had hidden. The
+  colour-*function* helpers (`get_color_func`, `draw_wrapped_lines`,
+  `draw_text_block`, `entity_renderers._resolve_style`) are deleted on purpose:
+  keeping them would leave a second, unrecordable way to draw. Verified cell by
+  cell against a real `BlessedBackend` in a pty.
+- **CI exists** (2026-09-05). ruff, mypy, pytest and `validate_questions.py` on
+  push and pull request, over a 3.10/3.14 matrix -- the two ends of the declared
+  range, neither of which had ever been run. Lockfile-index check is a second
+  job. The pre-commit hooks stay, as the faster feedback.
+- **`terminals.json` was authored and unwired** (deleted 2026-09-05). 147 lines
+  no code read, with four separate places documenting that it was unused.
+  `ZONE_TERMINALS` in `levels.py` is the one place terminal text lives.
+- **`ItemPickedUp` had no publisher** (2026-09-05). `MoveResult` grew a
+  `picked_up` field and `Game.move_player` publishes from there, rather than
+  giving `movement_controller` an event bus.
+- **`CLAUDE.md` called `data/levels.py` a dead re-export shim** (2026-08-30). It
+  is load-bearing; the three live call sites are named there now. The hardcoded
+  content set behind it is still open -- see `## Notes`.
+- **`Game` was a forwarding facade** -- 21 properties and 16 setters gone, 235
+  call sites migrated across 16 modules, driven by mypy. Two traps a regex sweep
+  would have missed: `Game`'s own assignments would have silently created
+  shadowing attributes holding a second copy of the conversation state, and five
+  `getattr`/`hasattr` accesses would have kept working while quietly returning
+  the default.
+- **`npc_manager.py` mixed five concerns in 558 lines** -- split into
+  `NPCSpawner`, `NPCMovement` and `NPCRelationships`, with `NPCManager` a
+  268-line composition root. `tests/test_npc_units.py` covers the three units
+  without building a `Game` (19 tests).
+- **Question renderers bypassed the shared wrapping helpers** and printed their
+  own lines -- they draw through `render_helpers.draw_wrapped_text` now, which
+  takes a colour *name* so `TestBackend` records each line as a `DrawCall`.
+- **`rendering.py` was 962 lines** -- split into `map_renderer`, `ui_renderer`,
+  `overlay_renderer` and `render_helpers`. `rendering.py` is 99 lines and owns
+  the frame's draw order.
+- **Loading a save built a `Game` and then mutated it into shape**, with
+  correctness depending on ordering nothing enforced. It caused three bugs, all
+  in `known-issues.md`. Construction is one pass now: `GameContext.create`,
+  `GameManagers`, `Game.from_context`.
+- **`uv.lock` churn** -- `uv run` re-resolved every invocation and rewrote each
+  URL to whatever index the environment pointed at, which could leak an internal
+  mirror into this public repo. `UV_FROZEN=1` in the Makefile and the hooks;
+  `make relock` regenerates against public PyPI.
+- **Type errors in test files** -- `make check` is clean across all 70.
+  `assertIsNotNone` / `assertIsInstance` do not narrow for mypy; the call sites
+  use plain `assert` instead. `EventBus.subscribe` typing was left alone.
+- **Two competing pre-commit configs** -- `.prek.yaml` used a schema prek cannot
+  parse, so it had never run; deleted. The remaining config shells out to the
+  same uv commands as `make ci`, so hooks and Makefile cannot drift.
+- **`RenderBackend` protocol incomplete** -- added `__getattr__` so blessed-style
+  attribute access is typed. Production mypy errors went ~134 to 0.
+- **`validate_npc_layout_consistency` cried wolf** -- `parse_level` now tells
+  single-letter NPC chars from multi-letter text labels (`"ARENA"`).
+- **Dead code swept** -- `data_loader.list_content_sets` / `load_content_metadata`,
+  `difficulty.get_all_difficulties`, the `Renderable` protocol,
+  `themes.CYBERPUNK_LIGHT` and its `Theme` dataclass, four `TERMINAL_*` constants,
+  and the dead `show_terminal` / `show_snippet` on `StateManager`.
+- **Duplicated text wrapping in `rendering.py`** -- consolidated, then superseded
+  entirely by `render_helpers.draw_wrapped_text`.
+- **`TestBackend` collection warning** -- `__test__ = False`.
+- **`CLAUDE.md` outdated** -- rewritten, 1076 to ~150 lines.
+- **Missing tests for critical paths** -- `tests/test_answer_processor.py` (16)
+  and `tests/test_question_renderers.py` (13).
 
 ## Not looked at
 
@@ -252,12 +133,6 @@ orphaned commits reachable by SHA. Left alone deliberately.
 
 ---
 
-**Conventions**
-
-- Size: `S` under an hour · `M` half a day · `L` more, or needs a design
-  decision.
-- State: `open` · `decision owed` · `blocked on <thing>`.
-- `## At a glance` is the only place an item is restated. Renumber it in the same
-  edit that renumbers a section.
-- Every claim carries its evidence and a date. Say when something was not
-  verified.
+`S` under an hour · `M` half a day · `L` more, or needs a decision. State is
+`open`, `decision owed`, or `blocked on <thing>`. Every claim carries its
+evidence and a date; say so when something was not verified.
