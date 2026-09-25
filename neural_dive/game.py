@@ -310,6 +310,37 @@ class Game:
             is_conversation_active=self.conversation_engine.active_conversation is not None,
         )
 
+    def check_ambush(self) -> bool:
+        """Open the conversation of a chasing enemy that has reached the player.
+
+        The caller is the main loop, which skips this while an overlay or a
+        Y/N confirmation owns the keyboard: an ambush there would leave that
+        state armed behind the conversation.
+
+        Returns:
+            True if an ambush started a conversation, False otherwise
+        """
+        engine = self.conversation_engine
+        if (
+            engine.active_conversation is not None
+            or engine.last_answer_response
+            or self.game_won
+            or self.player_manager.coherence <= 0
+        ):
+            return False
+
+        player_pos = (self.player.x, self.player.y)
+        enemy = self.npc_manager.ambusher(player_pos)
+        if enemy is None:
+            return False
+        conversation = self.npc_manager.conversations.get(enemy.name)
+        if conversation is None:
+            return False
+
+        engine.start_conversation(conversation)
+        self.message = f"{enemy.name} corners you! {conversation.greeting}"
+        return True
+
     def is_walkable(self, x: int, y: int) -> bool:
         """Check if a position is walkable.
 
@@ -570,8 +601,12 @@ class Game:
         Returns:
             True if a conversation was exited, False otherwise
         """
-        if self.conversation_engine.active_conversation:
+        conversation = self.conversation_engine.active_conversation
+        if conversation:
             self.conversation_engine.end_conversation()
+            # Fleeing an enemy buys a head start; otherwise it would stand
+            # next to the player and ambush again on the next frame.
+            self.npc_manager.stun(conversation.npc_name)
             self.message = "Conversation ended."
             return True
         return False

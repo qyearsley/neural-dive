@@ -145,3 +145,16 @@ NPC_MOVEMENT_SPEEDS = {
     "quest": 999,  # Stationary - important quest givers stay put
     "boss": 999,  # Stationary - bosses wait in their chambers
 }
+
+# Enemy pursuit (neural_dive.managers.npc_movement).
+# An enemy the player has not beaten starts chasing once the player is within
+# ENEMY_CHASE_RADIUS tiles, gives up beyond ENEMY_GIVE_UP_RADIUS, and opens its
+# conversation on contact. The gap between the two is needed: the path out of a
+# room can lead away from the player first. Walking away from that conversation
+# stuns the enemy for ENEMY_STUN_TICKS, so it cannot grab the player again on
+# the very next frame. A tick is one pass of the main loop: about 0.1s when
+# idle, less while keys are held.
+ENEMY_CHASE_RADIUS = 6
+ENEMY_GIVE_UP_RADIUS = 10
+ENEMY_CHASE_SPEED = 3  # Ticks between moves while chasing
+ENEMY_STUN_TICKS = 50

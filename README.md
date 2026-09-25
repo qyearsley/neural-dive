@@ -117,11 +117,14 @@ failing. `--stats` prints your most-missed questions and weakest topics;
 
 **Layers:** (3 total, set by `MAX_FLOORS` in `config.py`; 16 NPCs in all)
 - **Layer 1**: Introduction - 6 NPCs covering the basics, including one enemy
-- **Layer 2**: Intermediate challenges - 6 specialists testing your growing knowledge
-- **Layer 3**: Deep Core - three bosses and one specialist; defeat a boss to win
+- **Layer 2**: Intermediate challenges - 5 specialists and one enemy
+- **Layer 3**: Deep Core - three bosses and one enemy; defeat a boss to win
 
 **Mechanics:**
 - **Coherence** = health (80/100 start, +10 correct, -25 wrong, -40 from enemies)
+- **Enemies hunt you.** An enemy you have not beaten chases you once you come
+  within 6 tiles, and starts its questions as soon as it reaches you. Walk away
+  with ESC or `X` and it is stunned for a few seconds, which is your head start.
 - **Knowledge Modules** = rewards from correct answers
 - **Score** = 100 per correct answer + 50 per knowledge module + 200 per NPC
   completed + 10 per remaining coherence point

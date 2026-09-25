@@ -1,15 +1,20 @@
 """NPC wandering AI.
 
-NPCs alternate between standing still and drifting around their home tile. This
+NPCs alternate between standing still and drifting around their home tile.
+Enemies the player has not beaten break off to chase the player when close. This
 module owns that behaviour and the record of where NPCs were on the previous
 frame, which the renderer needs in order to erase them.
 """
 
 from __future__ import annotations
 
+from collections import deque
 from typing import TYPE_CHECKING
 
 from neural_dive.config import (
+    ENEMY_CHASE_RADIUS,
+    ENEMY_CHASE_SPEED,
+    ENEMY_GIVE_UP_RADIUS,
     NPC_IDLE_TICKS_MAX,
     NPC_IDLE_TICKS_MIN,
     NPC_MOVEMENT_SPEEDS,
@@ -20,9 +25,13 @@ from neural_dive.config import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
     import random
 
     from neural_dive.entities import Entity
+
+# Orthogonal moves first, so a path prefers straight lines over zigzags
+_STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1))
 
 
 class NPCMovement:
@@ -50,19 +59,22 @@ class NPCMovement:
         game_map: list[list[str]],
         player_pos: tuple[int, int],
         is_conversation_active: bool,
+        beaten: Collection[str] = (),
     ) -> None:
         """
         Advance the wandering state of every NPC on the floor.
 
         NPCs alternate between idle and wander states. During wander state,
         they move slowly in random directions. Different NPC types have different
-        movement speeds and behaviors.
+        movement speeds and behaviors. An enemy that is chasing (see
+        :meth:`is_chasing`) steps toward the player instead.
 
         Args:
             npcs: NPCs on the current floor
             game_map: 2D map array for collision detection
             player_pos: (x, y) position of player
             is_conversation_active: Whether a conversation is active (freezes NPCs)
+            beaten: Names of NPCs whose conversation is completed; they never chase
         """
         if not NPC_WANDER_ENABLED:
             return
@@ -77,6 +89,14 @@ class NPCMovement:
             # Decrement move cooldown
             if npc.move_cooldown > 0:
                 npc.move_cooldown -= 1
+            if npc.stun_ticks > 0:
+                npc.stun_ticks -= 1
+
+            npc.chasing = self.is_chasing(npc, player_pos, beaten)
+            if npc.chasing:
+                if npc.move_cooldown <= 0:
+                    self._chase(npc, npcs, game_map, player_x, player_y)
+                continue
 
             # Decrement state timer
             npc.wander_ticks_remaining -= 1
@@ -97,6 +117,78 @@ class NPCMovement:
             # Move if in wander state and cooldown expired
             if npc.wander_state == "wander" and npc.move_cooldown <= 0:
                 self._move_npc(npc, npcs, game_map, player_x, player_y)
+
+    @staticmethod
+    def is_chasing(npc: Entity, player_pos: tuple[int, int], beaten: Collection[str]) -> bool:
+        """Whether an NPC is currently pursuing the player.
+
+        Only an unbeaten, unstunned enemy chases. It starts within
+        ENEMY_CHASE_RADIUS tiles and, once started, keeps going out to
+        ENEMY_GIVE_UP_RADIUS. Distance is Chebyshev, the measure interaction
+        uses.
+        """
+        if npc.npc_type != "enemy" or npc.name in beaten or npc.stun_ticks > 0:
+            return False
+        distance = max(abs(npc.x - player_pos[0]), abs(npc.y - player_pos[1]))
+        return distance <= (ENEMY_GIVE_UP_RADIUS if npc.chasing else ENEMY_CHASE_RADIUS)
+
+    def _chase(
+        self,
+        npc: Entity,
+        npcs: list[Entity],
+        game_map: list[list[str]],
+        player_x: int,
+        player_y: int,
+    ) -> None:
+        """Step an enemy one tile along the shortest path to the player.
+
+        A breadth-first search rather than a straight line: layouts have rooms,
+        and an enemy heading straight at the player gets stuck on the wall of a
+        room whose door is on the far side. An enemy already next to the player
+        stays put: contact is the ambush.
+        """
+        npc.move_cooldown = ENEMY_CHASE_SPEED
+        step = self._first_step_toward(npc, npcs, game_map, player_x, player_y)
+        if step is not None:
+            self.old_positions[npc.name] = (npc.x, npc.y)
+            npc.x, npc.y = step
+
+    def _first_step_toward(
+        self,
+        npc: Entity,
+        npcs: list[Entity],
+        game_map: list[list[str]],
+        player_x: int,
+        player_y: int,
+    ) -> tuple[int, int] | None:
+        """The first tile of a shortest path to any tile next to the player.
+
+        Returns None if the NPC is already next to the player or no path exists.
+        """
+        start = (npc.x, npc.y)
+
+        def next_to_player(tile: tuple[int, int]) -> bool:
+            return max(abs(tile[0] - player_x), abs(tile[1] - player_y)) <= 1
+
+        if next_to_player(start):
+            return None
+
+        # Each reached tile maps to the first step taken to get there
+        first_step: dict[tuple[int, int], tuple[int, int]] = {}
+        queue: deque[tuple[int, int]] = deque([start])
+        while queue:
+            x, y = queue.popleft()
+            for dx, dy in _STEPS:
+                tile = (x + dx, y + dy)
+                if tile == start or tile in first_step:
+                    continue
+                if not self._is_valid_position(*tile, npcs, game_map, player_x, player_y, npc):
+                    continue
+                first_step[tile] = first_step.get((x, y), tile)
+                if next_to_player(tile):
+                    return first_step[tile]
+                queue.append(tile)
+        return None
 
     def _move_npc(
         self,

@@ -9,7 +9,13 @@ from __future__ import annotations
 import random
 import unittest
 
-from neural_dive.config import NPC_MOVEMENT_SPEEDS, NPC_WANDER_RADIUS
+from neural_dive.config import (
+    ENEMY_CHASE_RADIUS,
+    ENEMY_CHASE_SPEED,
+    ENEMY_GIVE_UP_RADIUS,
+    NPC_MOVEMENT_SPEEDS,
+    NPC_WANDER_RADIUS,
+)
 from neural_dive.entities import Entity
 from neural_dive.managers.npc_movement import NPCMovement
 from neural_dive.managers.npc_relationships import NPCRelationships
@@ -230,3 +236,87 @@ class TestNPCRelationships(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEnemyPursuit(unittest.TestCase):
+    def _enemy(self, x: int = 5, y: int = 5) -> Entity:
+        """An idle enemy, so any move it makes comes from the chase."""
+        npc = Entity(x, y, "B", "red", "BETA", npc_type="enemy")
+        npc.wander_state = "idle"
+        npc.wander_ticks_remaining = 1000
+        return npc
+
+    def _tick(self, movement: NPCMovement, npc: Entity, game_map, player, beaten=()) -> None:
+        movement.update([npc], game_map, player, is_conversation_active=False, beaten=beaten)
+
+    def test_an_enemy_in_range_closes_in(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+        player = (5 + ENEMY_CHASE_RADIUS, 5)
+
+        for _ in range(ENEMY_CHASE_SPEED * 10):
+            self._tick(movement, npc, _open_map(), player)
+
+        # Stops next to the player, never on it
+        self.assertEqual((npc.x, npc.y), (player[0] - 1, 5))
+
+    def test_chasing_uses_the_chase_speed(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+
+        self._tick(movement, npc, _open_map(), (9, 5))
+
+        self.assertEqual((npc.x, npc.y), (6, 5))
+        self.assertEqual(npc.move_cooldown, ENEMY_CHASE_SPEED)
+
+    def test_an_enemy_out_of_range_does_not_chase(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(2, 2)
+
+        self._tick(movement, npc, _open_map(), (2 + ENEMY_CHASE_RADIUS + 1, 2))
+
+        self.assertEqual((npc.x, npc.y), (2, 2))
+
+    def test_a_chase_once_started_runs_out_to_the_give_up_radius(self):
+        npc = self._enemy(2, 2)
+        player = (2 + ENEMY_CHASE_RADIUS + 1, 2)
+        self.assertFalse(NPCMovement.is_chasing(npc, player, ()))
+
+        npc.chasing = True
+        self.assertTrue(NPCMovement.is_chasing(npc, player, ()))
+        self.assertFalse(NPCMovement.is_chasing(npc, (2 + ENEMY_GIVE_UP_RADIUS + 1, 2), ()))
+
+    def test_a_beaten_enemy_does_not_chase(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+
+        self._tick(movement, npc, _open_map(), (9, 5), beaten={"BETA"})
+
+        self.assertEqual((npc.x, npc.y), (5, 5))
+
+    def test_a_stunned_enemy_does_not_chase_until_the_stun_ends(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+        npc.stun_ticks = 2
+
+        self._tick(movement, npc, _open_map(), (9, 5))
+        self.assertEqual((npc.x, npc.y), (5, 5))
+        self._tick(movement, npc, _open_map(), (9, 5))
+        self.assertEqual((npc.x, npc.y), (6, 5))
+
+    def test_specialists_never_chase(self):
+        npc = Entity(5, 5, "A", "cyan", "ALPHA", npc_type="specialist")
+
+        self.assertFalse(NPCMovement.is_chasing(npc, (6, 5), ()))
+
+    def test_an_enemy_steps_around_a_wall(self):
+        movement = NPCMovement(random.Random(1))
+        game_map = _open_map()
+        # A wall between the enemy and the player, open above and below
+        game_map[5][6] = "#"
+        npc = self._enemy(5, 5)
+
+        self._tick(movement, npc, game_map, (9, 5))
+
+        self.assertNotEqual((npc.x, npc.y), (5, 5))
+        self.assertEqual(game_map[npc.y][npc.x], ".")

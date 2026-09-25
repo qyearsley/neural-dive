@@ -96,6 +96,8 @@ def run_interactive(game: Game, chars, colors):
 
                 # Update NPC wandering every frame
                 game.update_npc_wandering()
+                if not overlay_is_open(game) and normal_handler.pending_confirm is None:
+                    game.check_ambush()
 
                 # Check for victory
                 if game.game_won:

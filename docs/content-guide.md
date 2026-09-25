@@ -189,7 +189,8 @@ Create `npcs.json` to define characters that present questions:
 - `floor` - Which floor this NPC appears on (1-3; `MAX_FLOORS` is 3)
 - `npc_type` - One of five values:
   - `specialist` - Standard knowledge test. **Required** to clear its floor.
-  - `enemy` - Harder penalties on wrong answers. **Required** to clear its floor.
+  - `enemy` - Harder penalties on wrong answers, and chases the player until
+    beaten. **Required** to clear its floor.
   - `boss` - Like a specialist but gets `boss_questions` (4) questions. Optional.
   - `helper` - No questions; restores coherence once, then has nothing more to say. Optional.
   - `quest` - No questions; activates the main quest on first interaction. Optional.

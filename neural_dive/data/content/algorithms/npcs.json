@@ -124,9 +124,9 @@
   },
   "CRYPTO_GUARDIAN": {
     "char": "K",
-    "color": "magenta",
+    "color": "red",
     "floor": 2,
-    "npc_type": "specialist",
+    "npc_type": "enemy",
     "greeting": "I am the keeper of secrets, the guardian of encrypted data. Only those who understand cryptography may pass.",
     "questions": [
       "csrf",
@@ -187,9 +187,9 @@
   },
   "CLOUD_MIND": {
     "char": "D",
-    "color": "cyan",
+    "color": "red",
     "floor": 3,
-    "npc_type": "specialist",
+    "npc_type": "enemy",
     "greeting": "I span across nodes, distributed yet unified. Message queues connect my thoughts. Understand distributed systems to comprehend me.",
     "questions": [
       "caching_strategy",

@@ -55,6 +55,8 @@ class Entity:
         self.wander_state = "idle"  # "idle" or "wander"
         self.wander_ticks_remaining = 0  # Ticks until state change
         self.move_cooldown = 0  # Ticks until next move allowed
+        self.chasing = False  # Whether an enemy is currently pursuing the player
+        self.stun_ticks = 0  # Ticks an enemy stays off the chase after the player flees
 
     def __repr__(self) -> str:
         return f"Entity(name={self.name}, pos=({self.x}, {self.y}))"

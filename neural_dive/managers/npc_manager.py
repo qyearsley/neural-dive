@@ -16,9 +16,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from neural_dive.config import ENEMY_STUN_TICKS
 from neural_dive.conversation import apply_answer_order, create_randomized_conversation
 from neural_dive.data.levels import BOSS_NPCS
 from neural_dive.entities import Entity
+from neural_dive.managers.interaction_handler import INTERACTION_RADIUS
 from neural_dive.managers.npc_movement import NPCMovement
 from neural_dive.managers.npc_relationships import NPCRelationships
 from neural_dive.managers.npc_spawning import NPCSpawner
@@ -176,7 +178,36 @@ class NPCManager:
             player_pos: (x, y) position of player
             is_conversation_active: Whether a conversation is active (freezes NPCs)
         """
-        self.movement.update(self.npcs, game_map, player_pos, is_conversation_active)
+        self.movement.update(
+            self.npcs, game_map, player_pos, is_conversation_active, self._beaten()
+        )
+
+    def ambusher(self, player_pos: tuple[int, int]) -> Entity | None:
+        """The chasing enemy next to the player, if there is one.
+
+        Args:
+            player_pos: (x, y) position of player
+
+        Returns:
+            The first NPC that is chasing and within INTERACTION_RADIUS, or None
+        """
+        beaten = self._beaten()
+        for npc in self.npcs:
+            distance = max(abs(npc.x - player_pos[0]), abs(npc.y - player_pos[1]))
+            if distance <= INTERACTION_RADIUS and self.movement.is_chasing(npc, player_pos, beaten):
+                return npc
+        return None
+
+    def stun(self, npc_name: str) -> None:
+        """Keep an enemy off the chase for ENEMY_STUN_TICKS, after the player flees it."""
+        for npc in self.npcs:
+            if npc.name == npc_name and npc.npc_type == "enemy":
+                npc.stun_ticks = ENEMY_STUN_TICKS
+                npc.chasing = False
+
+    def _beaten(self) -> set[str]:
+        """Names of NPCs whose conversation is completed."""
+        return {name for name, conv in self.conversations.items() if conv.completed}
 
     def get_opinion(self, npc_name: str) -> int:
         """
@@ -233,6 +264,8 @@ class NPCManager:
                     "wander_state": npc.wander_state,
                     "wander_ticks_remaining": npc.wander_ticks_remaining,
                     "move_cooldown": npc.move_cooldown,
+                    "chasing": npc.chasing,
+                    "stun_ticks": npc.stun_ticks,
                 }
                 for npc in self.spawner.all_npcs
             ],
@@ -304,6 +337,8 @@ class NPCManager:
             npc.wander_state = saved.get("wander_state", "idle")
             npc.wander_ticks_remaining = saved.get("wander_ticks_remaining", 0)
             npc.move_cooldown = saved.get("move_cooldown", 0)
+            npc.chasing = saved.get("chasing", False)
+            npc.stun_ticks = saved.get("stun_ticks", 0)
             manager.spawner.all_npcs.append(npc)
 
         # Restore opinions
