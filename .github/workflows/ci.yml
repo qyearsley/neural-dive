@@ -36,8 +36,10 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       # No `--locked`: uv rejects it outright when UV_FROZEN is set, and the
-      # whole workflow died on this line. UV_FROZEN already means "use uv.lock
-      # as it is and never write it", which is the same guarantee.
+      # whole workflow died on this line. UV_FROZEN means "use uv.lock as it is
+      # and never write it" -- it does not check that uv.lock is still in sync
+      # with pyproject.toml. The `lockfile` job below covers that with
+      # `uv lock --check`.
       - run: uv sync --all-extras
       # `. ndive` and not just `.`: ruff's default include is *.py, so the
       # extensionless `ndive` script is skipped unless it is named.
@@ -45,13 +47,18 @@ jobs:
       - run: uv run ruff format --check . ndive
       - run: uv run mypy neural_dive/
       - run: uv run pytest -q
-      # An NPC pointing at a question that does not exist is a content bug that
-      # only shows up when a player talks to that NPC.
-      - run: uv run validate_questions.py
+      # test_content_integrity.py (TestQuestionNPCLinkage) covers the same
+      # dangling/orphaned-question checks; validate_questions.py stays as a
+      # `make validate` report tool but does not need its own CI step.
 
   lockfile:
-    name: uv.lock uses public PyPI only
+    name: uv.lock is in sync and uses public PyPI only
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      # UV_FROZEN unset (not just empty -- uv 0.12 rejects "" as a boolish
+      # value) and pointed at public PyPI, so this fails if uv.lock has drifted
+      # from pyproject.toml, without writing the file or touching any mirror.
+      - run: env -u UV_FROZEN UV_INDEX_URL=https://pypi.org/simple UV_DEFAULT_INDEX=https://pypi.org/simple uv lock --check
       - run: scripts/check-lockfile-index.sh
