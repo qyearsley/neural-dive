@@ -48,11 +48,20 @@ repos:
       # The suite runs in about a second, so there is no reason not to gate on
       # it. CI runs the same checks on a clean machine and across the whole
       # supported Python range; these hooks are the fast local half of that.
+      #
+      # `types: [python]` alone misses a content-only commit -- editing
+      # npcs.json or questions.json is not a Python change, but it is exactly
+      # what test_content_integrity.py checks. `types_or` adds json alongside
+      # python rather than replacing it with a filename-based `files:` regex,
+      # which would need its own pattern for every non-`.py` python file (the
+      # extensionless `ndive` launcher is one; `identify` currently tags it as
+      # `text`/`executable`, not `python`, so none of these hooks fire on it
+      # either way -- a separate gap from the one this line fixes).
       - id: pytest
         name: pytest
         entry: env UV_FROZEN=1 uv run pytest -q
         language: system
-        types: [python]
+        types_or: [python, json]
         pass_filenames: false
 
       # This is a public repo, and uv bakes whichever index it resolved against
