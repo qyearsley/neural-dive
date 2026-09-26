@@ -11,6 +11,7 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 ## At a glance
 
 1. The player profile assumes one game process at a time — S · open, low priority
+2. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
 
 ## Working on these
 
@@ -32,6 +33,26 @@ Fine for a single-player terminal game; worth knowing before anything else
 starts writing that file. The per-answer write is also deliberate: a run killed
 with Ctrl-C must not lose its history, and the file is a couple of KB.
 
+## 2. Pre-commit hooks never run on a commit that only touches `ndive`
+
+**S · open, low priority**
+
+The ruff-check, ruff-format, mypy, and pytest hooks in
+`.pre-commit-config.yaml` gate on `types: [python]` (pytest also on `json`,
+since 2026-09-26). `identify`, the library `prek`/`pre-commit` use to tag
+files, does not recognise `ndive`'s shebang
+(`#!/usr/bin/env -S uv run --script`) as Python -- it tags the file `text` and
+`executable` only. So a commit that edits `ndive` and nothing else skips every
+local check; `.github/workflows/ci.yml` still catches it (it names `ndive`
+explicitly in each `run:` line and does not filter by file type).
+
+Fixing it would mean adding `ndive` to `files:` on each hook, which reopens the
+exact trap `. ndive` was added to the Makefile's `lint` target to avoid: a
+filename-based pattern that has to be kept in sync by hand as extensionless
+scripts come and go, rather than by content sniffing. Found while verifying the
+JSON-trigger fix below; not fixed here because it's a separate gate from the
+one that fix targets.
+
 ## Notes
 
 - Pruning of stale NPCs/questions completed 2026-05-21. The counts that note
@@ -52,6 +73,33 @@ with Ctrl-C must not lose its history, and the file is a couple of KB.
 One line each: the verdict and the fact that stops it being rediscovered. The
 reasoning behind each is in the commit that made it.
 
+- **`make relock` couldn't run** (2026-09-26). `UV_FROZEN=` (empty) is not the
+  same as unset -- uv 0.12 rejects `""` as a boolish value and refuses to lock.
+  `env -u UV_FROZEN` instead. Verified with `uv lock --check`, which doesn't
+  write the file.
+- **CI never checked that `uv.lock` was still in sync with `pyproject.toml`**
+  (2026-09-26). `UV_FROZEN` only pins the lockfile as-is; it isn't `--locked`.
+  The `lockfile` job now runs `uv lock --check` against public PyPI, and the
+  comment that called the two equivalent is gone.
+- **`validate_questions.py` was a second, weaker copy of a pytest check**
+  (2026-09-26). `TestQuestionNPCLinkage` in `test_content_integrity.py` asserts
+  the same missing/orphaned-question checks and is stricter (it fails on
+  duplicate question refs; the script only warned). Dropped from CI and
+  `make ci`; kept as the `make validate` report tool, now loading content via
+  `data_loader.get_content_dir()` so it works from outside the repo root.
+- **The pytest hook skipped a content-only commit** (2026-09-26). `npcs.json`
+  and `questions.json` aren't Python, so `types: [python]` never ran the suite
+  that checks them. `types_or: [python, json]` covers both.
+- **`npc_manager.py` imported a tuning constant from another manager**
+  (2026-09-26). `INTERACTION_RADIUS` lived in `interaction_handler.py`; moved to
+  `config.py`, next to the other movement/pursuit constants, and both managers
+  import it from there.
+- **`CLAUDE.md` credited `npc_manager.py` with work it delegates, and cited a
+  line number for an import** (2026-09-26). The managers tree omitted
+  `npc_spawning.py`, `npc_movement.py`, and `npc_relationships.py`, even though
+  the split is documented lower in the same file. The `BOSS_NPCS` citation
+  named a line number that had already drifted by the time this pass got to
+  it; replaced with the import name instead.
 - **Every renderer is on the backend** (2026-09-13). All six rendering modules
   draw through `backend.draw_text` / `draw_with_bg`; `grep -c "print("` over them
   is zero. This is what the twelve `@unittest.skip`s in
