@@ -10,16 +10,26 @@ The second one matters as much as the first. An unreferenced question can never
 appear in a run, so it is invisible to playtesting: 22% of the set had rotted
 that way before this check existed. If a question is genuinely retired, delete
 it rather than leaving it orphaned.
+
+Both checks are also asserted by `TestQuestionNPCLinkage` in
+`neural_dive/tests/test_content_integrity.py`, which is what CI and `make ci`
+run. This script is not part of either -- it stays as a standalone report tool
+for the per-floor question-count summary below, which pytest has no reason to
+print.
 """
 
 import json
 import sys
 
+from neural_dive.data_loader import get_content_dir
+
+CONTENT_DIR = get_content_dir()
+
 # Load data
-with open("neural_dive/data/content/algorithms/npcs.json") as f:
+with open(CONTENT_DIR / "npcs.json") as f:
     npcs = json.load(f)
 
-with open("neural_dive/data/content/algorithms/questions.json") as f:
+with open(CONTENT_DIR / "questions.json") as f:
     questions = json.load(f)
 
 print("=" * 70)
