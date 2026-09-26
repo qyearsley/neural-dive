@@ -16,11 +16,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from neural_dive.config import ENEMY_STUN_TICKS
+from neural_dive.config import ENEMY_STUN_TICKS, INTERACTION_RADIUS
 from neural_dive.conversation import apply_answer_order, create_randomized_conversation
 from neural_dive.data.levels import BOSS_NPCS
 from neural_dive.entities import Entity
-from neural_dive.managers.interaction_handler import INTERACTION_RADIUS
 from neural_dive.managers.npc_movement import NPCMovement
 from neural_dive.managers.npc_relationships import NPCRelationships
 from neural_dive.managers.npc_spawning import NPCSpawner

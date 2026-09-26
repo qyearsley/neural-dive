@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
+from neural_dive.config import INTERACTION_RADIUS
 from neural_dive.entities import Entity, InfoTerminal, Stairs
 from neural_dive.enums import NPCType
 
@@ -20,9 +21,6 @@ if TYPE_CHECKING:
     from neural_dive.managers.quest_manager import QuestManager
     from neural_dive.models import Conversation
 
-
-# Adjacency threshold (in Chebyshev distance) for entity interaction.
-INTERACTION_RADIUS = 1
 
 # Sort priority when multiple equidistant entities are interactable.
 _ENTITY_PRIORITY = {"npc": 0, "terminal": 1, "stairs": 2}

@@ -146,6 +146,11 @@ NPC_MOVEMENT_SPEEDS = {
     "boss": 999,  # Stationary - bosses wait in their chambers
 }
 
+# Player-entity interaction (neural_dive.managers.interaction_handler).
+# Adjacency threshold (in Chebyshev distance) for interacting with an NPC,
+# terminal, or the stairs.
+INTERACTION_RADIUS = 1
+
 # Enemy pursuit (neural_dive.managers.npc_movement).
 # An enemy the player has not beaten starts chasing once the player is within
 # ENEMY_CHASE_RADIUS tiles, gives up beyond ENEMY_GIVE_UP_RADIUS, and opens its
