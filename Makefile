@@ -111,7 +111,7 @@ test-cov:
 
 # What CI's `check` job runs, and what the pre-commit hooks run -- see
 # .github/workflows/ci.yml and .pre-commit-config.yaml. Three copies of one
-# list is two too many, so they all go through this target where they can.
+# list is two too many, so keep the commands identical across all three.
 # `make validate` is not part of it: test_content_integrity.py already asserts
 # everything validate_questions.py checks, so it stays a standalone report tool
 # (see its module docstring) rather than a fourth copy of the same gate.

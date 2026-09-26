@@ -188,10 +188,11 @@ make clean         # Remove artifacts
 ```
 
 Three things run the same checks, on purpose. `make ci` is what you run before
-pushing; the pre-commit hooks run it on commit, and add whitespace/JSON fixers
-plus a check that `uv.lock` only references public PyPI; and
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs it on every push and
-pull request, on a clean machine, across Python 3.10 and 3.14. The hooks are the
+pushing; the pre-commit hooks run the same ruff, mypy and pytest commands on
+commit, and add whitespace/JSON fixers plus a check that `uv.lock` only
+references public PyPI; and [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+runs them on every push and pull request, on a clean machine, across Python 3.10
+and 3.14. The hooks are the
 faster feedback. What they cannot do is check a machine that is not yours --
 which matters here, because the install instructions above tell strangers to
 `pipx install` this.
