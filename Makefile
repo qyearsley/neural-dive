@@ -92,9 +92,10 @@ validate:
 	uv run validate_questions.py
 
 # Regenerate uv.lock after a dependency change, against public PyPI so the
-# lockfile stays shareable. Needs UV_FROZEN cleared to let uv write the file.
+# lockfile stays shareable. Needs UV_FROZEN unset (not just empty -- uv 0.12
+# rejects "" as a boolish value) to let uv write the file.
 relock:
-	UV_FROZEN= UV_INDEX_URL=https://pypi.org/simple \
+	env -u UV_FROZEN UV_INDEX_URL=https://pypi.org/simple \
 	    UV_DEFAULT_INDEX=https://pypi.org/simple uv lock
 	scripts/check-lockfile-index.sh
 
