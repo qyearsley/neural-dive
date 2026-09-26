@@ -52,7 +52,10 @@ neural_dive/
 │   └── levels.py            # Re-exports content/algorithms/levels.py (live imports)
 ├── managers/
 │   ├── player_manager.py        # Coherence, knowledge, inventory
-│   ├── npc_manager.py           # NPC generation, movement AI, opinions
+│   ├── npc_manager.py           # Composition root over the three units below
+│   ├── npc_spawning.py          # NPCSpawner: creating and placing NPCs
+│   ├── npc_movement.py          # NPCMovement: wandering AI, enemy chase/give-up
+│   ├── npc_relationships.py     # NPCRelationships: opinions
 │   ├── conversation_engine.py   # Active conversation state
 │   ├── answer_processor.py      # Answer validation + reward/penalty fan-out
 │   ├── floor_manager.py         # Current floor, completion checks
@@ -121,7 +124,7 @@ content set remains. Edit `data/content/algorithms/levels.py`, not
 
 `data/levels.py` re-exports from that canonical file, but do not read "shim" as
 "dead". Three live call sites import through it — `data_loader.py:192`
-(`PARSED_LEVELS`), `managers/npc_manager.py:20` (`BOSS_NPCS`), and
+(`PARSED_LEVELS`), the `BOSS_NPCS` import in `managers/npc_manager.py`, and
 `managers/floor_entity_generator.py:19` (`ZONE_TERMINALS`) — and each hardcodes
 the algorithms set, so terminal content and the level fallback ignore
 `content_set` entirely. Changing what it re-exports changes runtime behaviour.
