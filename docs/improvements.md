@@ -73,6 +73,11 @@ one that fix targets.
 One line each: the verdict and the fact that stops it being rediscovered. The
 reasoning behind each is in the commit that made it.
 
+- **`StateManager` was a mutation layer nothing called** (deleted 2026-10-03).
+  Built in `Game._assemble` and never used outside its own tests; `CLAUDE.md`
+  told contributors to route new logic through it. Moving the game onto it was
+  rejected: its events have no subscribers, so it added a second path for no
+  gain. `EventBus` stays, for `ItemPickedUp`.
 - **`make relock` couldn't run** (2026-09-26). `UV_FROZEN=` (empty) is not the
   same as unset -- uv 0.12 rejects `""` as a boolish value and refuses to lock.
   `env -u UV_FROZEN` instead. Verified with `uv lock --check`, which doesn't

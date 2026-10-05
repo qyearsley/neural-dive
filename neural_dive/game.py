@@ -188,7 +188,6 @@ class Game:
         )
         self.movement_controller = GameInitializer.create_movement_controller()
         self.event_bus = GameInitializer.create_event_bus()
-        self.state_manager = GameInitializer.create_state_manager(self, self.event_bus)
 
         # State that isn't owned by a manager
         self.npcs_completed: set[str] = set() if npcs_completed is None else npcs_completed

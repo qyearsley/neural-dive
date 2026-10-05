@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from neural_dive.managers.npc_manager import NPCManager
     from neural_dive.managers.player_manager import PlayerManager
     from neural_dive.managers.quest_manager import QuestManager
-    from neural_dive.managers.state_manager import StateManager
     from neural_dive.managers.stats_tracker import StatsTracker
     from neural_dive.player_profile import PlayerProfile
 
@@ -363,21 +362,6 @@ class GameInitializer:
         from neural_dive.events import EventBus
 
         return EventBus()
-
-    @staticmethod
-    def create_state_manager(game: Game, event_bus: EventBus) -> StateManager:
-        """Create a StateManager for centralized state mutations.
-
-        Args:
-            game: Game instance
-            event_bus: EventBus instance
-
-        Returns:
-            Initialized StateManager instance
-        """
-        from neural_dive.managers.state_manager import StateManager
-
-        return StateManager(game, event_bus)
 
 
 @dataclass

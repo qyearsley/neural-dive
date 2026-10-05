@@ -63,7 +63,6 @@ neural_dive/
 │   ├── interaction_handler.py   # Player ↔ entity interaction dispatch
 │   ├── movement_controller.py   # Tile-level movement validation
 │   ├── quest_manager.py         # Main quest progress
-│   ├── state_manager.py         # Centralised mutations + EventBus integration
 │   └── stats_tracker.py         # Score, accuracy, time
 ├── events.py                # EventBus + typed event dataclasses
 ├── input_handler.py         # Keyboard handling, one handler per game mode
@@ -112,10 +111,14 @@ Don't add a property back. The point is that there is one place each piece of
 state lives, so a manager swap or a stale reference can't leave two copies
 disagreeing.
 
-**State changes flow through `StateManager` and emit events** on the
-`EventBus`. This is how features like analytics, achievements, and replay are
-plugged in. Mutations in `Game` directly are legacy; route new logic through
-the appropriate manager + event.
+**Mutate state on the manager that owns it.** There is no central mutation
+layer. A `StateManager` that claimed to be one was deleted on 2026-10-03,
+because nothing in the game called it.
+
+`events.py` has an `EventBus` and ten event types, but only `ItemPickedUp` is
+published (from `Game.move_player`), and nothing subscribes outside tests. If you
+add a subscriber, add the publisher for its event at the point where the owning
+manager makes the change.
 
 **Content is loaded from `data/content/algorithms/`.** Old paths
 (`data/npcs.json`, `data/questions.json`) were deleted; only the canonical

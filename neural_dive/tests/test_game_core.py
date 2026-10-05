@@ -361,7 +361,7 @@ class TestSaveLoad(unittest.TestCase):
             for name, conv in game.npc_manager.conversations.items()
             if conv.questions and not conv.completed
         )
-        game.state_manager.start_conversation(npc_name)
+        game.conversation_engine.start_conversation(game.npc_manager.conversations[npc_name])
 
         _correct, message = game.answer_question(0)
 

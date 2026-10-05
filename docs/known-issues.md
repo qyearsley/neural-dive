@@ -193,6 +193,9 @@ and `TestHintEliminationUsesTheGameGenerator` in
   could not fire in a real run. `QuestManager.claim_completion_bonus()` now pays
   once and records it in the save. Covered by `TestQuestBonusIsAwardedOnce` in
   `tests/test_interaction_handler.py`.
+- **Two `StateManager` bugs**, below. `StateManager` was deleted on 2026-10-03,
+  with its tests, because nothing in the game called it. Neither bug could fire
+  in a real run.
 - **`NPCDefeated` always reported "specialist".**
   `StateManager.complete_conversation` read `npc_info.get("type")`, but
   `data_loader` stores that key as `npc_type`. Covered by
