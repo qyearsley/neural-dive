@@ -1,7 +1,7 @@
 # Improvements
 
 > **Status: audited 2026-09-13 against `main` @ `6481c46`.** Twelve commits have
-> landed since. A review on 2026-10-19 @ `dfe5111` added items 1 and 2 and read
+> landed since. A review on 2026-10-19 @ `dfe5111` added two items and read
 > `d700b54` (enemy chase and ambush) for logic bugs, finding none. It was not a
 > full re-audit. Renamed from `tech-debt.md` on 2026-09-18, when every personal repo moved to
 > the same backlog convention. Content is unchanged apart from this header and
@@ -12,10 +12,9 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 
 ## At a glance
 
-1. A save file of the wrong JSON shape crashes `--load` — S · open
-2. The enemy chase and ambush paths have test gaps — S · open
-3. The player profile assumes one game process at a time — S · open, low priority
-4. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
+1. The enemy chase and ambush paths have test gaps — S · open
+2. The player profile assumes one game process at a time — S · open, low priority
+3. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
 
 ## Working on these
 
@@ -23,23 +22,7 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 - Everything at once: `make ci`
 - Public repo. Never commit a work hostname, address, tool name or ticket ID.
 
-## 1. A save file of the wrong JSON shape crashes `--load`
-
-**S · open**
-
-`GameSerializer.load` (`neural_dive/game_serializer.py`, the `except` after
-`json.load`) catches `OSError`, `JSONDecodeError`, `KeyError` and `ValueError`.
-A file that is valid JSON but not an object escapes all four. Loading a file
-that holds `[]` raised `TypeError: list indices must be integers or slices, not
-str` (checked 2026-10-19). An agent saw the same with `null`. A wrong-typed
-nested field such as `"player": 5` likely raises `TypeError` or
-`AttributeError` too; not tested.
-
-Fix: add `TypeError` and `AttributeError` to the tuple. Verify with a test that
-loads `[]`, `null` and a wrong-typed field and expects `None`. There is no
-corrupt-save test today.
-
-## 2. The enemy chase and ambush paths have test gaps
+## 1. The enemy chase and ambush paths have test gaps
 
 **S · open**
 
@@ -56,7 +39,7 @@ From a read of `d700b54` on 2026-10-19; no logic bug found.
 Verify: a BFS test with a wall between enemy and player, and an ambush test at
 zero coherence.
 
-## 3. The player profile assumes one game process at a time
+## 2. The player profile assumes one game process at a time
 
 **S · open, low priority**
 
@@ -70,7 +53,7 @@ Fine for a single-player terminal game; worth knowing before anything else
 starts writing that file. The per-answer write is also deliberate: a run killed
 with Ctrl-C must not lose its history, and the file is a couple of KB.
 
-## 4. Pre-commit hooks never run on a commit that only touches `ndive`
+## 3. Pre-commit hooks never run on a commit that only touches `ndive`
 
 **S · open, low priority**
 
@@ -110,6 +93,10 @@ one that fix targets.
 One line each: the verdict and the fact that stops it being rediscovered. The
 reasoning behind each is in the commit that made it.
 
+- **A save of the wrong JSON shape crashed `--load`** (2026-10-19). `[]`,
+  `null` or a wrong-typed field raised `TypeError` or `AttributeError` past the
+  `except`. Both are caught now; `test_load_a_save_of_the_wrong_shape_returns_none`
+  covers all three and failed before the fix.
 - **`StateManager` was a mutation layer nothing called** (deleted 2026-10-03).
   Built in `Game._assemble` and never used outside its own tests; `CLAUDE.md`
   told contributors to route new logic through it. Moving the game onto it was

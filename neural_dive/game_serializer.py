@@ -103,7 +103,14 @@ class GameSerializer:
 
             # Deserialize into game instance
             return cls._deserialize_game_state(save_data, profile)
-        except (OSError, json.JSONDecodeError, KeyError, ValueError) as e:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            KeyError,
+            ValueError,
+            TypeError,
+            AttributeError,
+        ) as e:
             print(f"Error loading game: {e}")
             return None
 

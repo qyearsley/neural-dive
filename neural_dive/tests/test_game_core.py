@@ -291,6 +291,22 @@ class TestSaveLoad(unittest.TestCase):
 
         self.assertIsNone(result)
 
+    def test_load_a_save_of_the_wrong_shape_returns_none(self):
+        """Valid JSON that is not a save must fail the load, not crash it."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_path = Path(tmpdir) / "save.json"
+            Game(seed=42, random_npcs=False).save_game(str(save_path))
+            with open(save_path) as f:
+                wrong_field = json.load(f)
+            wrong_field["npc_manager"] = 5
+
+            cases: list[object] = [[], None, wrong_field]
+            for contents in cases:
+                with self.subTest(contents=type(contents).__name__):
+                    save_path.write_text(json.dumps(contents))
+                    with patch("builtins.print"):
+                        self.assertIsNone(Game.load_game(str(save_path)))
+
     def test_round_trip_save_load(self):
         """Test complete save/load round trip preserves game state."""
         game1 = Game(seed=99, random_npcs=False)
