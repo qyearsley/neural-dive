@@ -1,7 +1,9 @@
 # Improvements
 
-> **Status: audited 2026-09-13 against `main` @ `6481c46`, which is still HEAD.**
-> Renamed from `tech-debt.md` on 2026-09-18, when every personal repo moved to
+> **Status: audited 2026-09-13 against `main` @ `6481c46`.** Twelve commits have
+> landed since. A review on 2026-10-19 @ `dfe5111` added items 1 and 2 and read
+> `d700b54` (enemy chase and ambush) for logic bugs, finding none. It was not a
+> full re-audit. Renamed from `tech-debt.md` on 2026-09-18, when every personal repo moved to
 > the same backlog convention. Content is unchanged apart from this header and
 > the section names.
 
@@ -10,8 +12,10 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 
 ## At a glance
 
-1. The player profile assumes one game process at a time — S · open, low priority
-2. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
+1. A save file of the wrong JSON shape crashes `--load` — S · open
+2. The enemy chase and ambush paths have test gaps — S · open
+3. The player profile assumes one game process at a time — S · open, low priority
+4. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
 
 ## Working on these
 
@@ -19,7 +23,40 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 - Everything at once: `make ci`
 - Public repo. Never commit a work hostname, address, tool name or ticket ID.
 
-## 1. The player profile assumes one game process at a time
+## 1. A save file of the wrong JSON shape crashes `--load`
+
+**S · open**
+
+`GameSerializer.load` (`neural_dive/game_serializer.py`, the `except` after
+`json.load`) catches `OSError`, `JSONDecodeError`, `KeyError` and `ValueError`.
+A file that is valid JSON but not an object escapes all four. Loading a file
+that holds `[]` raised `TypeError: list indices must be integers or slices, not
+str` (checked 2026-10-19). An agent saw the same with `null`. A wrong-typed
+nested field such as `"player": 5` likely raises `TypeError` or
+`AttributeError` too; not tested.
+
+Fix: add `TypeError` and `AttributeError` to the tuple. Verify with a test that
+loads `[]`, `null` and a wrong-typed field and expects `None`. There is no
+corrupt-save test today.
+
+## 2. The enemy chase and ambush paths have test gaps
+
+**S · open**
+
+From a read of `d700b54` on 2026-10-19; no logic bug found.
+
+- `NPCMovement._first_step_toward`, the BFS step, is untested. The chase test
+  in `tests/test_npc_units.py` only checks the chase speed.
+- The game-over branch in `answer_processor.py` ends the conversation directly,
+  so the enemy is not stunned and stays adjacent. `check_ambush` guards this
+  with `coherence <= 0`, and no test pins that guard.
+- The `overlay_is_open` / `pending_confirm` gate in `__main__.py` runs only in
+  real play.
+
+Verify: a BFS test with a wall between enemy and player, and an ambush test at
+zero coherence.
+
+## 3. The player profile assumes one game process at a time
 
 **S · open, low priority**
 
@@ -33,7 +70,7 @@ Fine for a single-player terminal game; worth knowing before anything else
 starts writing that file. The per-answer write is also deliberate: a run killed
 with Ctrl-C must not lose its history, and the file is a couple of KB.
 
-## 2. Pre-commit hooks never run on a commit that only touches `ndive`
+## 4. Pre-commit hooks never run on a commit that only touches `ndive`
 
 **S · open, low priority**
 
