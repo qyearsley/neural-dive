@@ -1,7 +1,7 @@
 # Improvements
 
-> **Status: audited 2026-09-13 against `main` @ `6481c46`.** Twelve commits have
-> landed since. A review on 2026-10-19 @ `dfe5111` added two items and read
+> **Status: audited 2026-09-13 against `main` @ `6481c46`.** Fourteen commits have
+> landed since (to `cf7866c`, 2026-11-05). A review on 2026-10-19 @ `dfe5111` added two items and read
 > `d700b54` (enemy chase and ambush) for logic bugs, finding none. It was not a
 > full re-audit. Renamed from `tech-debt.md` on 2026-09-18, when every personal repo moved to
 > the same backlog convention. Content is unchanged apart from this header and
@@ -138,8 +138,8 @@ reasoning behind each is in the commit that made it.
   `draw_text_block`, `entity_renderers._resolve_style`) are deleted on purpose:
   keeping them would leave a second, unrecordable way to draw. Verified cell by
   cell against a real `BlessedBackend` in a pty.
-- **CI exists** (2026-09-05). ruff, mypy, pytest and `validate_questions.py` on
-  push and pull request, over a 3.10/3.14 matrix -- the two ends of the declared
+- **CI exists** (2026-09-05). ruff, mypy and pytest (plus `validate_questions.py`
+  until 2026-09-26) on push and pull request, over a 3.10/3.14 matrix -- the two ends of the declared
   range, neither of which had ever been run. Lockfile-index check is a second
   job. The pre-commit hooks stay, as the faster feedback.
 - **`terminals.json` was authored and unwired** (deleted 2026-09-05). 147 lines
