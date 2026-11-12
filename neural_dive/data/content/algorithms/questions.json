@@ -395,7 +395,7 @@
       {
         "text": "Anonymous pipes",
         "correct": false,
-        "response": "Pipes copy the payload through a kernel buffer in both directions."
+        "response": "Pipes copy the payload into a kernel buffer and out again on the other side."
       },
       {
         "text": "POSIX message queues",
@@ -600,7 +600,7 @@
       {
         "text": "To encrypt DNS queries",
         "correct": false,
-        "response": "That's DNSSEC or DNS-over-HTTPS, not caching."
+        "response": "That is DNS-over-HTTPS or DNS-over-TLS. DNSSEC signs answers; it does not encrypt them."
       },
       {
         "text": "To reduce latency and load on DNS servers",
@@ -819,13 +819,13 @@
       {
         "text": "End-to-end tests (top layer)",
         "correct": false,
-        "response": "E2E tests should be the fewest! They're slow, brittle, and expensive. Focus on fast unit tests for most coverage.",
+        "response": "E2E tests should be the fewest - they are slow and brittle. A suite that is mostly E2E is the ice cream cone anti-pattern.",
         "reward_knowledge": null
       },
       {
         "text": "All layers should have equal numbers of tests",
         "correct": false,
-        "response": "That's the ice cream cone anti-pattern! Unit tests should vastly outnumber integration and E2E tests.",
+        "response": "No. Unit tests are the cheapest and fastest, so they should far outnumber integration and E2E tests.",
         "reward_knowledge": null
       }
     ]
@@ -952,11 +952,11 @@
   },
   "api_rate_limiting": {
     "type": "yes_no",
-    "question_text": "Does API rate limiting help prevent abuse and ensure fair usage?",
+    "question_text": "Does a token bucket rate limiter allow short bursts above its average rate?",
     "topic": "web_development",
     "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Rate limiting protects APIs from overuse and abuse.",
-    "incorrect_response": "Yes - rate limiting prevents one client from monopolizing API resources."
+    "correct_response": "Correct! Saved-up tokens let a burst through, up to the bucket's size.",
+    "incorrect_response": "Actually yes. Tokens accumulate while idle, so a burst up to the bucket size is allowed."
   },
   "docker_vs_vm": {
     "question_text": "What's a key difference between Docker containers and virtual machines?",
@@ -965,13 +965,13 @@
       {
         "text": "Containers share the host OS kernel; VMs include a full OS",
         "correct": true,
-        "response": "Correct! Containers are lightweight (MBs, start in seconds) by sharing the kernel. VMs include a full OS (GBs, start in minutes). Containers are faster but less isolated.",
+        "response": "Correct! Containers share the kernel, so they are small and start in about a second. A VM boots its own OS, so it is larger and slower to start - but better isolated.",
         "reward_knowledge": "containerization"
       },
       {
         "text": "VMs are faster to start than containers",
         "correct": false,
-        "response": "Opposite! Containers start in seconds; VMs take minutes. Containers don't boot an OS, they just start processes.",
+        "response": "Opposite! A VM has to boot an operating system. A container just starts a process on a kernel that is already running.",
         "reward_knowledge": null
       },
       {
@@ -983,7 +983,7 @@
       {
         "text": "Docker can only run Linux applications",
         "correct": false,
-        "response": "Docker can run Linux, Windows, and Mac containers (with appropriate host OS). The OS-sharing principle applies regardless of platform.",
+        "response": "Docker also runs Windows containers on Windows hosts. On a Mac it runs Linux containers inside a small VM - there are no macOS containers.",
         "reward_knowledge": null
       }
     ]
@@ -1227,7 +1227,7 @@
     ]
   },
   "exception_handling": {
-    "question_text": "Why is it generally bad practice to catch all exceptions with a bare 'except' clause?",
+    "question_text": "In Python, why is it generally bad practice to catch all exceptions with a bare 'except' clause?",
     "topic": "programming_fundamentals",
     "answers": [
       {
@@ -1297,21 +1297,21 @@
         "reward_knowledge": "software_practices"
       },
       {
-        "text": "To find someone to blame when things go wrong",
+        "text": "Guarantee the change has no bugs",
         "correct": false,
-        "response": "No! Code reviews are collaborative, not punitive. The goal is to improve the code, not blame people.",
+        "response": "Reviews catch some bugs, not all. Tests and monitoring are still needed.",
         "reward_knowledge": null
       },
       {
-        "text": "To slow down development and add bureaucracy",
+        "text": "Check formatting and code style",
         "correct": false,
-        "response": "Good reviews catch bugs before production, saving time overall. They're an investment in quality.",
+        "response": "A formatter and linter do that better. Reviewer attention is best spent on design and correctness.",
         "reward_knowledge": null
       },
       {
-        "text": "Only senior developers should review code",
+        "text": "Get approval from the most senior engineer",
         "correct": false,
-        "response": "Everyone benefits from reviews! Junior devs can catch bugs too, and they learn by reviewing.",
+        "response": "Seniority is not the point - anyone can catch bugs, and juniors learn by reviewing.",
         "reward_knowledge": null
       }
     ]
@@ -1332,7 +1332,7 @@
         "response": "Arrays win here: O(1) by index. A linked list needs O(n) traversal."
       },
       {
-        "text": "When you must minimise memory overhead per element",
+        "text": "When you must minimize memory overhead per element",
         "correct": false,
         "response": "Arrays win here too - a linked list stores a pointer beside every element."
       },
@@ -1405,11 +1405,11 @@
   },
   "api_versioning": {
     "type": "yes_no",
-    "question_text": "Should you version your public API to avoid breaking existing clients?",
+    "question_text": "Can adding an optional field to a JSON API response usually ship without a new API version?",
     "topic": "web_development",
     "correct_answer": "yes|true|y",
-    "correct_response": "Correct! API versioning prevents breaking changes for existing users.",
-    "incorrect_response": "Yes - versioning (like /v1/, /v2/) protects clients from breaking changes."
+    "correct_response": "Correct! Additive changes are backward compatible for clients that ignore unknown fields.",
+    "incorrect_response": "Actually yes. Well-behaved clients ignore unknown fields. Removing or renaming a field is what breaks them."
   },
   "recursion_vs_iteration": {
     "question_text": "When might recursion be preferred over iteration?",
@@ -1484,7 +1484,7 @@
       {
         "text": "Keep It Simple, Stupid",
         "correct": false,
-        "response": "That is KISS - favour the simplest design that works. DRY is about duplication."
+        "response": "That is KISS - favor the simplest design that works. DRY is about duplication."
       },
       {
         "text": "You Aren't Gonna Need It",
@@ -1509,21 +1509,21 @@
         "reward_knowledge": "solid_principles"
       },
       {
-        "text": "Simple Reusability Pattern",
+        "text": "Substitution Principle",
         "correct": false,
-        "response": "Not quite! S = Single Responsibility Principle. A class should have only one reason to change.",
+        "response": "Substitution is the L - Liskov Substitution. The S is Single Responsibility.",
         "reward_knowledge": null
       },
       {
-        "text": "Structured Programming",
+        "text": "Segregation Principle",
         "correct": false,
-        "response": "No. S = Single Responsibility Principle. Each class should have one, well-defined purpose.",
+        "response": "Segregation is the I - Interface Segregation. The S is Single Responsibility.",
         "reward_knowledge": null
       },
       {
-        "text": "Synchronized Operations",
+        "text": "Separation of Concerns",
         "correct": false,
-        "response": "Incorrect! S = Single Responsibility Principle. Each class should do one thing well.",
+        "response": "A related idea, but not one of the SOLID letters. The S is Single Responsibility.",
         "reward_knowledge": null
       }
     ]
@@ -1549,7 +1549,7 @@
         "response": "That is architecture search. Gradient descent tunes weights, not structure."
       },
       {
-        "text": "To remove the need for labelled training data",
+        "text": "To remove the need for labeled training data",
         "correct": false,
         "response": "No - the loss is computed against labels, so the data is still required."
       }
@@ -1589,7 +1589,7 @@
       {
         "text": "Depth-First Search",
         "correct": false,
-        "response": "DFS explores as deep as possible first."
+        "response": "DFS can reach a node by a long path before it ever tries the short one."
       },
       {
         "text": "Breadth-First Search",
@@ -1600,12 +1600,12 @@
       {
         "text": "Both are equivalent",
         "correct": false,
-        "response": "They have different properties!"
+        "response": "DFS may return a longer path. BFS reaches nodes in order of distance."
       },
       {
         "text": "Neither guarantees it",
         "correct": false,
-        "response": "One of them does guarantee it."
+        "response": "BFS does: it visits every node at distance k before any at distance k+1."
       }
     ]
   },
@@ -1614,25 +1614,25 @@
     "topic": "algorithms",
     "answers": [
       {
-        "text": "Worst case only",
-        "correct": false,
-        "response": "Amortized analysis considers sequences of operations."
-      },
-      {
-        "text": "Best case only",
-        "correct": false,
-        "response": "No, it's about average over sequences."
-      },
-      {
-        "text": "Average over sequence",
+        "text": "Worst-case cost per operation, averaged over a sequence",
         "correct": true,
-        "response": "Correct! Amortized analysis averages cost over operation sequences.",
+        "response": "Correct! No probability involved: any sequence of n operations costs at most n times the amortized bound.",
         "reward_knowledge": "amortized"
       },
       {
-        "text": "Space complexity",
+        "text": "Expected cost per operation over random inputs",
         "correct": false,
-        "response": "Amortized analysis is about time, not space."
+        "response": "That is average-case analysis, which assumes an input distribution. Amortized analysis holds for every sequence."
+      },
+      {
+        "text": "The cost of the single worst operation",
+        "correct": false,
+        "response": "That is plain worst case. Amortized analysis lets one expensive operation be paid for by many cheap ones."
+      },
+      {
+        "text": "Space used per operation over a sequence",
+        "correct": false,
+        "response": "Amortized analysis is usually about time, and it averages cost across a sequence."
       }
     ]
   },
@@ -1695,9 +1695,9 @@
     "topic": "web_development",
     "answers": [
       {
-        "text": "Which origins a browser lets a page call",
+        "text": "Which origins' responses a page's scripts may read",
         "correct": true,
-        "response": "Correct! The server's CORS headers tell the browser which origins may read the response.",
+        "response": "Correct! The browser still sends many cross-origin requests; CORS headers decide whether the page may read the response. That gap is why CSRF defenses are still needed.",
         "reward_knowledge": "cors"
       },
       {
@@ -1722,9 +1722,9 @@
     "topic": "web_development",
     "answers": [
       {
-        "text": "Server must store session",
+        "text": "Easy to revoke before it expires",
         "correct": false,
-        "response": "JWT is stateless - no server storage!"
+        "response": "The opposite - a stateless token stays valid until it expires unless you add a denylist, which brings back server state."
       },
       {
         "text": "Stateless authentication",
@@ -1738,9 +1738,9 @@
         "response": "JWTs are signed, not necessarily encrypted."
       },
       {
-        "text": "Smaller than cookies",
+        "text": "Smaller than a session ID",
         "correct": false,
-        "response": "JWTs are actually larger than session cookies!"
+        "response": "A JWT carries its claims and signature, so it is much larger than an opaque session ID."
       }
     ]
   },
@@ -1920,9 +1920,9 @@
     "topic": "security",
     "answers": [
       {
-        "text": "Password encryption",
+        "text": "Logging the user in to your app",
         "correct": false,
-        "response": "OAuth doesn't handle password encryption."
+        "response": "OAuth 2.0 alone grants access, not identity. OpenID Connect adds authentication on top."
       },
       {
         "text": "Delegated authorization",
@@ -1931,14 +1931,14 @@
         "reward_knowledge": "oauth"
       },
       {
-        "text": "Data encryption",
+        "text": "Encrypting tokens in transit",
         "correct": false,
-        "response": "OAuth is for authorization, not encryption."
+        "response": "That is TLS. OAuth relies on it but does not provide it."
       },
       {
-        "text": "DNS security",
+        "text": "Storing user passwords safely",
         "correct": false,
-        "response": "OAuth isn't related to DNS."
+        "response": "That is password hashing. OAuth exists so the third-party app never sees the password."
       }
     ]
   },
@@ -2106,11 +2106,11 @@
   },
   "infrastructure_as_code": {
     "type": "yes_no",
-    "question_text": "Does Infrastructure as Code (IaC) allow you to version control your infrastructure?",
+    "question_text": "Should applying an unchanged declarative IaC config a second time be a no-op?",
     "topic": "devops",
     "correct_answer": "yes|true|y",
-    "correct_response": "Correct! IaC treats infrastructure like code - version controlled and reproducible.",
-    "incorrect_response": "Yes - IaC lets you track infrastructure changes in version control."
+    "correct_response": "Correct! Declarative IaC describes the end state, so a second apply finds nothing to change.",
+    "incorrect_response": "Actually yes. If a second apply changes something, the config and the real infrastructure have drifted."
   },
   "monitoring_vs_observability": {
     "question_text": "What is the key difference between monitoring and observability?",
@@ -2144,25 +2144,25 @@
     "topic": "devops",
     "answers": [
       {
-        "text": "Electrical failures",
+        "text": "Duplicate side effects when a request is retried",
         "correct": false,
-        "response": "It's a software pattern!"
+        "response": "That is what idempotency keys are for. A circuit breaker stops calls to a failing dependency."
       },
       {
         "text": "Cascading failures",
         "correct": true,
-        "response": "Correct! Circuit breakers stop failure propagation.",
+        "response": "Correct! After repeated failures it fails fast instead of calling, so one sick dependency does not tie up every caller.",
         "reward_knowledge": "circuit_breaker"
       },
       {
-        "text": "Security breaches",
+        "text": "Two nodes both acting as the leader",
         "correct": false,
-        "response": "Circuit breakers are about resilience."
+        "response": "That is split brain, prevented with quorums and fencing."
       },
       {
-        "text": "Memory leaks",
+        "text": "Messages lost when a consumer crashes",
         "correct": false,
-        "response": "Not the purpose of circuit breakers."
+        "response": "That is handled by durable queues and acknowledgments."
       }
     ]
   },
@@ -2171,7 +2171,7 @@
     "topic": "design_patterns",
     "answers": [
       {
-        "text": "Adds behaviour to an object at runtime",
+        "text": "Adds behavior to an object at runtime",
         "correct": true,
         "response": "Yes! A decorator wraps an object and shares its interface, so wrappers stack.",
         "reward_knowledge": "decorator"
@@ -2189,7 +2189,7 @@
       {
         "text": "Controls access to another object, for example lazily",
         "correct": false,
-        "response": "That is Proxy. It guards access rather than adding behaviour."
+        "response": "That is Proxy. It guards access rather than adding behavior."
       }
     ]
   },
@@ -2252,7 +2252,7 @@
     "topic": "design_patterns",
     "answers": [
       {
-        "text": "An object must change behaviour as its state changes",
+        "text": "An object must change behavior as its state changes",
         "correct": true,
         "response": "Correct! Each state becomes an object, replacing a big conditional on a state field.",
         "reward_knowledge": "state"
@@ -2270,7 +2270,7 @@
       {
         "text": "A single instance must be shared across the app",
         "correct": false,
-        "response": "That is Singleton, which controls instance count rather than behaviour."
+        "response": "That is Singleton, which controls instance count rather than behavior."
       }
     ]
   },
@@ -2411,7 +2411,7 @@
         "response": "That is the product backlog, which is about scope rather than code quality."
       },
       {
-        "text": "The licence cost of third-party dependencies",
+        "text": "The license cost of third-party dependencies",
         "correct": false,
         "response": "That is a real budget line, but technical debt is a metaphor for design cost."
       }
@@ -2640,7 +2640,7 @@
       {
         "text": "In NP and all NP problems reduce to it",
         "correct": true,
-        "response": "Correct! NP-complete problems are the hardest in NP - if you solve one efficiently, you solve all NP problems! SAT, TSP, Graph Coloring are classics. No polynomial algorithm known.",
+        "response": "Correct! NP-complete problems are the hardest in NP - solve one in polynomial time and you solve them all. SAT, graph coloring, and the decision version of TSP are classics.",
         "reward_knowledge": "np_complete"
       },
       {
@@ -3088,11 +3088,11 @@
   },
   "stack_lifo": {
     "type": "yes_no",
-    "question_text": "Does a stack follow Last-In-First-Out (LIFO) order?",
+    "question_text": "Can a stack check whether the brackets in an expression are balanced?",
     "topic": "data_structures",
     "correct_answer": "yes|true|y",
-    "correct_response": "Correct! Stacks are LIFO - last item pushed is first popped.",
-    "incorrect_response": "Yes - stacks are LIFO (like a stack of plates)."
+    "correct_response": "Correct! Push each opener; each closer must match the top. The stack must be empty at the end.",
+    "incorrect_response": "Actually yes. Because a stack is LIFO, the most recent unclosed bracket is always on top."
   },
   "process_vs_thread": {
     "type": "yes_no",
@@ -3516,7 +3516,7 @@
       {
         "text": "Test database backups",
         "correct": false,
-        "response": "That's database snapshot testing (different concept). UI snapshot testing compares rendered output."
+        "response": "That is backup verification. Snapshot tests compare a component's serialized output with a stored copy."
       },
       {
         "text": "Compare rendered screenshots of a page pixel by pixel",
@@ -3581,7 +3581,7 @@
       {
         "text": "It stops as soon as it reaches the target node",
         "correct": false,
-        "response": "Stopping early is a valid optimisation, not the reason negative weights break it."
+        "response": "Stopping early is a valid optimization, not the reason negative weights break it."
       }
     ]
   },
@@ -3719,7 +3719,7 @@
         "reward_knowledge": "graphs"
       },
       {
-        "text": "When you need to iterate a vertex's neighbours fast",
+        "text": "When you need to iterate a vertex's neighbors fast",
         "correct": false,
         "response": "A list wins there. A matrix has to scan a whole row of V cells."
       },
@@ -3781,7 +3781,7 @@
       {
         "text": "The result depends on the interleaving of threads",
         "correct": true,
-        "response": "Correct! Unsynchronised access to shared state makes the outcome schedule-dependent.",
+        "response": "Correct! Unsynchronized access to shared state makes the outcome schedule-dependent.",
         "reward_knowledge": "concurrency"
       },
       {
@@ -4251,7 +4251,7 @@
       {
         "text": "It fails if the bug ever comes back",
         "correct": true,
-        "response": "Correct! The test pins the behaviour so the fix cannot quietly come undone."
+        "response": "Correct! The test pins the behavior so the fix cannot quietly come undone."
       },
       {
         "text": "It proves the rest of the code is correct",
@@ -4323,7 +4323,7 @@
       {
         "text": "It gives up consistency to stay available",
         "correct": false,
-        "response": "The opposite: 2PC favours consistency over availability."
+        "response": "The opposite: 2PC favors consistency over availability."
       },
       {
         "text": "It requires every node to run the same engine",
@@ -4469,7 +4469,7 @@
         "response": "That is Proxy, which controls access to one object."
       },
       {
-        "text": "A way to add behaviour at runtime",
+        "text": "A way to add behavior at runtime",
         "correct": false,
         "response": "That is Decorator, which wraps one object in another."
       }
