@@ -60,15 +60,9 @@ UI_BOTTOM_OFFSET = 4
 END_SCREEN_CHROME_ROWS = 6
 END_SCREEN_MIN_HEIGHT = 10
 
-# Minimum terminal size.
-#
-# The map is drawn from row 0 and the status panel owns the last
-# UI_BOTTOM_OFFSET rows, so the window must be at least as tall as the tallest
-# floor layout plus the panel. These are the fallbacks used when the level
-# layouts cannot be measured; rendering.required_terminal_size() measures the
-# real content and returns the larger figure.
+# Minimum terminal width. The height is not a constant: it depends on the
+# tallest floor layout, so rendering.required_terminal_size() measures it.
 MIN_TERMINAL_WIDTH = DEFAULT_MAP_WIDTH
-MIN_TERMINAL_HEIGHT = DEFAULT_MAP_HEIGHT + UI_BOTTOM_OFFSET
 
 # Overlay layout offsets (in character cells)
 OVERLAY_SCREEN_MARGIN = 4  # Clearance subtracted from screen w/h when sizing an overlay
