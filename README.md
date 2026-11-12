@@ -12,7 +12,7 @@
 
 ## Features
 
-- **Computer Science learning content** - 180 questions across algorithms, systems, web, ML, and more
+- **Computer Science learning content** - questions across algorithms, systems, web, ML, and more
 - **Roguelike gameplay** with wandering NPCs and procedural maps
 - **Cyberpunk theme** with Unicode graphics
 - **Save/Load system** - save your progress and continue later
@@ -115,10 +115,10 @@ failing. `--stats` prints your most-missed questions and weakest topics;
 
 **Objective:** Descend through neural layers, answer questions, gain knowledge, defeat challenging NPCs.
 
-**Layers:** (3 total, set by `MAX_FLOORS` in `config.py`; 16 NPCs in all)
-- **Layer 1**: Introduction - 6 NPCs covering the basics, including one enemy
-- **Layer 2**: Intermediate challenges - 5 specialists and one enemy
-- **Layer 3**: Deep Core - three bosses and one enemy; defeat a boss to win
+**Layers:** (3 total, set by `MAX_FLOORS` in `config.py`)
+- **Layer 1**: Introduction - the basics, including one enemy
+- **Layer 2**: Intermediate challenges - specialists and one enemy
+- **Layer 3**: Deep Core - bosses and one enemy; defeat a boss to win
 
 **Mechanics:**
 - **Coherence** = health (80/100 start, +10 correct, -25 wrong, -40 from enemies)
@@ -201,40 +201,7 @@ Use the make targets rather than calling `uv run` directly: they set
 `UV_FROZEN=1`, which stops uv from re-resolving and rewriting `uv.lock` on every
 invocation.
 
-**Project Structure:**
-```
-neural_dive/
-├── data/
-│   ├── content/              # Content sets
-│   │   └── algorithms/       # CS content (default, and currently the only one)
-│   │       ├── content.json
-│   │       ├── questions.json
-│   │       ├── npcs.json
-│   │       └── levels.py
-│   ├── snippets.json         # Code snippets awarded by specialists
-│   └── levels.py             # Re-exports content/algorithms/levels.py. Not dead
-│                             # code: data_loader, npc_manager and
-│                             # floor_entity_generator all import through it,
-│                             # and each hardcodes the algorithms set.
-├── managers/                 # Game state managers
-│   ├── player_manager.py
-│   ├── npc_manager.py
-│   ├── floor_manager.py
-│   └── conversation_engine.py
-├── game.py                   # Core game logic
-├── input_handler.py          # Keyboard input, per game mode
-├── rendering.py              # Frame composition (see *_renderer.py modules)
-├── data_loader.py            # Load content sets
-├── player_profile.py         # Cross-run question history (~/.neural_dive/profile.json)
-├── themes.py                 # Visual theme (cyberpunk dark)
-├── tests/                    # pytest suite
-└── ...
-scripts/
-├── README.md                 # Content-inspection one-liners
-└── check-lockfile-index.sh   # Pre-commit: keep uv.lock on public PyPI
-validate_questions.py         # Check NPC → question references resolve
-ndive                         # Launcher
-```
+For the code layout, see the Layout section of [CLAUDE.md](CLAUDE.md).
 
 ---
 
@@ -245,14 +212,14 @@ ndive                         # Launcher
 - **[Development Guide](CLAUDE.md)** - For AI assistants and contributors
 - **[Known Issues](docs/known-issues.md)** - Bug tracker
 - **[Improvements](docs/improvements.md)** - Maintenance backlog: debt, test gaps, and what was turned down
-- **[Scripts README](scripts/README.md)** - Helper utilities
+- **[Scripts README](scripts/README.md)** - The lockfile-index check
 
 ---
 
 ## Topics Covered
 
 ### Computer Science (algorithms content)
-180 questions covering AI/ML, DevOps, algorithms, systems programming, web
+The questions cover AI/ML, DevOps, algorithms, systems programming, web
 development, databases, design patterns, security, software engineering, system
 design, data structures, testing, networking, distributed systems, programming
 fundamentals, version control, architecture, and computability theory.
