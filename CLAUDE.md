@@ -64,7 +64,7 @@ neural_dive/
 │   ├── movement_controller.py   # Tile-level movement validation
 │   ├── quest_manager.py         # Main quest progress
 │   └── stats_tracker.py         # Score, accuracy, time
-├── events.py                # EventBus + typed event dataclasses
+├── events.py                # EventBus + the ItemPickedUp event
 ├── input_handler.py         # Keyboard handling, one handler per game mode
 ├── backends/
 │   ├── backend.py           # RenderBackend protocol
@@ -115,10 +115,11 @@ disagreeing.
 layer. A `StateManager` that claimed to be one was deleted on 2026-10-03,
 because nothing in the game called it.
 
-`events.py` has an `EventBus` and ten event types, but only `ItemPickedUp` is
-published (from `Game.move_player`), and nothing subscribes outside tests. If you
-add a subscriber, add the publisher for its event at the point where the owning
-manager makes the change.
+`events.py` has an `EventBus` and one event type, `ItemPickedUp`. It is
+published from `Game.move_player`, and nothing subscribes outside tests. Nine
+other event types were deleted on 2026-11-12 because nothing published them. To
+add an event, add its class and its publisher together, at the point where the
+owning manager makes the change.
 
 **Content is loaded from `data/content/algorithms/`.** Old paths
 (`data/npcs.json`, `data/questions.json`) were deleted; only the canonical
