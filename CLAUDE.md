@@ -224,7 +224,7 @@ answer order, and hint-token eliminations all draw from the game's generator.
 
 ### Map access
 ```python
-tile = game.game_map[y][x]   # y first, then x
+tile = game.game_map[y][x]  # y first, then x
 height = len(game.game_map)
 width = len(game.game_map[0])
 ```

@@ -30,8 +30,8 @@ jobs:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -55,8 +55,8 @@ jobs:
     name: uv.lock is in sync and uses public PyPI only
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
       # UV_FROZEN unset (not just empty -- uv 0.12 rejects "" as a boolish
       # value) and pointed at public PyPI, so this fails if uv.lock has drifted
       # from pyproject.toml, without writing the file or touching any mirror.
