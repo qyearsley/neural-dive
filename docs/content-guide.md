@@ -79,74 +79,9 @@ humans — keep it accurate, but changing it has no runtime effect.
 
 ### 3. Create Questions
 
-Create `questions.json` with your educational content.
-
-See [question-guide.md](question-guide.md) for detailed question formatting.
-
-**Example question:**
-
-```json
-{
-  "question_id_1": {
-    "topic": "topic1",
-    "question_text": "What is the capital of France?",
-    "answers": [
-      {
-        "text": "Paris",
-        "correct": true,
-        "response": "Correct! Paris is the capital of France.",
-        "reward_knowledge": "European Capitals"
-      },
-      {
-        "text": "London",
-        "correct": false,
-        "response": "No, that's the capital of the UK. Paris is France's capital."
-      },
-      {
-        "text": "Berlin",
-        "correct": false,
-        "response": "No, that's Germany's capital. Paris is France's capital."
-      },
-      {
-        "text": "Rome",
-        "correct": false,
-        "response": "No, that's Italy's capital. Paris is France's capital."
-      }
-    ]
-  },
-  "question_id_2": {
-    "topic": "topic1",
-    "type": "short_answer",
-    "question_text": "What year did World War II end?",
-    "correct_answer": "1945",
-    "correct_response": "Correct! World War II ended in 1945.",
-    "incorrect_response": "Not quite. World War II ended in 1945.",
-    "reward_knowledge": "20th Century History",
-    "match_type": "exact",
-    "case_sensitive": false
-  }
-}
-```
-
-**Question Types:**
-- `multiple_choice` (default) - up to 4 answer options; the in-game keys are `1`-`4`
-- `short_answer` - Free text input, matched per `match_type`
-- `yes_no` - Simple yes/no question
-
-The top-level key (`question_id_1` above) is more than a label: cross-run
-question history is recorded against it in `~/.neural_dive/profile.json`, per
-content set. Keys only need to be unique within your set, and renaming one
-discards players' history for that question — see
-[question-guide.md](question-guide.md#question-id).
-
-Set the type with a `"type"` field. Any JSON key the `Question` dataclass doesn't
-define (for example `difficulty`) is silently ignored.
-
-**Tips:**
-- Write 10-20 questions minimum
-- Include good explanatory responses
-- Award knowledge modules for correct answers
-- Use varied difficulty levels
+Create `questions.json`. The question format, types, ID rules and examples are
+in [question-guide.md](question-guide.md). The top-level key of each question is
+its ID, and cross-run history is recorded against it, so do not rename one later.
 
 ### 4. Create NPCs
 
@@ -283,7 +218,7 @@ game = Game(content_set="your-content-name", seed=42)
 # Confirm every NPC question reference resolves
 make validate
 
-# Play, after pointing __main__.py at your content set
+# Play, after editing the content_set line in __main__.py (there is no flag)
 ./ndive --seed 42 --fixed
 ```
 
@@ -298,8 +233,9 @@ make validate
 
 ## Example Content Set
 
-There is currently only one: **algorithms/** — computer science, 180 questions,
-16 NPCs across 3 floors. Read it alongside this guide.
+There is currently only one: **algorithms/**, which covers computer science
+across 3 floors. Read it alongside this guide. Run `make validate` for current
+counts.
 
 ## Best Practices
 
@@ -328,16 +264,6 @@ There is currently only one: **algorithms/** — computer science, 180 questions
 - Create attractive terminal displays
 - Consider accessibility (color blind users)
 
-## Publishing Your Content
-
-Want to share your content set with others?
-
-1. Test thoroughly
-2. Add documentation (README in your content directory)
-3. Consider licensing (MIT recommended)
-4. Share on GitHub or with Neural Dive community
-5. Submit as PR to main repo (optional)
-
 ## Troubleshooting
 
 ### Content Not Loading
@@ -361,18 +287,6 @@ Want to share your content set with others?
 ### Save/Load Issues
 - Old saves may not have a `content_set` field
 - Delete `~/.neural_dive/save.json` to reset
-
-## Advanced Topics
-
-### Custom Question Types
-See [question-guide.md](question-guide.md) for the three supported formats.
-
-### Dynamic Content
-Content is loaded at game start. For dynamic content, modify `data_loader.py`.
-
-### Localization
-Nothing in the loader is English-specific, so a translated set is just another
-content directory — but see step 7 about selecting it.
 
 ## Need Help?
 

@@ -20,12 +20,6 @@ Questions are stored in `neural_dive/data/content/algorithms/questions.json`. Ne
 - **Short Answer** (type-in) - Best for interview prep, complexity questions
 - **Yes/No** (true/false) - Best for quick knowledge checks
 
-### Current Question Type Mix
-
-The algorithms set is currently 154 multiple choice, 16 yes/no, and 10 short
-answer -- 180 in total. Multiple choice dominates; adding short-answer and
-yes/no questions is the easiest way to add variety.
-
 **Minimal Multiple Choice Example:**
 ```json
 "example_question": {
@@ -71,7 +65,7 @@ yes/no questions is the easiest way to add variety.
 
 ## Question Types
 
-### 1. Multiple Choice (154 of 180 questions)
+### 1. Multiple Choice
 
 **Best for:**
 - Teaching through wrong answers
@@ -90,7 +84,7 @@ yes/no questions is the easiest way to add variety.
 - Multiple concepts could be confused
 - Beginner to medium difficulty
 
-### 2. Short Answer (10 of 180 questions)
+### 2. Short Answer
 
 **Best for:**
 - Big-O complexity (most common in interviews!)
@@ -118,7 +112,7 @@ Accept ALL correct variations that show understanding:
 - Interview-style questions
 - Medium to hard difficulty
 
-### 3. Yes/No (16 of 180 questions)
+### 3. Yes/No
 
 **Best for:**
 - True/false facts
