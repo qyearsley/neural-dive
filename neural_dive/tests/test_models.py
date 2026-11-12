@@ -109,26 +109,6 @@ class TestConversation(unittest.TestCase):
         assert current is not None  # Type narrowing for mypy
         self.assertEqual(current.question_text, "Q1?")
 
-    def test_advance_question(self):
-        """Test advancing to next question"""
-        self.conversation.advance_question()
-
-        self.assertEqual(self.conversation.current_question_idx, 1)
-        current = self.conversation.get_current_question()
-        assert current is not None  # Type narrowing for mypy
-        self.assertEqual(current.question_text, "Q2?")
-
-    def test_advance_to_completion(self):
-        """Test advancing until conversation is complete"""
-        self.assertFalse(self.conversation.is_complete())
-
-        self.conversation.advance_question()
-        self.assertFalse(self.conversation.is_complete())
-
-        self.conversation.advance_question()
-        self.assertTrue(self.conversation.is_complete())
-        self.assertTrue(self.conversation.completed)
-
     def test_get_current_question_when_complete(self):
         """Test that get_current_question returns None when complete"""
         self.conversation.current_question_idx = 2

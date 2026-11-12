@@ -140,14 +140,6 @@ class ConversationEngine:
 
         return answer.correct, answer.response
 
-    def is_active(self) -> bool:
-        """Check if a conversation is currently active.
-
-        Returns:
-            True if conversation is active
-        """
-        return self.active_conversation is not None
-
     def use_hint_token(self, num_to_eliminate: int = 1) -> tuple[bool, str]:
         """Use a hint token to eliminate wrong answers in the current question.
 

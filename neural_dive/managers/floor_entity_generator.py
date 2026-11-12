@@ -49,39 +49,6 @@ class FloorEntityGenerator:
         self.snippets = snippets
         self.rand = rand
 
-    def generate_all_entities(
-        self,
-        floor: int,
-        max_floors: int,
-        game_map: list[list[str]],
-        map_width: int,
-        map_height: int,
-        player_pos: tuple[int, int],
-        random_placement: bool,
-    ) -> tuple[list[Stairs], list[InfoTerminal], list[ItemPickup]]:
-        """Generate all entities for a floor.
-
-        Args:
-            floor: Current floor number
-            max_floors: Maximum number of floors in game
-            game_map: Current floor's map grid
-            map_width: Width of the map
-            map_height: Height of the map
-            player_pos: Player's (x, y) position
-            random_placement: Whether to use random placement
-
-        Returns:
-            Tuple of (stairs, terminals, item_pickups)
-        """
-        stairs, terminals = self.generate_fixtures(
-            floor, max_floors, game_map, map_width, map_height, player_pos, random_placement
-        )
-        item_pickups = self.generate_items(
-            floor, game_map, map_width, map_height, player_pos, random_placement
-        )
-
-        return stairs, terminals, item_pickups
-
     def generate_fixtures(
         self,
         floor: int,

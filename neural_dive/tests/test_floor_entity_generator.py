@@ -322,17 +322,16 @@ class TestFullEntityGeneration(unittest.TestCase):
         self.map_height = 24
         self.player_pos = (5, 5)
 
-    def test_generate_all_entities(self):
-        """Test generating all entities at once."""
-        stairs, terminals, items = self.generator.generate_all_entities(
-            floor=1,
-            max_floors=3,
-            game_map=self.game_map,
-            map_width=self.map_width,
-            map_height=self.map_height,
-            player_pos=self.player_pos,
-            random_placement=True,  # Use random placement to ensure items are generated
-        )
+    def _generate(self, generator, floor):
+        """Generate fixtures then items for a floor, as Game does."""
+        args = (self.game_map, self.map_width, self.map_height, self.player_pos, True)
+        stairs, terminals = generator.generate_fixtures(floor, 3, *args)
+        items = generator.generate_items(floor, *args)
+        return stairs, terminals, items
+
+    def test_fixtures_and_items_together(self):
+        """Fixtures and items for one floor are all generated."""
+        stairs, terminals, items = self._generate(self.generator, 1)
 
         # Verify stairs
         self.assertGreater(len(stairs), 0)
@@ -346,29 +345,13 @@ class TestFullEntityGeneration(unittest.TestCase):
         self.assertGreater(len(items), 0)
         self.assertIsInstance(items[0], ItemPickup)
 
-    def test_generate_all_entities_deterministic(self):
+    def test_generation_is_deterministic(self):
         """Test that generation is deterministic with same seed."""
-        stairs1, terminals1, items1 = self.generator.generate_all_entities(
-            floor=2,
-            max_floors=3,
-            game_map=self.game_map,
-            map_width=self.map_width,
-            map_height=self.map_height,
-            player_pos=self.player_pos,
-            random_placement=True,
-        )
+        stairs1, terminals1, items1 = self._generate(self.generator, 2)
 
         # Create new generator with same seed
         generator2 = FloorEntityGenerator(self.level_data, self.snippets, random.Random(42))
-        stairs2, terminals2, items2 = generator2.generate_all_entities(
-            floor=2,
-            max_floors=3,
-            game_map=self.game_map,
-            map_width=self.map_width,
-            map_height=self.map_height,
-            player_pos=self.player_pos,
-            random_placement=True,
-        )
+        stairs2, terminals2, items2 = self._generate(generator2, 2)
 
         # Should generate identical results
         self.assertEqual(len(stairs1), len(stairs2))

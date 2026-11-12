@@ -230,18 +230,6 @@ class NPCManager:
         """
         self.relationships.update_opinion(npc_name, delta)
 
-    def get_conversation(self, npc_name: str) -> Conversation | None:
-        """
-        Get conversation for an NPC.
-
-        Args:
-            npc_name: Name of the NPC
-
-        Returns:
-            Conversation object or None if not found
-        """
-        return self.conversations.get(npc_name)
-
     def to_dict(self) -> dict:
         """
         Serialize NPCManager state to dictionary.

@@ -418,27 +418,17 @@ class TestNPCConversations(unittest.TestCase):
 
         self.questions = {}
 
-    def test_get_conversation(self):
-        """Test retrieving NPC conversation."""
+    def test_conversation_built_for_npc(self):
+        """Test that a conversation is built up front for each NPC."""
         manager = NPCManager(
             self.npc_data, self.questions, self.rng, self.difficulty_settings, seed=42
         )
 
-        conv = manager.get_conversation("TALKER")
+        conv = manager.conversations.get("TALKER")
 
         self.assertIsNotNone(conv)
         assert conv is not None  # Type narrowing for mypy
         self.assertEqual(conv.npc_name, "TALKER")
-
-    def test_get_nonexistent_conversation(self):
-        """Test retrieving conversation for nonexistent NPC."""
-        manager = NPCManager(
-            self.npc_data, self.questions, self.rng, self.difficulty_settings, seed=42
-        )
-
-        conv = manager.get_conversation("NONEXISTENT")
-
-        self.assertIsNone(conv)
 
 
 class TestNPCManagerSerialization(unittest.TestCase):

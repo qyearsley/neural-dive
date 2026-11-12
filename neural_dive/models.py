@@ -71,13 +71,3 @@ class Conversation:
         if self.current_question_idx < len(self.questions):
             return self.questions[self.current_question_idx]
         return None
-
-    def advance_question(self) -> None:
-        """Move to the next question"""
-        self.current_question_idx += 1
-        if self.current_question_idx >= len(self.questions):
-            self.completed = True
-
-    def is_complete(self) -> bool:
-        """Check if all questions have been answered"""
-        return self.current_question_idx >= len(self.questions)

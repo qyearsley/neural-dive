@@ -43,11 +43,11 @@ class TestConversationEngineInitialization(unittest.TestCase):
         self.assertTrue(engine.active_help)
         self.assertIn("active_help", vars(engine))
 
-    def test_is_active_false_initially(self):
-        """Test that is_active() returns False when no conversation."""
+    def test_no_active_conversation_initially(self):
+        """Test that a new engine has no active conversation."""
         engine = ConversationEngine()
 
-        self.assertFalse(engine.is_active())
+        self.assertIsNone(engine.active_conversation)
 
 
 class TestConversationEngineStartEnd(unittest.TestCase):
@@ -78,12 +78,6 @@ class TestConversationEngineStartEnd(unittest.TestCase):
         self.assertIsNone(self.engine.last_answer_response)
         self.assertEqual(self.engine.text_input_buffer, "")
 
-    def test_start_conversation_makes_active(self):
-        """Test that starting conversation makes is_active() return True."""
-        self.engine.start_conversation(self.conversation)
-
-        self.assertTrue(self.engine.is_active())
-
     def test_end_conversation(self):
         """Test ending conversation resets all state."""
         self.engine.start_conversation(self.conversation)
@@ -96,13 +90,6 @@ class TestConversationEngineStartEnd(unittest.TestCase):
         self.assertFalse(self.engine.show_greeting)
         self.assertIsNone(self.engine.last_answer_response)
         self.assertEqual(self.engine.text_input_buffer, "")
-
-    def test_end_conversation_makes_inactive(self):
-        """Test that ending conversation makes is_active() return False."""
-        self.engine.start_conversation(self.conversation)
-        self.engine.end_conversation()
-
-        self.assertFalse(self.engine.is_active())
 
 
 class TestConversationEngineQuestionAnswering(unittest.TestCase):
