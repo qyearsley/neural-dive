@@ -63,6 +63,15 @@ class TestEnemyAmbush(unittest.TestCase):
 
         self.assertFalse(self.game.check_ambush())
 
+    def test_no_ambush_at_zero_coherence(self):
+        # Game over ends the conversation without stunning the enemy, so it is
+        # still adjacent; without the guard it would reopen a conversation.
+        self._stand_next_to_enemy()
+        self.game.player_manager.coherence = 0
+
+        self.assertFalse(self.game.check_ambush())
+        self.assertIsNone(self.game.conversation_engine.active_conversation)
+
     def test_the_stun_survives_a_save(self):
         self.enemy.stun_ticks = 17
 

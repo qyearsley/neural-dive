@@ -320,3 +320,70 @@ class TestEnemyPursuit(unittest.TestCase):
 
         self.assertNotEqual((npc.x, npc.y), (5, 5))
         self.assertEqual(game_map[npc.y][npc.x], ".")
+
+    def _walled_map(self, gap_y: int | None) -> list[list[str]]:
+        """A full-height wall at x=7 with one gap at gap_y, or none."""
+        game_map = _open_map()
+        for y in range(1, 9):
+            if y != gap_y:
+                game_map[y][7] = "#"
+        return game_map
+
+    def _follow(self, movement: NPCMovement, game_map, start, player) -> list[tuple[int, int]]:
+        """Walk the BFS steps until next to the player; return every tile visited."""
+        npc = self._enemy(*start)
+        path = [start]
+        for _ in range(40):
+            step = movement._first_step_toward(npc, [npc], game_map, *player)
+            if step is None:
+                break
+            npc.x, npc.y = step
+            path.append(step)
+        return path
+
+    def test_bfs_heads_for_the_gap_in_a_wall_above(self):
+        movement = NPCMovement(random.Random(1))
+        game_map = self._walled_map(gap_y=1)
+        player = (9, 5)
+
+        path = self._follow(movement, game_map, (5, 5), player)
+
+        # The first step already goes up, away from the straight line
+        self.assertLess(path[1][1], 5)
+        self.assertIn((7, 1), path)
+        self.assertTrue(all(game_map[y][x] != "#" for x, y in path))
+        self.assertLessEqual(max(abs(path[-1][0] - player[0]), abs(path[-1][1] - player[1])), 1)
+
+    def test_bfs_heads_for_the_gap_in_a_wall_below(self):
+        movement = NPCMovement(random.Random(1))
+        game_map = self._walled_map(gap_y=8)
+        player = (9, 5)
+
+        path = self._follow(movement, game_map, (5, 5), player)
+
+        self.assertGreater(path[1][1], 5)
+        self.assertIn((7, 8), path)
+        self.assertTrue(all(game_map[y][x] != "#" for x, y in path))
+
+    def test_bfs_returns_none_when_the_wall_is_sealed(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+
+        step = movement._first_step_toward(npc, [npc], self._walled_map(gap_y=None), 9, 5)
+
+        self.assertIsNone(step)
+
+    def test_bfs_returns_none_when_already_next_to_the_player(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+
+        self.assertIsNone(movement._first_step_toward(npc, [npc], _open_map(), 6, 6))
+
+    def test_a_sealed_off_enemy_stays_put_but_still_pays_the_chase_cooldown(self):
+        movement = NPCMovement(random.Random(1))
+        npc = self._enemy(5, 5)
+
+        self._tick(movement, npc, self._walled_map(gap_y=None), (9, 5))
+
+        self.assertEqual((npc.x, npc.y), (5, 5))
+        self.assertEqual(npc.move_cooldown, ENEMY_CHASE_SPEED)

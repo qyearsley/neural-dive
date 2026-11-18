@@ -8,7 +8,7 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 
 ## At a glance
 
-1. The enemy chase and ambush paths have test gaps — S · open
+1. The `overlay_is_open` / `pending_confirm` ambush gate is untested — S · open
 2. The player profile assumes one game process at a time — S · open, low priority
 3. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
 
@@ -18,22 +18,13 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 - Everything at once: `make ci`
 - Public repo. Never commit a work hostname, address, tool name or ticket ID.
 
-## 1. The enemy chase and ambush paths have test gaps
+## 1. The `overlay_is_open` / `pending_confirm` ambush gate is untested
 
 **S · open**
 
-From a read of `d700b54` on 2026-10-19; no logic bug found.
-
-- `NPCMovement._first_step_toward`, the BFS step, is untested. The chase test
-  in `tests/test_npc_units.py` only checks the chase speed.
-- The game-over branch in `answer_processor.py` ends the conversation directly,
-  so the enemy is not stunned and stays adjacent. `check_ambush` guards this
-  with `coherence <= 0`, and no test pins that guard.
-- The `overlay_is_open` / `pending_confirm` gate in `__main__.py` runs only in
-  real play.
-
-Verify: a BFS test with a wall between enemy and player, and an ambush test at
-zero coherence.
+The gate in `__main__.py` that skips `check_ambush` while an overlay or a Y/N
+confirmation is open runs only in real play. It is inline in the main loop, so
+a test needs the condition pulled into a function first.
 
 ## 2. The player profile assumes one game process at a time
 
@@ -74,6 +65,7 @@ one that fix targets.
 Verdict plus the one fact that stops an item being proposed again. The reasoning
 is in the commit that made it.
 
+- **Chase BFS and ambush guard now tested** (2026-11-18): wall detours, no path, and `coherence <= 0` in `check_ambush`.
 - **`GameBuilder` deleted 2026-11-12.** Only its own test used it; the game
   builds through `GameInitializer`, `GameContext` and `GameManagers`.
 - **Nine unused event types deleted 2026-11-12.** Only `ItemPickedUp` is
