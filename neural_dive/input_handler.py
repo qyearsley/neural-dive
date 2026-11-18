@@ -165,6 +165,22 @@ def overlay_is_open(game: Game) -> bool:
     )
 
 
+def ambush_allowed(game: Game, normal_handler: NormalModeHandler) -> bool:
+    """Whether an adjacent enemy may start a conversation this frame.
+
+    Not while an overlay owns the keyboard, and not while a Y/N confirmation
+    waits for its answer: the ambush would take the next keystroke from them.
+
+    Args:
+        game: Game instance
+        normal_handler: The handler that holds any pending confirmation
+
+    Returns:
+        True if the main loop should call ``game.check_ambush()``
+    """
+    return not overlay_is_open(game) and normal_handler.pending_confirm is None
+
+
 class OverlayHandler:
     """Handles input for overlay modes (help, inventory, snippets, terminals).
 

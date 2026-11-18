@@ -16,6 +16,7 @@ from neural_dive.input_handler import (
     InputResult,
     NormalModeHandler,
     OverlayHandler,
+    ambush_allowed,
     overlay_is_open,
 )
 from neural_dive.managers.conversation_engine import ConversationEngine
@@ -901,6 +902,27 @@ class TestOverlayDispatch(unittest.TestCase):
                 self.game.conversation_engine = engine
 
                 self.assertTrue(overlay_is_open(self.game))
+
+
+class TestAmbushGate(unittest.TestCase):
+    """`ambush_allowed` is what the main loop checks before `check_ambush`."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.game = Mock()
+        self.game.conversation_engine = ConversationEngine()
+        self.handler = NormalModeHandler()
+
+    def test_allowed_in_plain_play(self):
+        self.assertTrue(ambush_allowed(self.game, self.handler))
+
+    def test_blocked_while_an_overlay_is_open(self):
+        self.game.conversation_engine.active_help = True
+        self.assertFalse(ambush_allowed(self.game, self.handler))
+
+    def test_blocked_while_a_confirmation_waits(self):
+        self.handler.pending_confirm = "quit"
+        self.assertFalse(ambush_allowed(self.game, self.handler))
 
 
 if __name__ == "__main__":

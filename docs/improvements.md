@@ -8,9 +8,7 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 
 ## At a glance
 
-1. The `overlay_is_open` / `pending_confirm` ambush gate is untested — S · open
-2. The player profile assumes one game process at a time — S · open, low priority
-3. Pre-commit hooks never run on a commit that only touches `ndive` — S · open, low priority
+Nothing open.
 
 ## Working on these
 
@@ -18,54 +16,22 @@ drift. Runtime bugs live in [`known-issues.md`](known-issues.md).
 - Everything at once: `make ci`
 - Public repo. Never commit a work hostname, address, tool name or ticket ID.
 
-## 1. The `overlay_is_open` / `pending_confirm` ambush gate is untested
-
-**S · open**
-
-The gate in `__main__.py` that skips `check_ambush` while an overlay or a Y/N
-confirmation is open runs only in real play. It is inline in the main loop, so
-a test needs the condition pulled into a function first.
-
-## 2. The player profile assumes one game process at a time
-
-**S · open, low priority**
-
-`neural_dive/player_profile.py` reads `~/.neural_dive/profile.json` at startup
-and rewrites the whole file after every answer. The write itself is atomic (temp
-file plus `os.replace`), so the file is never half-written, but two concurrent
-runs would still end with whichever finished last — the other run's answers are
-lost.
-
-Fine for a single-player terminal game; worth knowing before anything else
-starts writing that file. The per-answer write is also deliberate: a run killed
-with Ctrl-C must not lose its history, and the file is a couple of KB.
-
-## 3. Pre-commit hooks never run on a commit that only touches `ndive`
-
-**S · open, low priority**
-
-The ruff-check, ruff-format, mypy, and pytest hooks in
-`.pre-commit-config.yaml` gate on `types: [python]` (pytest also on `json`,
-since 2026-09-26). `identify`, the library `prek`/`pre-commit` use to tag
-files, does not recognise `ndive`'s shebang
-(`#!/usr/bin/env -S uv run --script`) as Python -- it tags the file `text` and
-`executable` only. So a commit that edits `ndive` and nothing else skips every
-local check; `.github/workflows/ci.yml` still catches it (it names `ndive`
-explicitly in each `run:` line and does not filter by file type).
-
-Fixing it would mean adding `ndive` to `files:` on each hook, which reopens the
-exact trap `. ndive` was added to the Makefile's `lint` target to avoid: a
-filename-based pattern that has to be kept in sync by hand as extensionless
-scripts come and go, rather than by content sniffing. Found while verifying the
-JSON-trigger fix below; not fixed here because it's a separate gate from the
-one that fix targets.
-
 ## Settled
 
 Verdict plus the one fact that stops an item being proposed again. The reasoning
 is in the commit that made it.
 
-- **Chase BFS and ambush guard now tested** (2026-11-18): wall detours, no path, and `coherence <= 0` in `check_ambush`.
+- **Chase BFS and ambush guards now tested** (2026-11-18): wall detours, no
+  path, `coherence <= 0` in `check_ambush`, and the overlay and Y/N gate, now
+  `ambush_allowed()` in `input_handler.py`.
+- **The player profile assumes one game process** (closed 2026-11-18). Two
+  concurrent runs keep only the last writer's answers. Accepted: it is a
+  single-player game. The write is atomic, and the per-answer write is
+  deliberate so Ctrl-C keeps history.
+- **Pre-commit skips a commit that touches only `ndive`** (closed 2026-11-18).
+  `identify` does not tag its `uv run --script` shebang as Python. CI names
+  `ndive` explicitly and catches it; a `files:` pattern per hook would need
+  hand upkeep.
 - **`GameBuilder` deleted 2026-11-12.** Only its own test used it; the game
   builds through `GameInitializer`, `GameContext` and `GameManagers`.
 - **Nine unused event types deleted 2026-11-12.** Only `ItemPickedUp` is

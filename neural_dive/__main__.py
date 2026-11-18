@@ -20,6 +20,7 @@ from neural_dive.input_handler import (
     EndGameHandler,
     NormalModeHandler,
     OverlayHandler,
+    ambush_allowed,
     overlay_is_open,
 )
 from neural_dive.player_profile import PlayerProfile, format_profile_summary
@@ -96,7 +97,7 @@ def run_interactive(game: Game, chars, colors):
 
                 # Update NPC wandering every frame
                 game.update_npc_wandering()
-                if not overlay_is_open(game) and normal_handler.pending_confirm is None:
+                if ambush_allowed(game, normal_handler):
                     game.check_ambush()
 
                 # Check for victory
